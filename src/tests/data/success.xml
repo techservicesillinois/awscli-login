@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap11:Envelope xmlns:soap11="http://schemas.xmlsoap.org/soap/envelope/"><soap11:Header><ecp:Response AssertionConsumerServiceURL="https://signin.aws.amazon.com/saml" soap11:actor="http://schemas.xmlsoap.org/soap/actor/next" soap11:mustUnderstand="1" xmlns:ecp="urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp"/></soap11:Header><soap11:Body><saml2p:Response Destination="https://signin.aws.amazon.com/saml" ID="_0cfceb6ee5dae9c359f0a9626c99c02a" InResponseTo="_54BC9187A73D46CA87171B2D3440B42B" IssueInstant="2018-02-20T13:52:10.047Z" Version="2.0" xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol"><saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">urn:mace:incommon:test.uiuc.edu</saml2:Issuer><saml2p:Status><saml2p:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/></saml2p:Status><saml2:Assertion ID="_ef5b0c541a33c406afefc645db791d1c" IssueInstant="2018-02-20T13:52:10.047Z" Version="2.0" xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><saml2:Issuer>urn:mace:incommon:test.uiuc.edu</saml2:Issuer><ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+<ds:Reference URI="#_ef5b0c541a33c406afefc645db791d1c">
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><ec:InclusiveNamespaces PrefixList="xsd" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#"/></ds:Transform>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+<ds:DigestValue>LRi5RWx2hyOJWn52zpvIZL3w/waumomGbTi7Jhrj81g=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>
+KfJwp/oqcPEg7EkFBUjwkUmd/QbY+bjF97Geg5FX6pDrLe/Dqw/pPVtKsNIWhYEpeKaFerqWBttV
+OsO3o4ZOiwzp8OZyaeJVsq7udHhIKO5stiF7rRWBhnSGn8n0HXImnXdZUEaAWTcM7hw5xUdsF4qW
+R41nBI941ziQkaJWxytLBSgjUXkQzB9B8VBmWs1mMq09CQGhI7PEf7Zn9C3eG1WNExFsGhy7bXMS
+zR8Khul39qP6L9CEeeL50raopzO/lcBnYpnJQ2qIcZB+zVuDyABbOIfzJEWozOYknefKQilSI4jz
+RQRbUDnkxdK/wBmUAXwe9qR1ItqJ4r5kSY8tOA==
+</ds:SignatureValue>
+<ds:KeyInfo><ds:X509Data><ds:X509Certificate>MIIEGDCCAwACCQD5BVRPeXtC/zANBgkqhkiG9w0BAQUFADCBzTELMAkGA1UEBhMCVVMxETAPBgNV
+BAgMCElsbGlub2lzMQ8wDQYDVQQHDAZVcmJhbmExMzAxBgNVBAoMKlVuaXZlcnNpdHkgb2YgSWxs
+aW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbjEOMAwGA1UECwwFQ0lURVMxKTAnBgNVBAMMIHNoaWIt
+dGVzdC1pZHAuY2l0ZXMuaWxsaW5vaXMuZWR1MSowKAYJKoZIhvcNAQkBFhtzaGliYm9sZXRoLW1n
+ckBpbGxpbm9pcy5lZHUwHhcNMTQwNDExMTU0MjQxWhcNMzQwNDA2MTU0MjQxWjCBzTELMAkGA1UE
+BhMCVVMxETAPBgNVBAgMCElsbGlub2lzMQ8wDQYDVQQHDAZVcmJhbmExMzAxBgNVBAoMKlVuaXZl
+cnNpdHkgb2YgSWxsaW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbjEOMAwGA1UECwwFQ0lURVMxKTAn
+BgNVBAMMIHNoaWItdGVzdC1pZHAuY2l0ZXMuaWxsaW5vaXMuZWR1MSowKAYJKoZIhvcNAQkBFhtz
+aGliYm9sZXRoLW1nckBpbGxpbm9pcy5lZHUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB
+AQDN6Je3w6QE7pceQioFd59inM6n6cbwDMPdD+gr9QYltpeNEQuaPVKG08/szCAQL7Yos8WVbb7r
+AaYm/4hPq4R/8lJdhLC7rzwsqwSGIIfxkK3ntVXN/7TJCUNnLH4IkuiYsEwnXuTVCHNuAEVwp/q8
+vse3+PGugfGdTkCWO0RNUQioBYSE+Ex2wEmFrD85w+64vV8PvTAeXzXRc767+EX/dNP6pAJXNT6s
+DsDzLFyAjqxy0nWINVUTSf0uJjqMHubpCuHLVJTeXQUrXn/U6p/hwvuOJBonhr6f9lcFs77hUMFX
+SCmq7MYmRyBdhYCJDZ8ixWNAEaEBcx31F/GxPrxHAgMBAAEwDQYJKoZIhvcNAQEFBQADggEBAJj0
+ktbrnyrlM4VZ6dKtIfVSHeGz6KbtDDIJVFTnYNZ1vTyHTytVz9aVUy6qnPZ+bbS6kiASWCgHEmmp
+v4XRw+Sc1wsB/sD7oY4xfysi77qtxhoJK0UoUwh4CCGNjwEgk9hU6eb15mfdnwdQUZAW9O75xKHs
+7b+w/7KtZJHlPikYrwdKOGstydnTmT+4CSVZQjFOCdgl2dkpTI/Nw0fsSzYvNXWe2vplzqDM3rIg
+YVt4OY5uaeoEop7b2OGZXQaiyDYPlC67YosgpEttwFpLm82zeazrGX2u9I1JJZAhFxsTuN4BunZ9
+bBhzYcvuaU/tqUxcx3YMiiFg+V1vc32pcfE=</ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:Signature><saml2:Subject><saml2:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress" NameQualifier="urn:mace:incommon:test.uiuc.edu" SPNameQualifier="urn:amazon:webservices">ddriddle@illinois.edu</saml2:NameID><saml2:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer"><saml2:SubjectConfirmationData Address="98.215.8.82" InResponseTo="_54BC9187A73D46CA87171B2D3440B42B" NotOnOrAfter="2018-02-20T13:57:10.051Z" Recipient="https://signin.aws.amazon.com/saml"/></saml2:SubjectConfirmation></saml2:Subject><saml2:Conditions NotBefore="2018-02-20T13:52:10.047Z" NotOnOrAfter="2018-02-20T13:57:10.047Z"><saml2:AudienceRestriction><saml2:Audience>urn:amazon:webservices</saml2:Audience></saml2:AudienceRestriction></saml2:Conditions><saml2:AuthnStatement AuthnInstant="2018-02-20T13:47:37.021Z" SessionIndex="_68462105678bf8ab1157c976cf732bbc"><saml2:SubjectLocality Address="98.215.8.82"/><saml2:AuthnContext><saml2:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml2:AuthnContextClassRef></saml2:AuthnContext></saml2:AuthnStatement><saml2:AttributeStatement><saml2:Attribute FriendlyName="eduPersonEntitlement" Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.7" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">urn:mace:dir:entitlement:common-lib-terms</saml2:AttributeValue></saml2:Attribute><saml2:Attribute FriendlyName="SessionDuration" Name="https://aws.amazon.com/SAML/Attributes/SessionDuration" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">28800</saml2:AttributeValue></saml2:Attribute><saml2:Attribute FriendlyName="eduPersonAffiliation" Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.1" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">member</saml2:AttributeValue></saml2:Attribute><saml2:Attribute FriendlyName="eduPersonPrincipalName" Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.6" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">ddriddle@illinois.edu</saml2:AttributeValue></saml2:Attribute><saml2:Attribute FriendlyName="Role" Name="https://aws.amazon.com/SAML/Attributes/Role" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">arn:aws:iam::378517677616:saml-provider/shibboleth-test.techservices.illinois.edu,arn:aws:iam::378517677616:role/TestShibAdmin</saml2:AttributeValue></saml2:Attribute><saml2:Attribute FriendlyName="RoleSessionName" Name="https://aws.amazon.com/SAML/Attributes/RoleSessionName" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">ddriddle@illinois.edu</saml2:AttributeValue></saml2:Attribute></saml2:AttributeStatement></saml2:Assertion></saml2p:Response></soap11:Body></soap11:Envelope>

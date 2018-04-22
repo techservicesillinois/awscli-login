@@ -1,0 +1,17 @@
+*.pyc
+*.pyo
+*.swp
+*.egg-info
+
+__pycache__
+build
+dist
+htmlcov
+venv
+docs/src/
+
+.coverage
+.report
+.summary
+.mypy_cache
+.eggs
