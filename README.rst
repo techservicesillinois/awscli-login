@@ -1,7 +1,7 @@
 Project Description
 -------------------
 
-awscli-login is a plugin that allows retreiving temporary Amazon
+awscli-login is a plugin that allows retrieving temporary Amazon
 credentials by authenticating against a SAML Identity Provider
 (IdP).
 
@@ -26,7 +26,7 @@ configure this plugin you must know the URL of the ECP Endpoint for your IdP.
 If you do not have this information contact your IdP administrator.
 
 Here is an example configuring the default profile for use with the University
-of illinois at Urbana-Champaign's IdP::
+of Illinois at Urbana-Champaign's IdP::
 
     $ aws login configure
     ECP Endpoint URL [None]: https://shibboleth.illinois.edu/idp/profile/SAML2/SOAP/ECP
@@ -58,18 +58,12 @@ a role. For example::
     Username [username]: netid
     Password: ********
     Factor: 
-
     Please choose the role you would like to assume:
-
-    Account: 978517677611
-
-        [ 0 ]: Admin
-
-    Account: 520135271718
-
-        [ 1 ]: ReadOnlyUser
-        [ 2 ]: S3Admin
-
+        Account: 978517677611
+            [ 0 ]: Admin
+        Account: 520135271718
+            [ 1 ]: ReadOnlyUser
+            [ 2 ]: S3Admin
     Selection: 2
 
 To switch roles first logout, then login again selecting a different
@@ -80,14 +74,10 @@ the IdP session expires::
     $ aws logout
     $ aws login
     Username [netid]: 
-
     Please choose the role you would like to assume:
-
-    Account: 520135271718
-
-        [ 0 ]: TestUser
-        [ 1 ]: IAMUser
-
+        Account: 520135271718
+            [ 0 ]: TestUser
+            [ 1 ]: IAMUser
     Selection: 0
 
 Advanced Example
@@ -136,5 +126,5 @@ in to test we are prompted for nothing::
 
 Even if the IdP session has expired in this case we will not be
 prompted for a password because it is stored in the Keyring. The
-user will recieve either a phone call or a push to the default
+user will receive either a phone call or a push to the default
 device configured for Duo to permit authenticating.

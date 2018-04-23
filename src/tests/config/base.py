@@ -1,6 +1,6 @@
 """ Base classes used for testing """
 from argparse import Namespace
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from awscli_login.config import Profile
 
@@ -33,36 +33,16 @@ class ProfileBase(CleanAWSLoginEnvironment):
         self.profile = Profile(self._session, self._args)
         return self.profile
 
-    def assertProfileHasAttr(self, attr: str, evalue) -> str:
+    def assertProfileHasAttr(self, attr: str, evalue: Any) -> None:
         """ If called tests that profile has the given attribute
             and value. Returns None on success, and an error
             message on failure. """
-        if not hasattr(self.profile, attr):
-            return "Profile object does not have attr: %s" % attr
+        self.assertHasAttr(self.profile, attr, evalue)
 
-        rvalue = getattr(self.profile, attr)
-        if type(rvalue) != type(evalue):
-            return "Attribute %s has unexpected type %s! " \
-                   "Expected %s!" % (attr, type(rvalue), type(evalue))
-
-        if rvalue != evalue:
-            return "Attribute %s has unexpected value %s! " \
-                   "Expected %s!" % (attr, rvalue, evalue)
-
-        return None
-
-    def assertProfileHasAttrs(self, **kwargs) -> None:
+    def assertProfileHasAttrs(self, **kwargs: Any) -> None:
         """ If called tests that profile has the expected
             attributes and values specifed in expected_attr_vals. """
-        errors: List[str] = []
-
-        for attr, value in kwargs.items():
-            error = self.assertProfileHasAttr(attr, value)
-
-            if error:
-                errors.append(error)
-
-        self.assertEqual(len(errors), 0, '\n'.join(errors))
+        self.assertHasAttrs(self.profile, **kwargs)
 
 
 class ProfileNoArgsBase(ProfileBase):

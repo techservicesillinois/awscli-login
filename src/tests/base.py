@@ -3,6 +3,7 @@ import unittest
 from os import environ, makedirs, path, unlink, walk
 from os.path import dirname, relpath, join
 from tempfile import TemporaryDirectory
+from typing import Any, List
 from unittest.mock import patch
 
 from wurlitzer import pipes
@@ -13,7 +14,140 @@ from .util import exec_awscli, tree
 from .exceptions import NotRelativePathError
 
 
-class TempDir(unittest.TestCase):
+class SDGTestCase(unittest.TestCase):
+    """Adds additional convenience assert statements.
+
+    .. testsetup::
+
+        from tests.base import SDGTestCase
+        self = SDGTestCase
+    """
+
+    @staticmethod
+    def _assertHasAttr(obj: object, attr: str, evalue: Any) -> str:
+        """Assert object has an attribute with a given value.
+
+        Example:
+            This is an example.
+
+        Args:
+            obj: object to test.
+            attr: attribute name.
+            evalue: expected value.
+
+        Returns:
+            Error message or None.
+        """
+        objName = obj.__class__.__name__
+
+        try:
+            rvalue = getattr(obj, attr)
+        except AttributeError as e:
+            return "%s object does not have attr: %s" % (objName, attr)
+
+        if type(rvalue) != type(evalue):
+            return "Attribute %s has unexpected type: %s\n" \
+                   "Expected %s on %s object!" % \
+                   (attr, type(rvalue), type(evalue), object)
+
+        if rvalue != evalue:
+            return "Attribute %s has unexpected value: %s\n" \
+                   "Expected %s on %s object!" % \
+                   (attr, rvalue, evalue, objName)
+
+        return None
+
+    @staticmethod
+    def assertHasAttr(obj: object, attr: str, evalue: Any) -> None:
+        """Assert object has an attribute with a given value.
+
+        Args:
+            obj: object to test.
+            attr: attribute name.
+            evalue: expected value.
+
+        Raises:
+            AssertionError
+
+        Examples:
+            >>> class Coordinates:
+            ...     x = 0
+            ...     y = 0
+            ...
+            >>> center = Coordinates()
+            >>> self.assertHasAttr(center, 'foo', 'bar')
+            Traceback (most recent call last):
+                ...
+            AssertionError: Coordinates object does not have attr: foo
+            >>> self.assertHasAttr(center, 'x', 'bar')
+            Traceback (most recent call last):
+                ...
+            AssertionError: Attribute x has unexpected type <class 'int'>
+            Expected <class 'str'> on Coordinates object!
+            >>> self.assertHasAttr(center, 'x', 1)
+            Traceback (most recent call last):
+                :83
+                ...
+            AssertionError: Attribute x has unexpected value 0
+            Expected 1 on Coordinates object!
+            >>> self.assertHasAttr(center, 'x', 0)
+        """
+        error = SDGTestCase._assertHasAttr(obj, attr, evalue)
+
+        if error:
+            raise AssertionError(error)
+
+    @staticmethod
+    def assertHasAttrs(obj: object, **kwargs: Any) -> None:
+        """Assert object has attributes with given values.
+
+        Tests if object `obj` has all the given named arguments as
+        attributes with the corresponding named argument values.
+
+        Args:
+            obj: object to test.
+            **kwargs: each keyword argument's name is expected to
+                be an attribute on object `obj` having the same value
+                as the keyword argument.
+
+        Raises:
+            AssertionError
+
+        Examples:
+            >>> class Coordinates:
+            ...     x = 0
+            ...     y = 0
+            ...
+            >>> center = Coordinates()
+            >>> self.assertHasAttrs(center, foo='bar', x=0, y=0)
+            Traceback (most recent call last):
+                ...
+            AssertionError: Coordinates object does not have attr: foo
+            >>> self.assertHasAttrs(center, x='bar', y='foo')
+            Traceback (most recent call last):
+                ...
+            AssertionError: Attribute x has unexpected type <class 'int'>
+            Expected <class 'str'> on Coordinates object!
+            >>> self.assertHasAttrs(center, x=1, y=0)
+            Traceback (most recent call last):
+                ...
+            AssertionError: Attribute x has unexpected value 0
+            Expected 1 on Coordinates object!
+            >>> self.assertHasAttrs(center, x=0, y=0)
+        """
+        errors: List[str] = []
+
+        for attr, value in kwargs.items():
+            error = SDGTestCase._assertHasAttr(obj, attr, value)
+
+            if error:
+                errors.append(error)
+
+        if len(errors):
+            raise AssertionError('\n'.join(errors))
+
+
+class TempDir(SDGTestCase):
     """A class for tests that require a temporary directory.
 
     This class creates a temporary directory during the setUp phase

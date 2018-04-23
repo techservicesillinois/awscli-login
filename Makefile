@@ -38,6 +38,9 @@ html: $(HTML)
 docs: $(SRCS) $(TSTS)
 	make -C docs html
 
+doctest:
+	make -C docs doctest
+
 $(HTML): .coverage
 	@coverage html
 

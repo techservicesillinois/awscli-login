@@ -46,18 +46,18 @@ def get_selection(role_arns: List[Role]) -> Role:
     select: Dict[int, int] = {}
 
     if n > 1:
-        print("\nPlease choose the role you would like to assume:")
+        print("Please choose the role you would like to assume:")
 
         accounts = sort_roles(role_arns)
         for acct, roles in accounts:
-            print("\nAccount: %s\n" % acct)
+            print(' ' * 4, "Account:", acct)
 
             for index, role in roles:
-                print("\t[ %d ]: " % i + role, end="\n")
+                print(' ' * 8, "[ %d ]:" % i, role)
                 select[i] = index
                 i += 1
 
-        print("\nSelection: ", end='')
+        print("Selection:\a ", end='')
 # TODO need error checking
         return role_arns[select[int(input())]]
     elif n == 1:
