@@ -5,23 +5,24 @@ import lxml.etree as ET
 
 from base64 import b64encode
 from datetime import datetime
-from uuid import uuid4
 from http.cookiejar import LWPCookieJar
-from typing import cast
 from typing import List, Tuple
+from typing import cast
+from uuid import uuid4
 
 from lxml.etree import XMLSyntaxError
 from lxml.etree import tostring, Element, SubElement
 from requests import Session
 from requests.cookies import RequestsCookieJar
 
-from awscli_login.typing import Role, Headers
-from awscli_login.exceptions import (
+from .exceptions import (
     AuthnFailed,
     InvalidSOAP,
     MissingCookieJar,
     RoleParseFail,
 )
+from .typing import Role, Headers
+from .util import secure_touch
 
 SAML_SUCCESS = "urn:oasis:names:tc:SAML:2.0:status:Success"
 
@@ -119,6 +120,7 @@ def authenticate(url: str, cookies: str,
     mesg = "Successfully authenticated with username/password"
     logger.info(mesg + " to endpoint: " + url)
 
+    secure_touch(cookies)
     jar.save(ignore_discard=True)
     logger.info("Saved cookies to jar: " + jar.filename)
 

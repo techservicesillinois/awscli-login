@@ -1,8 +1,9 @@
 from copy import copy
-from os import path
+from os import getpid, path
 from os.path import isfile
-from typing import Any, Dict
+from typing import Any, Dict  # NOQA
 from unittest import SkipTest
+from unittest.mock import patch
 
 from awscli_login.config import JAR_DIR
 from awscli_login.exceptions import (
@@ -15,10 +16,7 @@ from ..base import (
     TempDir,
 )
 
-from .base import (
-    ProfileBase,
-    ProfileNoArgsBase,
-)
+from .base import ProfileBase
 from .util import qremove
 
 
@@ -35,7 +33,6 @@ class NoProfile(ProfileBase):
 
 class MissingProfile(ProfileBase):
     """ Given the desired profile is missing """
-    profile_name = 'test'
 
     def test_missing_profile(self) -> None:
         """ Loading missing profile should throw Exception ProfileNotFound. """
@@ -44,7 +41,7 @@ class MissingProfile(ProfileBase):
 ecp_endpoint_url = foo
     """
         with self.assertRaises(ProfileNotFound):
-            self.Profile()
+            self.Profile('test')
 
 
 class EmptyProfile(ProfileBase):
@@ -87,7 +84,7 @@ class AttrTestMixin(ProfileBase):
         self.assertTrue(hasattr(self.profile, 'pidfile'))
         self.assertEqual(
             path.split(self.profile.pidfile)[1],
-            self.profile_name + '.pid'
+            self.profile.name + '.pid'
         )
 
     def test_raise_if_logged_in_no_pidfile(self) -> None:
@@ -99,19 +96,35 @@ class AttrTestMixin(ProfileBase):
 
         self.profile.raise_if_logged_in()
 
-    def test_raise_if_logged_in_with_pidfile(self) -> None:
+    def test_raise_if_logged_in_with_good_pidfile(self) -> None:
         """ Should throw an exception if the pidfile exists. """
         if not hasattr(self.profile, 'pidfile'):
             raise SkipTest('Profile does not have attr pidfile!')
         with open(self.profile.pidfile, 'x') as f:
-            f.write('1234')
+            f.write(str(getpid()))
         self.addCleanup(qremove, self.profile.pidfile)
 
         with self.assertRaises(AlreadyLoggedIn):
             self.profile.raise_if_logged_in()
 
+    @patch('awscli_login.config.pid_exists', return_value=False)
+    def test_raise_if_logged_in_with_bad_pidfile(self, mock) -> None:
+        """ Should remove the pidfile if process does not exist. """
+        pidfile = self.profile.pidfile
+        with open(pidfile, 'x') as f:
+            f.write(str(getpid()))
+        self.addCleanup(qremove, pidfile)
 
-class ReadMinProfile(ProfileNoArgsBase, AttrTestMixin):
+        try:
+            self.profile.raise_if_logged_in()
+        finally:
+            self.assertFalse(
+                isfile(pidfile),
+                "raise_if_logged_in failed to cleanup bad pidfile!"
+            )
+
+
+class ReadMinProfile(AttrTestMixin):
     """ Test profile with minimum valid default profile """
 
     def setUp(self) -> None:
@@ -170,6 +183,8 @@ class CookieMixin(TempDir):
 
     def test_cookies_path(self):
         """ Cookie jar should live in ~/.aws-config/cookies. """
+        self.Profile()
+
         directory, _ = self._split_cookie_path()
         jar_dir = path.join(self.tmpd.name, JAR_DIR)
 
@@ -181,6 +196,7 @@ class CookieMixin(TempDir):
 
     def test_cookies_filename(self):
         """ Cookie jar format should be user.txt. """
+        self.Profile()
         _, filename = self._split_cookie_path()
 
         self.assertEqual(
@@ -192,17 +208,6 @@ class CookieMixin(TempDir):
 
 class ReadFullProfile(ProfileBase, CookieMixin):
     """ Test default profile using all options """
-    expected_attr_vals = {
-        "ecp_endpoint_url": 'url',
-        "username": 'netid1',
-        "password": 'secret1',
-        "factor": 'push',
-        "role_arn": "arn:aws:iam::account-id:role/role-name",
-        "enable_keyring": True,
-        "passcode": "secret_code",
-        "verbose": 1,
-        "refresh": 1500,
-    }
 
     def setUp(self) -> None:
         super().setUp()
@@ -218,33 +223,47 @@ passcode = secret_code
 verbose = 1
 refresh = 1500
     """
-        self.Profile()
 
     def test_full_config(self) -> None:
         """ Full config with User and SAML section """
-        self.assertProfileHasAttrs(**self.expected_attr_vals)
+        self.Profile()
+
+        expected_attr_vals = {
+            "ecp_endpoint_url": 'url',
+            "username": 'netid1',
+            "password": 'secret1',
+            "factor": 'push',
+            "role_arn": "arn:aws:iam::account-id:role/role-name",
+            "enable_keyring": True,
+            "passcode": "secret_code",
+            "verbose": 1,
+            "refresh": 1500,
+        }
+
+        self.assertProfileHasAttrs(**expected_attr_vals)
 
 
 class ReadFullProfileTestOverrides(ReadFullProfile):
     """ Override profile with cli args """
 
-    cli_args: Dict[str, Any] = {
-        "ecp_endpoint_url": 'url2',
-        "username": 'netid2',
-        "password": 'secret2',
-        "factor": 'sms',
-        "role_arn": "arn:aws:iam::account-id:role/role-name2",
-        "passcode": "secret",
-        "verbose": 2,
-        "refresh": 1000,
-    }
-    expected_attr_vals = copy(cli_args)
-    expected_attr_vals.update({'enable_keyring': False})
-    cli_args.update({'ask_password': True})
-
     def test_full_config(self) -> None:
         """ Testing command line args are processed. """
-        self.assertProfileHasAttrs(**self.expected_attr_vals)
+        args = {
+            "ecp_endpoint_url": 'url2',
+            "username": 'netid2',
+            "password": 'secret2',
+            "factor": 'sms',
+            "role_arn": "arn:aws:iam::account-id:role/role-name2",
+            "passcode": "secret",
+            "verbose": 2,
+            "refresh": 1000,
+        }  # Dict[str, Any]
+        expected_attr_vals = copy(args)
+        expected_attr_vals.update({'enable_keyring': False})
+        args.update({'ask_password': True})
+
+        self.Profile(profile='default', no_args=False, **args)
+        self.assertProfileHasAttrs(**expected_attr_vals)
 
 
 # This ensures that shared tests in mixins are not run with empty

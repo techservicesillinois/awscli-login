@@ -1,3 +1,4 @@
+import os
 import logging
 
 from datetime import datetime, timezone
@@ -6,9 +7,10 @@ from time import sleep
 from typing import Dict, List, Tuple
 
 from awscli.customizations.configure.set import ConfigureSetCommand
-from awscli_login.exceptions import SAML
-from awscli_login.typing import Role
 from botocore.session import Session
+
+from .exceptions import SAML
+from .typing import Role
 
 awsconfigfile = path.join('.aws', 'credentials')
 
@@ -21,12 +23,12 @@ FALSE = ("no", "false", "f", "0")
 def sort_roles(role_arns: List[Role]) \
                -> List[Tuple[str, List[Tuple[int, str]]]]:
     """ TODO """
-    accounts: Dict[str, List[Tuple[int, str]]] = {}
-    r: List[Tuple[str, List[Tuple[int, str]]]] = []
+    accounts = {}  # type: Dict[str, List[Tuple[int, str]]]
+    r = []  # type: List[Tuple[str, List[Tuple[int, str]]]]
 
     for index, arn in enumerate(role_arns):
-        acct: str = arn[1].split(':')[4]
-        role: str = arn[1].split(':')[5].split('/')[1]
+        acct = arn[1].split(':')[4]  # type: str
+        role = arn[1].split(':')[5].split('/')[1]  # type: str
 
         role_list = accounts.get(acct, list())
         role_list.append((index, role))
@@ -43,7 +45,7 @@ def get_selection(role_arns: List[Role]) -> Role:
     """ Interactively prompts the user for a role selection. """
     i = 0
     n = len(role_arns)
-    select: Dict[int, int] = {}
+    select = {}  # type: Dict[int, int]
 
     if n > 1:
         print("Please choose the role you would like to assume:")
@@ -136,3 +138,17 @@ def nap(expires: datetime, percent: float) -> None:
 
     logger.info('Going to sleep for %d seconds.' % sleep_for)
     sleep(sleep_for)
+
+
+def secure_touch(path):
+    """Sets a file's permissions to read/write by owner only.
+
+    Sets the file `path`'s mode to 600. The file `path` is created
+    if it does not exist.
+
+    Args:
+        path - A path to a file.
+    """
+    fd = os.open(path, os.O_CREAT | os.O_RDONLY, mode=0o600)
+    os.fchmod(fd, 0o600)
+    os.close(fd)

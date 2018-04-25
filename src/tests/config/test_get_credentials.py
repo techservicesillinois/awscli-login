@@ -1,6 +1,5 @@
 from copy import copy
-from typing import Any, List
-from unittest.mock import Mock, patch  # call
+from typing import List
 
 from awscli_login.exceptions import InvalidFactor
 
@@ -34,50 +33,98 @@ class Creds():
 
 
 class GetCredsProfileBase(ProfileBase):
-    inputs: Creds  # User inputs
-    outputs: Creds  # Expected output
 
-    def patcher(self, target: Any, side_effect=None) -> Mock:
-        patcher = patch(
-            target,
+    def mock_get_credentials_inputs(self, inputs: Creds):
+        mock_input = self.patcher('builtins.input', autospec=True,
+                                  side_effect=inputs.get())
+
+        mock_password = self.patcher(
+            'awscli_login.config.getpass',
             autospec=True,
-            side_effect=side_effect,
-
+            side_effect=[inputs.password]
         )
-        r = patcher.start()
-        self.addCleanup(patcher.stop)
 
-        return r
-
-    def setUp(self) -> None:
-        self.mock_input = self.patcher('builtins.input', self.inputs.get())
-
-        self.mock_password = self.patcher('awscli_login.config.getpass',
-                                          [self.inputs.password])
-
-        self.mock_get_password = self.patcher(
+        mock_get_password = self.patcher(
             'awscli_login.config.get_password',
-            [self.inputs.keyring],
+            autospec=True,
+            side_effect=[inputs.keyring]
         )
-        self.mock_set_password = self.patcher(
-            'awscli_login.config.set_password'
-        )
-        super().setUp()
 
-    def _test_get_credentials(self):
+        mock_set_password = self.patcher(
+            'awscli_login.config.set_password',
+            autospec=True
+        )
+
+        return (
+            mock_input,
+            mock_password,
+            mock_get_password,
+            mock_set_password,
+            inputs,
+        )
+
+    def assertGetCredentialsMocksCalled(
+            self,
+            mock_input,
+            mock_password,
+            mock_get_password,
+            mock_set_password,
+            inputs,
+    ):
+        # Make sure the user was prompted for exactly the inputs given
+        self.assertEqual(mock_input.call_count, len(inputs.get()))
+
+        if inputs.password:
+            try:  # Python 3.6 only
+                mock_password.assert_called_once()
+            except AttributeError:
+                self.assertEqual(
+                    1,
+                    mock_password.call_count
+                )
+        else:
+            try:  # Python 3.6 only
+                mock_password.assert_not_called()
+            except AttributeError:
+                self.assertEqual(
+                    0,
+                    mock_password.call_count
+                )
+
+        if self.profile.enable_keyring:
+            try:  # Python 3.6 only
+                mock_get_password.assert_called_once()
+                mock_set_password.assert_called_once()
+            except AttributeError:
+                self.assertEqual(
+                    1,
+                    mock_get_password.call_count
+                )
+                self.assertEqual(
+                    1,
+                    mock_set_password.call_count
+                )
+        else:
+            try:
+                mock_get_password.assert_not_called()
+                mock_set_password.assert_not_called()
+            except AttributeError:
+                self.assertEqual(
+                    0,
+                    mock_get_password.call_count
+                )
+                self.assertEqual(
+                    0,
+                    mock_set_password.call_count
+                )
+
+    def _test_get_credentials(self, outputs: Creds) -> None:
         # Ensure actual outputs equal expected outputs
         errors = []
         mesg = 'get_credentials returned %s: %s. Expected: %s.'
+        self.outputs = outputs
 
-        # Ensure no error messages logged
-        try:
-            with self.assertLogs() as logs:
-                usr, pwd, hdr = self.profile.get_credentials()
-        except AssertionError:
-            # If nothing is logged then an AssertionError is raised
-            pass
-        else:
-            raise AssertionError("Unexpected error: %s" % logs.output)
+        usr, pwd, hdr = self.profile.get_credentials()
 
         pairs = [
             ('username', usr),
@@ -95,21 +142,6 @@ class GetCredsProfileBase(ProfileBase):
         if errors:
             raise AssertionError('\n'.join(errors))
 
-        # Make sure the user was prompted for exactly the inputs given
-        self.assertEqual(self.mock_input.call_count, len(self.inputs.get()))
-
-        if self.inputs.password:
-            self.mock_password.assert_called_once()
-        else:
-            self.mock_password.assert_not_called()
-
-        if self.profile.enable_keyring:
-            self.mock_get_password.assert_called_once()
-            self.mock_set_password.assert_called_once()
-        else:
-            self.mock_get_password.assert_not_called()
-            self.mock_set_password.assert_not_called()
-
 
 class GetCredsMinProfileBase(GetCredsProfileBase):
     """ Minimal default profile with no tests. """
@@ -122,57 +154,50 @@ ecp_endpoint_url = foo
     """
         self.Profile()
 
+    def test_get_credentials_bad_factor(self):
+        """ Given a bad factor on login InvalidFactor should be raised. """
+        inputs = Creds(username="user", password="secret", factor="bozo")
 
-class GetCredsMinProfileBadFactorTest(GetCredsMinProfileBase):
-    """ Test minimal default profile with factor passcode. """
-    inputs = Creds(username="user", password="secret", factor="bozo")
-    outputs = copy(inputs)
-
-    def test_get_credentials(self):
-        """ Should prompt for all user credentials. """
+        mocks = self.mock_get_credentials_inputs(inputs)
         with self.assertRaises(InvalidFactor):
             usr, pwd, hdr = self.profile.get_credentials()
+        self.assertGetCredentialsMocksCalled(*mocks)
 
-
-class GetCredsMinProfilePushTest(GetCredsMinProfileBase):
-    """ Test minimal default profile with factor passcode. """
-    inputs = Creds(username="user", password="secret", factor="passcode",
-                   passcode="1234")
-    outputs = copy(inputs)
-
-    def test_get_credentials(self):
+    def test_get_credentials_prompt_for_all(self):
         """ Should prompt for all user credentials. """
-        self._test_get_credentials()
+        inputs = Creds(username="user", password="secret", factor="passcode",
+                       passcode="1234")
+        outputs = copy(inputs)
 
+        mocks = self.mock_get_credentials_inputs(inputs)
+        self._test_get_credentials(outputs)
+        self.assertGetCredentialsMocksCalled(*mocks)
 
-class GetCredsMinProfilePhoneTest(GetCredsMinProfileBase):
-    """ Test minimal default profile with factor phone. """
-    inputs = Creds(username="user", password="secret", factor="phone")
-    outputs = copy(inputs)
-
-    def test_get_credentials(self):
+    def test_get_credentials_phone_factor(self):
         """ Should accept phone factor. """
-        self._test_get_credentials()
+        inputs = Creds(username="user", password="secret", factor="phone")
+        outputs = copy(inputs)
 
+        mocks = self.mock_get_credentials_inputs(inputs)
+        self._test_get_credentials(outputs)
+        self.assertGetCredentialsMocksCalled(*mocks)
 
-class GetCredsMinProfileNoFactorTest(GetCredsMinProfileBase):
-    """ Test minimal default profile with no factor. """
-    inputs = Creds(username="user", password="secret", factor="")
-    outputs = copy(inputs)
-    outputs.factor = None
-
-    def test_get_credentials(self):
+    def test_get_credentials_no_factor_given(self):
         """ Should accept empty factor. """
-        self._test_get_credentials()
+        inputs = Creds(username="user", password="secret", factor="")
+        outputs = copy(inputs)
+        outputs.factor = None
+
+        mocks = self.mock_get_credentials_inputs(inputs)
+        self._test_get_credentials(outputs)
+        self.assertGetCredentialsMocksCalled(*mocks)
 
 
 class GetCredsMinProfileNoDuoTest(GetCredsProfileBase):
     """ Test minimal profile with duo disabled. """
-    inputs = Creds(username="user", password="secret")
-    outputs = copy(inputs)
 
-    def setUp(self) -> None:
-        super().setUp()
+    def test_get_credentials_no_duo(self):
+        """ Should prompt for just username/password. """
         self.login_config = """
 [default]
 ecp_endpoint_url = foo
@@ -180,19 +205,15 @@ factor = off
     """
         self.Profile()
 
-    def test_get_credentials(self):
-        """ Should prompt for just username/password. """
-        self._test_get_credentials()
+        inputs = Creds(username="user", password="secret")
+        outputs = copy(inputs)
 
+        mocks = self.mock_get_credentials_inputs(inputs)
+        self._test_get_credentials(outputs)
+        self.assertGetCredentialsMocksCalled(*mocks)
 
-class GetCredsMinProfileTest(GetCredsProfileBase):
-    """ Test minimal profile with factor passcode in profile. """
-    inputs = Creds(username="user", password="secret", passcode="1234")
-    outputs = copy(inputs)
-    outputs.factor = 'passcode'
-
-    def setUp(self) -> None:
-        super().setUp()
+    def test_get_credentials_prompt_for_passcode(self):
+        """ Should prompt for passcode with factor in profile. """
         self.login_config = """
 [default]
 ecp_endpoint_url = foo
@@ -200,19 +221,16 @@ factor = passcode
     """
         self.Profile()
 
-    def test_get_credentials(self):
-        """ Should prompt for passcode with factor in profile. """
-        self._test_get_credentials()
+        inputs = Creds(username="user", password="secret", passcode="1234")
+        outputs = copy(inputs)
+        outputs.factor = 'passcode'
 
+        mocks = self.mock_get_credentials_inputs(inputs)
+        self._test_get_credentials(outputs)
+        self.assertGetCredentialsMocksCalled(*mocks)
 
-class GetCredsUsernameProfileTest(GetCredsProfileBase):
-    """ Test profile with username in default profile """
-    inputs = Creds(password="secret", factor="push")
-    outputs = copy(inputs)
-    outputs.username = "user"
-
-    def setUp(self) -> None:
-        super().setUp()
+    def test_get_credentials_no_prompt_for_username(self):
+        """ Should prompt for password/factor with username in profile. """
         self.login_config = """
 [default]
 ecp_endpoint_url = foo
@@ -220,21 +238,16 @@ username = user
     """
         self.Profile()
 
-    def test_get_credentials(self):
-        """ Should prompt for password/factor with username in profile. """
-        self._test_get_credentials()
+        inputs = Creds(password="secret", factor="push")
+        outputs = copy(inputs)
+        outputs.username = "user"
 
+        mocks = self.mock_get_credentials_inputs(inputs)
+        self._test_get_credentials(outputs)
+        self.assertGetCredentialsMocksCalled(*mocks)
 
-class GetCredsPasswordOnlyProfileTest(GetCredsProfileBase):
-    """ Should only prompt for password with username/factor in profile """
-    inputs = Creds(password="secret")
-
-    outputs = copy(inputs)
-    outputs.username = "user1"
-    outputs.factor = "auto"
-
-    def setUp(self) -> None:
-        super().setUp()
+    def test_get_credentials_password_only(self):
+        """ Should prompt for password only with username/factor in profile """
         self.login_config = """
 [default]
 ecp_endpoint_url = foo
@@ -243,22 +256,18 @@ factor = auto
     """
         self.Profile()
 
-    def test_get_credentials(self):
-        """ Should prompt for password only with username/factor in profile """
-        self._test_get_credentials()
+        inputs = Creds(password="secret")
 
+        outputs = copy(inputs)
+        outputs.username = "user1"
+        outputs.factor = "auto"
 
-class GetCredsKeyringeTest(GetCredsProfileBase):
-    """ Should not prompt for anyting """
-    inputs = Creds(keyring="secret")
+        mocks = self.mock_get_credentials_inputs(inputs)
+        self._test_get_credentials(outputs)
+        self.assertGetCredentialsMocksCalled(*mocks)
 
-    outputs = copy(inputs)
-    outputs.username = "user1"
-    outputs.factor = "auto"
-    outputs.password = "secret"
-
-    def setUp(self) -> None:
-        super().setUp()
+    def test_get_credentials_keyring_test_no_prompt(self):
+        """ Should not prompt with keyring/username/factor in profile """
         self.login_config = """
 [default]
 ecp_endpoint_url = foo
@@ -268,6 +277,13 @@ enable_keyring = true
     """
         self.Profile()
 
-    def test_get_credentials(self):
-        """ Should not prompt with keyring/username/factor in profile """
-        self._test_get_credentials()
+        inputs = Creds(keyring="secret")
+
+        outputs = copy(inputs)
+        outputs.username = "user1"
+        outputs.factor = "auto"
+        outputs.password = "secret"
+
+        mocks = self.mock_get_credentials_inputs(inputs)
+        self._test_get_credentials(outputs)
+        self.assertGetCredentialsMocksCalled(*mocks)

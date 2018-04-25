@@ -91,8 +91,8 @@ class auth(unittest.TestCase):
 
     class MockRespone:
         """ A class for mocking a requests' response. """
-        status_code: int
-        content: bytes
+        status_code = 0  # type: int
+        content = None  # type: bytes
 
         def raise_for_status(self):
             pass

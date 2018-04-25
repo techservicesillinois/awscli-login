@@ -5,26 +5,24 @@ from argparse import Namespace
 from collections import OrderedDict
 from configparser import ConfigParser, SectionProxy
 from getpass import getuser, getpass
-from os import path, makedirs
+from os import path, makedirs, unlink
 from os.path import expanduser, isfile
-from typing import (
-    Any,
-    Dict,
-    FrozenSet,
-)
+from typing import Any, Dict, FrozenSet  # NOQA
 from urllib.parse import urlparse
 
-from keyring import get_password, set_password
-
-from botocore.session import Session
 from awscli.customizations.configure.writer import ConfigFileWriter
-from awscli_login.typing import Creds
-from awscli_login.exceptions import (
+from botocore.session import Session
+from keyring import get_password, set_password
+from psutil import pid_exists
+
+from .exceptions import (
     AlreadyLoggedIn,
     InvalidFactor,
     ProfileMissingArgs,
     ProfileNotFound,
 )
+from .typing import Creds
+from .util import secure_touch
 
 CONFIG_DIR = '.aws-login'
 CONFIG_FILE = path.join(CONFIG_DIR, 'config')
@@ -45,26 +43,29 @@ class Profile:
     This class reads the current login profile from ~/.aws-login/config
     """
     # Public vars
-    name: str  # Profile name
+    name = None  # type: str  # Profile name
 
     # Required args from profile
-    ecp_endpoint_url: str
+    ecp_endpoint_url = None  # type: str
 
     # Optional args from profile
-    username: str
-    password: str
-    role_arn: str
-    enable_keyring: bool
-    factor: str
-    passcode: str
-    verbose: str
-    refresh: int
+    username = None  # type: str
+    password = None  # type: str
+    role_arn = None  # type: str
+    enable_keyring = False  # type: bool
+    factor = None  # type: str
+    passcode = None  # type: str
+    verbose = 0  # type: int
+    refresh = 3000  # type: int
+    force_refresh = False  # type: bool
 
-    config_file: str
+    # path to profile configuration file
+    config_file = None  # type: str
+
     # Private vars
-    _args: Namespace
-    _required: FrozenSet[str] = frozenset(['ecp_endpoint_url'])
-    _optional: Dict[str, Any] = {
+    _args = None  # type: Namespace
+    _required = frozenset(['ecp_endpoint_url'])  # type: FrozenSet[str]
+    _optional = {
             'username': None,
             'password': None,
             'role_arn': None,
@@ -74,22 +75,22 @@ class Profile:
             'verbose': 0,
             'refresh': 3000,  # in seconds (every 50 mins)
             'force_refresh': False,
-    }
+    }  # type: Dict[str, Any]
 
-    _config_options: Dict[str, str] = OrderedDict(
-        {
-            'ecp_endpoint_url': 'ECP Endpoint URL',
-            'username': 'Username',
-            'enable_keyring': 'Enable Keyring',
-            'factor': 'Duo Factor',
-            'role_arn': 'Role ARN',
-        }
-    )
+    _config_options = OrderedDict(
+        [
+            ('ecp_endpoint_url', 'ECP Endpoint URL'),
+            ('username', 'Username'),
+            ('enable_keyring', 'Enable Keyring'),
+            ('factor', 'Duo Factor'),
+            ('role_arn', 'Role ARN'),
+        ]
+    )  # type: Dict[str, str]
 
     # Extra override args from command line
-    _override: Dict[str, str] = {
+    _override = {
         'enable_keyring': 'ask_password',
-    }
+    }  # type: Dict[str, str]
 
     def _init_dir(self) -> None:
         """ Create ~/.aws-login directory if it does not exist. """
@@ -98,9 +99,9 @@ class Profile:
         self.home = home
         self.config_file = path.join(self.home, CONFIG_FILE)
 
-        makedirs(path.join(home, CONFIG_DIR), exist_ok=True)
-        makedirs(path.join(home, LOG_DIR), exist_ok=True)
-        makedirs(path.join(home, JAR_DIR), exist_ok=True)
+        makedirs(path.join(home, CONFIG_DIR), mode=0o700, exist_ok=True)
+        makedirs(path.join(home, LOG_DIR), mode=0o700, exist_ok=True)
+        makedirs(path.join(home, JAR_DIR), mode=0o700, exist_ok=True)
 
         self.pidfile = path.join(home, CONFIG_DIR, self.name + '.pid')
         self.logfile = path.join(home, LOG_DIR, self.name + '.log')
@@ -176,7 +177,13 @@ class Profile:
     def raise_if_logged_in(self) -> None:
         """ Throws an exception if already logged in. """
         if isfile(self.pidfile):
-            raise AlreadyLoggedIn
+            with open(self.pidfile, 'r') as f:
+                pid = int(f.read())
+
+            if pid_exists(pid):
+                raise AlreadyLoggedIn
+            else:
+                unlink(self.pidfile)
 
     def _get_profile(self, config: ConfigParser,
                      validate: bool) -> SectionProxy:
@@ -209,7 +216,7 @@ class Profile:
 
     def _set_opt_attrs(self, config: ConfigParser, validate: bool) -> None:
         """ Load optional args from profile [~/.aws-login/config]. """
-        value: Any
+        value = None  # type: Any
         section = self._get_profile(config, validate)
 
         for attr, default in self._optional.items():
@@ -299,6 +306,7 @@ class Profile:
             if self.name != 'default':
                 new_values['__section__'] = self.name
 
+            secure_touch(self.config_file)
             writer.update_config(new_values, self.config_file)
 
     def reload(self, validate: bool = True):

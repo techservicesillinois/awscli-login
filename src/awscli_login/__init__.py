@@ -7,8 +7,8 @@ from argparse import Namespace
 from awscli.customizations.commands import BasicCommand
 from botocore.session import Session
 
-from awscli_login.__main__ import main, logout
-from awscli_login.configure import configure
+from .__main__ import main, logout
+from .configure import configure
 
 logger = logging.getLogger(__package__)
 

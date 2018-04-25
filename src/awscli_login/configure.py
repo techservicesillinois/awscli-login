@@ -1,9 +1,7 @@
 from botocore.session import Session
-from awscli_login.__main__ import error_handler
 
-from awscli_login.config import (
-    Profile,
-)
+from .__main__ import error_handler
+from .config import Profile
 
 
 @error_handler()

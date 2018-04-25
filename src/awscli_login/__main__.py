@@ -12,27 +12,27 @@ from botocore.session import Session
 from daemoniker import Daemonizer, SignalHandler1
 from daemoniker import send, SIGINT, SIGTERM, SIGABRT
 
-from awscli_login.config import (
+from .config import (
     Profile,
     ERROR_NONE,
     ERROR_UNKNOWN,
 )
-from awscli_login.exceptions import AlreadyLoggedOut, AWSCLILogin
-from awscli_login.logger import (
+from .exceptions import AlreadyLoggedOut, AWSCLILogin
+from .logger import (
     configConsoleLogger,
     configFileLogger,
 )
-from awscli_login.saml import (
+from .saml import (
     authenticate,
     refresh,
 )
-from awscli_login.util import (
+from .util import (
     get_selection,
     nap,
     remove_credentials,
     save_credentials,
 )
-from awscli_login.typing import Role
+from .typing import Role
 
 logger = logging.getLogger(__package__)
 
@@ -100,7 +100,7 @@ def error_handler(skip_args=True, validate=False):
     def decorator(f):
         @wraps(f)
         def wrapper(args: Namespace, session: Session):
-            exp: Exception
+            exp = None  # type: Exception
             code = ERROR_NONE
             sig = None
 
@@ -159,11 +159,8 @@ def main(profile: Profile, session: Session):
             )
         except Exception:
             creds = profile.get_credentials()
-            saml, roles = authenticate(
-                profile.ecp_endpoint_url,
-                profile.cookies,
-                *creds,
-            )
+            saml, roles = authenticate(profile.ecp_endpoint_url,
+                                       profile.cookies, *creds)
 
         role = get_selection(roles)
         expires = save_sts_token(session, client, saml, role)

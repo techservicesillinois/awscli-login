@@ -10,7 +10,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='awscli-login',
-    version='0.1.0a3',  # TODO change this to a git tag for Drone
+    version='0.1.0a4',  # TODO change this to a git tag for Drone
     description='awscli-login is an AWS CLI plugin that manages retrieving and '
     'rotating Amazon STS temporary credentials using SAML ECP for authentication '
     'with optional support for Duo.',
@@ -32,6 +32,7 @@ setup(
     keywords='Amazon AWS SAML login access keys',
     packages=find_packages('src'),
     package_dir={'': 'src'},
+    python_requires='>=3.5',
     install_requires=[
        'awscli',
        'boto3',
@@ -39,16 +40,19 @@ setup(
        'daemoniker',
        'keyring',
        'lxml',
+       'psutil',
        'requests',
     ],
     extras_require={
         'test': [
-            'coverage',
-            'wurlitzer',
-            'tblib',
             'Sphinx',
-            'sphinx_rtd_theme',
+            'coverage',
             'sphinx-autodoc-typehints',
+            'sphinx_rtd_theme',
+            'tblib',
+            'tox',
+            'tox-pyenv',
+            'wurlitzer',
         ],
     },
     test_suite="tests",

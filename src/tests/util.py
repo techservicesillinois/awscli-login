@@ -2,14 +2,20 @@ from argparse import Namespace
 from functools import wraps
 from multiprocessing import Process, Pipe
 from os import walk, sep
-from os.path import basename
+from os.path import basename, getmtime
 from sys import exc_info
+from time import sleep
+from typing import Callable
 from unittest.mock import patch
 
 # This module allows a traceback to be pickled!
 from tblib import pickling_support
 
 from awscli.clidriver import main
+
+from awscli_login.util import (
+    file2bytes,
+)
 
 
 def fork():
@@ -104,3 +110,46 @@ def tree(startpath):
             r += '{}{}\n'.format(subindent, f)
 
     return r
+
+
+def isFileChangedBy(filename: str, func: Callable,
+                    *args, **kwargs) -> bool:
+    """Tests if a file is changed by a function call.
+
+    Args:
+        filename: The file to test.
+        func: The function to call
+        *args: positional arguments to pass to `func`.
+        **kwargs: keyword arguments to pass to `func`.
+
+    Returns:
+        True if the file was changed, False otherwise.
+    """
+
+    before = file2bytes(filename)
+    func(*args, **kwargs)
+    after = file2bytes(filename)
+
+    return not (before == after)
+
+
+def isFileTouchedBy(filename: str, func: Callable,
+                    *args, **kwargs) -> bool:
+    """Tests if a file is toched by a function call.
+
+    Args:
+        filename: The file to test.
+        func: The function to call
+        *args: positional arguments to pass to `func`.
+        **kwargs: keyword arguments to pass to `func`.
+
+    Returns:
+        True if the file was touched, False otherwise.
+    """
+    sleep(1)  # Must sleep or before == after!
+
+    before = getmtime(filename)
+    func(*args, **kwargs)
+    after = getmtime(filename)
+
+    return not bool(after - before)

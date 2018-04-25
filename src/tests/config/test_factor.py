@@ -15,6 +15,8 @@ ecp_endpoint_url = foo
     """
         self.Profile()
 
+    # Profile.is_factor_prompt_disabled() tests
+
     def test_factor_none(self):
         "Factor prompt should be enabled when no factor is given. """
         # self.profile.factor = None
@@ -38,6 +40,8 @@ ecp_endpoint_url = foo
         "Factor prompt should be enabled when an invalid factor is given. """
         self.profile.factor = 'bozo'
         self.assertFalse(self.profile.is_factor_prompt_disabled())
+
+    # Profile.is_factor_valid() tests
 
     def test_is_factor_auto_valid(self):
         "Auto should be a valid factor. """

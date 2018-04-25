@@ -16,14 +16,20 @@ APIDOC_SOURCE_DIR = ../src
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-.PHONY: help Makefile html clean
+.PHONY: help Makefile html doctest clean
 
-html: build
+html: build/html
 
-$(BUILDDIR): $(DOCSRCS) $(TSTS) $(SRCS)
-	rm -rf $(APIDOC_BUILD_DIR) $(BUILDDIR)
+doctest: build/doctest/output.txt
+
+$(APIDOC_BUILD_DIR): $(DOCSRCS) $(TSTS) $(SRCS)
 	$(SPHINXAPIDOC) -o $(APIDOC_BUILD_DIR) $(APIDOC_SOURCE_DIR)
+
+build/html: $(APIDOC_BUILD_DIR) $(DOCSRCS) $(TSTS) $(SRCS)
 	$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+build/doctest/output.txt: $(APIDOC_BUILD_DIR) $(DOCSRCS) $(TSTS) $(SRCS)
+	$(SPHINXBUILD) -M doctest "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # This avoids the catch-all target below
 %.rst:
@@ -31,10 +37,10 @@ $(BUILDDIR): $(DOCSRCS) $(TSTS) $(SRCS)
 # This avoids the catch-all target below
 %.py:
 
-# Catch-all target: route all unknown targets to Sphinx using the new
-# "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
+## Catch-all target: route all unknown targets to Sphinx using the new
+## "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
-	@rm -rf $(APIDOC_BUILD_DIR) $(BUILDDIR)
+#	@rm -rf $(APIDOC_BUILD_DIR) $(BUILDDIR)
 	@$(SPHINXAPIDOC) -o $(APIDOC_BUILD_DIR) $(APIDOC_SOURCE_DIR)
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 

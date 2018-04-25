@@ -1,7 +1,9 @@
+import os
 import unittest
 
 from datetime import datetime, timezone
 from io import StringIO
+from os.path import isfile
 from typing import Any, Dict
 from unittest.mock import patch
 
@@ -12,10 +14,11 @@ from awscli_login.util import (
     get_selection,
     remove_credentials,
     save_credentials,
+    secure_touch,
     sort_roles,
 )
 
-from .base import CleanAWSEnvironment
+from .base import CleanAWSEnvironment, TempDir
 
 
 def token(akey: str, skey: str, stoken: str) -> Dict[str, Dict[str, Any]]:
@@ -200,6 +203,28 @@ aws_session_token = c
         session = Session()
         remove_credentials(session)
         self.assertAwsCredentialsEquals(credentials)
+
+
+class SecureTouchTests(TempDir):
+    """ Tests for the function secure_touch. """
+
+    def test_secure_touch_function_creates_file(self):
+        """Newly created file by secure_touch should have perms 0x600. """
+        path = self._abspath('foo.txt')
+        secure_touch(path)
+
+        self.assertTrue(isfile(path), 'Failed to create file!')
+        self.assertHasFilePerms(path, owner='rw')
+
+    def test_secure_touch_function_changes_perms(self):
+        """File with perms 0x644 should be 0x600 after secure_touch. """
+        path = self._abspath('foo.txt')
+
+        fd = os.open(path, os.O_CREAT | os.O_RDONLY, mode=0o644)
+        os.close(fd)
+
+        secure_touch(path)
+        self.assertHasFilePerms(path, owner='rw')
 
 
 if __name__ == '__main__':

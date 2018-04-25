@@ -1,17 +1,43 @@
+import os
+import stat
 import unittest
 
-from os import environ, makedirs, path, unlink, walk
+from os import environ, makedirs, path, walk, unlink
 from os.path import dirname, relpath, join
 from tempfile import TemporaryDirectory
-from typing import Any, List
+from typing import Any, Callable, List  # NOQA
 from unittest.mock import patch
 
 from wurlitzer import pipes
 
 from awscli_login.config import CONFIG_FILE
 
-from .util import exec_awscli, tree
+from .util import exec_awscli, isFileChangedBy, isFileTouchedBy, tree
 from .exceptions import NotRelativePathError
+
+PERMISSIONS = [
+    ('r', 'read'),
+    ('w', 'write'),
+    ('x', 'execute')
+]
+
+FLAGS = {
+    'Owner': {
+        'r': stat.S_IRUSR,
+        'w': stat.S_IWUSR,
+        'x': stat.S_IXUSR,
+    },
+    'Group': {
+        'r': stat.S_IRGRP,
+        'w': stat.S_IWGRP,
+        'x': stat.S_IXGRP,
+    },
+    'Others': {
+        'r': stat.S_IRGRP,
+        'w': stat.S_IWGRP,
+        'x': stat.S_IWGRP,
+    },
+}
 
 
 class SDGTestCase(unittest.TestCase):
@@ -22,6 +48,30 @@ class SDGTestCase(unittest.TestCase):
         from tests.base import SDGTestCase
         self = SDGTestCase
     """
+
+    @staticmethod
+    def assertHasFilePerms(path: str, owner: str='', group: str='',
+                           others: str='') -> None:
+        info = os.stat(path)
+
+        users = [
+            ('Owner', owner),
+            ('Group', group),
+            ('Others', others),
+        ]
+
+        for user, perms in users:
+            for p, perm in PERMISSIONS:
+                hasPerm = bool(info.st_mode & FLAGS[user][p])
+
+                if p in perms and not hasPerm:
+                    raise AssertionError(
+                        '%s does not have %s permission!' % (user, perm)
+                    )
+                elif p not in perms and hasPerm:
+                    raise AssertionError(
+                        '%s has %s permission!' % (user, perm)
+                    )
 
     @staticmethod
     def _assertHasAttr(obj: object, attr: str, evalue: Any) -> str:
@@ -70,27 +120,37 @@ class SDGTestCase(unittest.TestCase):
             AssertionError
 
         Examples:
+            Consider the following simple class:
+
             >>> class Coordinates:
             ...     x = 0
             ...     y = 0
             ...
             >>> center = Coordinates()
+
+            A simple passing test is the following:
+
+            >>> self.assertHasAttr(center, 'x', 0)
+
+            The following are various failing tests and the error's
+            they raise:
+
             >>> self.assertHasAttr(center, 'foo', 'bar')
             Traceback (most recent call last):
                 ...
             AssertionError: Coordinates object does not have attr: foo
+
             >>> self.assertHasAttr(center, 'x', 'bar')
             Traceback (most recent call last):
                 ...
             AssertionError: Attribute x has unexpected type <class 'int'>
             Expected <class 'str'> on Coordinates object!
+
             >>> self.assertHasAttr(center, 'x', 1)
             Traceback (most recent call last):
-                :83
                 ...
             AssertionError: Attribute x has unexpected value 0
             Expected 1 on Coordinates object!
-            >>> self.assertHasAttr(center, 'x', 0)
         """
         error = SDGTestCase._assertHasAttr(obj, attr, evalue)
 
@@ -114,28 +174,39 @@ class SDGTestCase(unittest.TestCase):
             AssertionError
 
         Examples:
+            Consider the following simple class:
+
             >>> class Coordinates:
             ...     x = 0
             ...     y = 0
             ...
             >>> center = Coordinates()
+
+            A simple passing test is the following:
+
+            >>> self.assertHasAttrs(center, x=0, y=0)
+
+            The following are various failing tests and the error's
+            they raise:
+
             >>> self.assertHasAttrs(center, foo='bar', x=0, y=0)
             Traceback (most recent call last):
                 ...
             AssertionError: Coordinates object does not have attr: foo
+
             >>> self.assertHasAttrs(center, x='bar', y='foo')
             Traceback (most recent call last):
                 ...
             AssertionError: Attribute x has unexpected type <class 'int'>
             Expected <class 'str'> on Coordinates object!
+
             >>> self.assertHasAttrs(center, x=1, y=0)
             Traceback (most recent call last):
                 ...
             AssertionError: Attribute x has unexpected value 0
             Expected 1 on Coordinates object!
-            >>> self.assertHasAttrs(center, x=0, y=0)
         """
-        errors: List[str] = []
+        errors = []  # type: List[str]
 
         for attr, value in kwargs.items():
             error = SDGTestCase._assertHasAttr(obj, attr, value)
@@ -259,6 +330,74 @@ class TempDir(SDGTestCase):
 
         errors += '\n-----------------------------------------------\n'
         raise AssertionError(errors)
+
+    def assertTmpFileChangedBy(self, filename: str, func: Callable,
+                               *args, **kwargs) -> None:
+        """Asserts file is changed by a function.
+
+        Args:
+            filename: The file to test.
+            func: The function to call.
+            *args: positional arguments to pass to `func`.
+            **kwargs: keyword arguments to pass to `func`.
+
+        Raises:
+            AssertionError if file is not changed.
+        """
+        if not isFileChangedBy(filename, func, *args, **kwargs):
+            raise AssertionError('File was not changed: %s' %
+                                 relpath(filename, self.tmpd.name))
+
+    def assertTmpFileNotChangedBy(self, filename: str, func: Callable,
+                                  *args, **kwargs) -> None:
+        """Asserts file is not changed by a function.
+
+        Args:
+            filename: The file to test.
+            func: The function to call.
+            *args: positional arguments to pass to `func`.
+            **kwargs: keyword arguments to pass to `func`.
+
+        Raises:
+            AssertionError if file is changed.
+        """
+        if isFileChangedBy(filename, func, *args, **kwargs):
+            raise AssertionError('File was changed: %s' %
+                                 relpath(filename, self.tmpd.name))
+
+    def assertTmpFileTouchedBy(self, filename: str, func: Callable,
+                               *args, **kwargs) -> None:
+        """Asserts file is touched by a function.
+
+        Args:
+            filename: The file to test.
+            func: The function to call.
+            *args: positional arguments to pass to `func`.
+            **kwargs: keyword arguments to pass to `func`.
+
+        Raises:
+            AssertionError if file is not touched.
+        """
+        if not isFileTouchedBy(filename, func, *args, **kwargs):
+            raise AssertionError('File was not touched: %s' %
+                                 relpath(filename, self.tmpd.name))
+
+    def assertTmpFileNotTouchedBy(self, filename: str, func: Callable,
+                                  *args, **kwargs) -> None:
+        """Asserts file is not touched by a function.
+
+        Args:
+            filename: The file to test.
+            func: The function to call.
+            *args: positional arguments to pass to `func`.
+            **kwargs: keyword arguments to pass to `func`.
+
+        Raises:
+            AssertionError if file is touched.
+        """
+        if isFileTouchedBy(filename, func, *args, **kwargs):
+            raise AssertionError('File was touched: %s' %
+                                 relpath(filename, self.tmpd.name))
 
 
 class CleanAWSLoginEnvironment(TempDir):
