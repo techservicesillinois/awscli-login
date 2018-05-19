@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 from botocore.session import Session
 
+from awscli_login.const import ERROR_INVALID_PROFILE_ROLE
 from awscli_login.exceptions import SAML
 from awscli_login.util import (
     get_selection,
@@ -69,6 +70,52 @@ class util(unittest.TestCase):
         ]
 
         self.assertEqual(get_selection(roles), roles[1])
+
+    @patch('builtins.input', return_value=1)
+    def test_selections_profile_role(self, *args):
+        """ Profile role is selected when valid and present """
+        roles = [
+            ('idp1', 'arn:aws:iam::224588347132:role/KalturaAdmin'),
+            ('idp2', 'arn:aws:iam::617683844790:role/BoxAdmin'),
+        ]
+        profile_role = roles[1][1]
+
+        with patch('sys.stdout', new=StringIO()) as stdout:
+            role = get_selection(roles, profile_role)
+
+            self.assertEqual(
+                 stdout.getvalue(),
+                 '',
+                 'User was prompted for a selection '
+                 'even though the Profile role was set!'
+            )
+
+        self.assertEqual(
+            role,
+            roles[1],
+            'Profile role was not selected!'
+        )
+
+    @patch('builtins.input', return_value=1)
+    def test_selections_bad_profile_role(self, *args):
+        """ If a bad Profile role is set, then get_selection prompts the user.
+        """
+        profile_role = 'arn:aws:iam::617683844790:role/BadRole'
+
+        roles = [
+            ('idp1', 'arn:aws:iam::224588347132:role/KalturaAdmin'),
+            ('idp2', 'arn:aws:iam::617683844790:role/BoxAdmin'),
+        ]
+
+        with patch('sys.stdout', new=StringIO()):
+            with self.assertLogs('awscli_login.util', 'ERROR') as cm:
+                get_selection(roles, profile_role)
+
+        error = ERROR_INVALID_PROFILE_ROLE % profile_role
+        self.assertEqual(
+            cm.output,
+            ["ERROR:awscli_login.util:%s" % error],
+        )
 
     def test_get_empty_selection(self, *args):
         """ Attempt to select from an empty role set """

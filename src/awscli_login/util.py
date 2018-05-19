@@ -9,6 +9,7 @@ from typing import Dict, List, Tuple
 from awscli.customizations.configure.set import ConfigureSetCommand
 from botocore.session import Session
 
+from .const import ERROR_INVALID_PROFILE_ROLE
 from .exceptions import SAML
 from .typing import Role
 
@@ -41,11 +42,19 @@ def sort_roles(role_arns: List[Role]) \
     return r
 
 
-def get_selection(role_arns: List[Role]) -> Role:
+def get_selection(role_arns: List[Role], profile_role: str = None) -> Role:
     """ Interactively prompts the user for a role selection. """
     i = 0
     n = len(role_arns)
     select = {}  # type: Dict[int, int]
+
+    # Return profile_role if valid and set
+    if profile_role is not None:
+        pr = [(idp, role) for idp, role in role_arns if role == profile_role]
+        if pr:
+            return pr[0]
+        else:
+            logger.error(ERROR_INVALID_PROFILE_ROLE % profile_role)
 
     if n > 1:
         print("Please choose the role you would like to assume:")

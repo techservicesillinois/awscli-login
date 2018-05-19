@@ -162,7 +162,7 @@ def main(profile: Profile, session: Session):
             saml, roles = authenticate(profile.ecp_endpoint_url,
                                        profile.cookies, *creds)
 
-        role = get_selection(roles)
+        role = get_selection(roles, profile.role_arn)
         expires = save_sts_token(session, client, saml, role)
 
         if not profile.force_refresh:
