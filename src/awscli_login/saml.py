@@ -84,10 +84,10 @@ def saml_login(url: str, jar: LWPCookieJar,
 
     envelope = authn_request()
     auth = (username, password) if username and password else None
-    logger.debug("POST %s\nheaders: %s\npayload %s" %
+    logger.debug("POST %r\nheaders: %r\npayload %r" %
                  (url, headers, envelope))
     r = s.post(url, data=envelope, headers=headers, auth=auth)
-    logger.debug("POST returned: %s" % r.content)
+    logger.debug("POST returned: %r" % r.content)
 
     r.raise_for_status()
     try:
