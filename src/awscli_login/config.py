@@ -7,7 +7,7 @@ from configparser import ConfigParser, SectionProxy
 from getpass import getuser, getpass
 from os import path, makedirs, unlink
 from os.path import expanduser, isfile
-from typing import Any, Dict, FrozenSet  # NOQA
+from typing import Any, Dict, FrozenSet, Optional  # NOQA
 from urllib.parse import urlparse
 
 from awscli.customizations.configure.writer import ConfigFileWriter
@@ -53,7 +53,7 @@ class Profile:
     password = None  # type: str
     role_arn = None  # type: str
     enable_keyring = False  # type: bool
-    factor = None  # type: str
+    factor = None  # type: Optional[str]
     passcode = None  # type: str
     verbose = 0  # type: int
     refresh = 3000  # type: int
@@ -65,7 +65,7 @@ class Profile:
     config_file = None  # type: str
 
     # Private vars
-    _args = None  # type: Namespace
+    _args = None  # type: Optional[Namespace]
     _required = frozenset(['ecp_endpoint_url'])  # type: FrozenSet[str]
     _optional = {
             'username': None,
@@ -141,7 +141,7 @@ class Profile:
             if value:
                 setattr(self, attr, False)
 
-    def __init__(self, session: Session, args: Namespace,
+    def __init__(self, session: Session, args: Optional[Namespace],
                  validate: bool = True) -> None:
         """Load login profile.
 
@@ -165,11 +165,11 @@ class Profile:
     def __getattr__(self, item):
         """ Process dynamic attributes. """
         if item == 'cookies':
-                if self.username:
-                    filename = self.username + '.txt'
-                    return path.join(self.home, JAR_DIR, filename)
-                else:
-                    return None
+            if self.username:
+                filename = self.username + '.txt'
+                return path.join(self.home, JAR_DIR, filename)
+            else:
+                return None
         else:
             mesg = "'%s' object has no attribute '%s'"
             raise AttributeError(mesg % (self.__class__.__name__, item))
@@ -190,7 +190,7 @@ class Profile:
                 unlink(self.pidfile)
 
     def _get_profile(self, config: ConfigParser,
-                     validate: bool) -> SectionProxy:
+                     validate: bool) -> Optional[SectionProxy]:
         """ Helper function for grabing a profile. """
         if self.name not in config:
             if validate:
@@ -207,7 +207,7 @@ class Profile:
 
         for attr in self._required:
             try:
-                if validate:
+                if validate and section is not None:
                     setattr(self, attr, section[attr])
                 elif section is not None:
                     setattr(self, attr, section.get(attr))
@@ -229,16 +229,16 @@ class Profile:
             # a string
             if section is not None:
                 value = section.get(attr, default)
+
+                # Type cast string to correct type
+                # based on the default value
+                if value != default:
+                    if type(default) == bool:
+                        value = section.getboolean(attr)
+                    elif type(default) == int:
+                        value = int(value)
             else:
                 value = default
-
-            # Type cast string to correct type
-            # based on the default value
-            if value != default:
-                if type(default) == bool:
-                    value = section.getboolean(attr)
-                elif type(default) == int:
-                    value = int(value)
 
             setattr(self, attr, value)
 
@@ -252,8 +252,10 @@ class Profile:
             raise InvalidFactor(self.factor)
 
     def is_factor_prompt_disabled(self) -> bool:
-        return bool(self.factor) and (self.factor.lower() in DISABLE or
-                                      self.factor in FACTORS)
+        if self.factor:
+            return self.factor.lower() in DISABLE or self.is_factor_valid()
+        else:
+            return False
 
     def get_username(self):
         """ Get username from user if necessary. """
@@ -274,6 +276,7 @@ class Profile:
             password = getpass()
         if self.enable_keyring:
             set_password("awscli_login", ukey, password)
+        assert isinstance(password, str), "Password is not a string!"
         self.password = password
 
         # TODO add support for any factor...
@@ -285,6 +288,8 @@ class Profile:
             self.raise_if_factor_invalid()
 
         if self.is_factor_valid():
+            assert isinstance(self.factor, str), "Factor is not a string!"
+
             headers['X-Shiboleth-Duo-Factor'] = self.factor
             if not first_pass or self.factor == 'passcode':
                 headers['X-Shiboleth-Duo-Passcode'] = input('Code: ')

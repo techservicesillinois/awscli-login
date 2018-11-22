@@ -8,9 +8,9 @@ from .base import ProfileBase
 
 class Creds():
 
-    def __init__(self, username: str=None, password: str=None,
-                 factor: str=None, passcode: str=None,
-                 keyring: str=None) -> None:
+    def __init__(self, username: str = None, password: str = None,
+                 factor: str = None, passcode: str = None,
+                 keyring: str = None) -> None:
         self.username = username
         self.password = password
         self.factor = factor

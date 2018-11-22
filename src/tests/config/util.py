@@ -2,7 +2,7 @@
 import contextlib
 
 from os import remove
-from typing import Any, Dict, List  # NOQA
+from typing import Any, Dict, List, Optional  # NOQA
 
 from awscli_login.config import Profile
 
@@ -11,7 +11,7 @@ class MockSession:
     """
     Minimal mock session class needed for class Profile init.
     """
-    profile = None  # type: str
+    profile = None  # type: Optional[str]
 
     def __init__(self, profile: str = None) -> None:
         self.profile = profile

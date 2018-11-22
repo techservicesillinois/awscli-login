@@ -154,6 +154,7 @@ class SaveDefaultCreds(CleanAWSEnvironment):
 aws_access_key_id = foo
 aws_secret_access_key = bar
 aws_session_token = yep
+aws_security_token = yep
 """
 
         session = Session()
@@ -167,6 +168,7 @@ aws_session_token = yep
 aws_access_key_id = a
 aws_secret_access_key = b
 aws_session_token = c
+aws_security_token = c
 """
 
         session = Session()
@@ -181,12 +183,14 @@ aws_session_token = c
 aws_access_key_id = foo
 aws_secret_access_key = bar
 aws_session_token = yep
+aws_security_token = yep
 """
 
         credentials = "\n[default]\n" \
                       "aws_access_key_id = \n" \
                       "aws_secret_access_key = \n" \
-                      "aws_session_token = \n"
+                      "aws_session_token = \n" \
+                      "aws_security_token = \n"
 
         session = Session()
         remove_credentials(session)
@@ -205,6 +209,7 @@ class TestDontClobberCommentsBase(CleanAWSEnvironment):
 aws_access_key_id = abc
 aws_secret_access_key = def
 aws_session_token = ghi
+aws_security_token = ghi
 
 # Test
 
@@ -212,6 +217,7 @@ aws_session_token = ghi
 aws_access_key_id = 123
 aws_secret_access_key = 456
 aws_session_token = 789
+aws_security_token = 789
 
 # Test
 """
@@ -225,6 +231,7 @@ aws_session_token = 789
 aws_access_key_id = a
 aws_secret_access_key = b
 aws_session_token = c
+aws_security_token = c
 """
         session = Session()
         save_credentials(session, token('a', 'b', 'c'))
@@ -238,13 +245,15 @@ aws_session_token = c
         credentials += "\n[foo]\n" \
                        "aws_access_key_id = \n" \
                        "aws_secret_access_key = \n" \
-                       "aws_session_token = \n"
+                       "aws_session_token = \n" \
+                       "aws_security_token = \n"
 
         self.aws_credentials += """
 [foo]
 aws_access_key_id = a
 aws_secret_access_key = b
 aws_session_token = c
+aws_security_token = c
 """
 
         session = Session()
