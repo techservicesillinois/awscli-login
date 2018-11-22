@@ -50,8 +50,8 @@ class SDGTestCase(unittest.TestCase):
     """
 
     @staticmethod
-    def assertHasFilePerms(path: str, owner: str='', group: str='',
-                           others: str='') -> None:
+    def assertHasFilePerms(path: str, owner: str = '', group: str = '',
+                           others: str = '') -> None:
         info = os.stat(path)
 
         users = [
@@ -92,7 +92,7 @@ class SDGTestCase(unittest.TestCase):
 
         try:
             rvalue = getattr(obj, attr)
-        except AttributeError as e:
+        except AttributeError:
             return "%s object does not have attr: %s" % (objName, attr)
 
         if type(rvalue) != type(evalue):

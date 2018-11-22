@@ -35,7 +35,7 @@ def fork():
             def error_handler(conn, func, *args, **kwargs):
                 try:
                     func(*args, **kwargs)
-                except Exception as e:
+                except Exception:
                     pickling_support.install()
                     etype, exp, tb = exc_info()
                     conn.send((etype, str(exp), tb))

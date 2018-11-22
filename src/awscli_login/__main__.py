@@ -121,11 +121,11 @@ def error_handler(skip_args=True, validate=False):
             except AWSCLILogin as e:
                 code = e.code
                 exp = e
-            except SIGINT as e:
+            except SIGINT:
                 sig = 'SIGINT'
-            except SIGABRT as e:
+            except SIGABRT:
                 sig = 'SIGABRT'
-            except SIGTERM as e:
+            except SIGTERM:
                 sig = 'SIGTERM'
             except Exception as e:
                 code = ERROR_UNKNOWN
@@ -174,7 +174,7 @@ def main(profile: Profile, session: Session):
 
         if not profile.force_refresh and not profile.disable_refresh:
             is_parent = daemonize(profile, session, client, role, expires)
-    except Exception as e:
+    except Exception:
         raise
     finally:
         if not is_parent:
