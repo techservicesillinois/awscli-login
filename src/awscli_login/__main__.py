@@ -38,12 +38,18 @@ logger = logging.getLogger(__package__)
 
 
 def save_sts_token(session: Session, client, saml: str,
-                   role: Role) -> datetime:
-    token = client.assume_role_with_saml(
+                   role: Role, duration) -> datetime:
+    params = dict(
         RoleArn=role[1],
         PrincipalArn=role[0],
         SAMLAssertion=saml,
     )
+    if duration:
+        params['DurationSeconds'] = duration
+        # duration is optional and can be set by the role;
+        # avoid passing if not set.
+
+    token = client.assume_role_with_saml(**params)
     logger.info("Retrieved temporary Amazon credentials for role: " + role[1])
 
     return save_credentials(session, token)
@@ -162,10 +168,11 @@ def main(profile: Profile, session: Session):
             saml, roles = authenticate(profile.ecp_endpoint_url,
                                        profile.cookies, *creds)
 
+        duration = profile.duration
         role = get_selection(roles, profile.role_arn)
-        expires = save_sts_token(session, client, saml, role)
+        expires = save_sts_token(session, client, saml, role, duration)
 
-        if not profile.force_refresh:
+        if not profile.force_refresh and not profile.disable_refresh:
             is_parent = daemonize(profile, session, client, role, expires)
     except Exception as e:
         raise
