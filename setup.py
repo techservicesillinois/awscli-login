@@ -10,7 +10,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='awscli-login',
-    version='0.1.0a5',  # TODO change this to a git tag for Drone
+    version='0.1.0a6',  # TODO change this to a git tag for Drone
     description='Plugin for the AWS CLI that retrieves and rotates '
     'credentials using SAML ECP and STS.',
     long_description=long_description,
