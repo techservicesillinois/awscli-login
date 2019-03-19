@@ -286,8 +286,11 @@ class Profile:
 
         if self.is_factor_valid():
             headers['X-Shiboleth-Duo-Factor'] = self.factor
+            headers['X-Shibboleth-Duo-Factor'] = self.factor
             if not first_pass or self.factor == 'passcode':
                 headers['X-Shiboleth-Duo-Passcode'] = input('Code: ')
+                headers['X-Shibboleth-Duo-Passcode']= \
+                    headers['X-Shiboleth-Duo-Passcode']
 
         return self.username, self.password, headers
 
