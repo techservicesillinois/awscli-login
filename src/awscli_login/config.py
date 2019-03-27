@@ -122,6 +122,9 @@ class Profile:
         # Optional configuration
         self._set_opt_attrs(config, validate)
 
+        # Warn if unknown attributes are found
+        self._warn_on_unknown_attrs(config, validate)
+
     def _set_attrs_from_args(self) -> None:
         """ Load command line options. """
         self.options = self._required | frozenset(self._optional.keys())
@@ -241,6 +244,17 @@ class Profile:
                 value = default
 
             setattr(self, attr, value)
+
+    def _warn_on_unknown_attrs(self, config: ConfigParser,
+                               validate: bool) -> None:
+        """ Load required args from profile [~/.aws-login/config]. """
+        section = self._get_profile(config, validate)
+
+        if section:
+            for attr in section:
+                if attr not in self._required and attr not in self._optional:
+                    logger.warn('Unknown attribute "' + attr + '" in ' +
+                                self.name + ' profile ' + self.name)
 
     def is_factor_valid(self):
         """ Return True if self.factor is valid. False otherwise. """
