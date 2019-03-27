@@ -58,6 +58,8 @@ class Profile:
     verbose = 0  # type: int
     refresh = 3000  # type: int
     force_refresh = False  # type: bool
+    duration = 0  # type: int
+    disable_refresh = False  # type: bool
 
     # path to profile configuration file
     config_file = None  # type: str
@@ -75,6 +77,8 @@ class Profile:
             'verbose': 0,
             'refresh': 3000,  # in seconds (every 50 mins)
             'force_refresh': False,
+            'duration': 0,  # duration can't be less than 900, btw
+            'disable_refresh': False
     }  # type: Dict[str, Any]
 
     _config_options = OrderedDict(

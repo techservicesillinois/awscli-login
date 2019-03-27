@@ -100,22 +100,29 @@ def remove_credentials(session: Session) -> None:
     """
     Removes current profile's credentials from ~/.aws/credentials.
     """
+
+    ConfigureSetCommand._WRITE_TO_CREDS_FILE.append("aws_security_token")
     profile = session.profile if session.profile else 'default'
 
     _aws_set(session, 'aws_access_key_id', '')
     _aws_set(session, 'aws_secret_access_key', '')
     _aws_set(session, 'aws_session_token',  '')
+    _aws_set(session, 'aws_security_token', '')
     logger.info("Removed temporary STS credentials from profile: " + profile)
 
 
 def save_credentials(session: Session, token: Dict) -> datetime:
     """ Takes an Amazon token and stores it in ~/.aws/credentials """
+
+    ConfigureSetCommand._WRITE_TO_CREDS_FILE.append("aws_security_token")
+
     creds = token['Credentials']
     profile = session.profile if session.profile else 'default'
 
     _aws_set(session, 'aws_access_key_id', creds['AccessKeyId'])
     _aws_set(session, 'aws_secret_access_key', creds['SecretAccessKey'])
     _aws_set(session, 'aws_session_token',  creds['SessionToken'])
+    _aws_set(session, 'aws_security_token',  creds['SessionToken'])
     logger.info("Saved temporary STS credentials to profile: " + profile)
 
     assert isinstance(creds['Expiration'], datetime), \

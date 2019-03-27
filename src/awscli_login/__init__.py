@@ -81,6 +81,17 @@ class Login(BasicCommand):
             'default': False,
             'help_text': 'Forces a login attempt to the IdP using cookies'
         },
+        {
+            'name': 'duration',
+            'default': None,
+            'help_text': 'time in seconds that the token will last'
+        },
+        {
+            'name': 'disable-refresh',
+            'default': False,
+            'cli_type_name': 'boolean',
+            'help_text': 'Disables automatic refresh of tokens'
+        },
     ]
 
     UPDATE = False
