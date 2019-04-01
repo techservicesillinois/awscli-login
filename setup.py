@@ -11,11 +11,10 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='awscli-login',
     version='0.1.0a5',  # TODO change this to a git tag for Drone
-    description='awscli-login is an AWS CLI plugin that manages retrieving and '
-    'rotating Amazon STS temporary credentials using SAML ECP for authentication '
-    'with optional support for Duo.',
+    description='Plugin for the AWS CLI that retrieves and rotates '
+    'credentials using SAML ECP and STS.',
     long_description=long_description,
-    url='https://github.com/cites-illinois/awscli-login',
+    url='https://github.com/techservicesillinois/awscli-login',
     author='David D. Riddle',
     author_email='ddriddle@illinois.edu',
     classifiers=[
@@ -58,7 +57,7 @@ setup(
     test_suite="tests",
     project_urls={
         'Bug Reports':
-            'https://github.com/cites-illinois/awscli-login/issues',
-        'Source': 'https://github.com/cites-illinois/awscli-login',
+            'https://github.com/techservicesillinois/awscli-login/issues',
+        'Source': 'https://github.com/techservicesillinois/awscli-login',
     },
 )
