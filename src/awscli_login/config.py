@@ -168,11 +168,11 @@ class Profile:
     def __getattr__(self, item):
         """ Process dynamic attributes. """
         if item == 'cookies':
-                if self.username:
-                    filename = self.username + '.txt'
-                    return path.join(self.home, JAR_DIR, filename)
-                else:
-                    return None
+            if self.username:
+                filename = self.username + '.txt'
+                return path.join(self.home, JAR_DIR, filename)
+            else:
+                return None
         else:
             mesg = "'%s' object has no attribute '%s'"
             raise AttributeError(mesg % (self.__class__.__name__, item))
@@ -245,14 +245,15 @@ class Profile:
 
             setattr(self, attr, value)
 
-    def _warn_on_unknown_attrs(self, config: ConfigParser, validate: bool) -> None:
+    def _warn_on_unknown_attrs(self, config: ConfigParser,
+                               validate: bool) -> None:
         """ Load required args from profile [~/.aws-login/config]. """
         section = self._get_profile(config, validate)
 
         for attr in section:
             if attr not in self._required and attr not in self._optional:
                 logger.warn('Unknown attribute "' + attr + '" in ' +
-                        self.name + ' profile ' + self.name)
+                            self.name + ' profile ' + self.name)
 
     def is_factor_valid(self):
         """ Return True if self.factor is valid. False otherwise. """
@@ -301,7 +302,7 @@ class Profile:
             headers['X-Shibboleth-Duo-Factor'] = self.factor
             if not first_pass or self.factor == 'passcode':
                 headers['X-Shiboleth-Duo-Passcode'] = input('Code: ')
-                headers['X-Shibboleth-Duo-Passcode']= \
+                headers['X-Shibboleth-Duo-Passcode'] = \
                     headers['X-Shiboleth-Duo-Passcode']
 
         return self.username, self.password, headers
