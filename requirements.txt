@@ -1,6 +1,6 @@
 awscli-login==0.1.0a5
 boto3==1.6.4
-botocore==1.9.4
+botocore==1.12.130
 certifi==2018.1.18
 chardet==3.0.4
 docutils==0.14
