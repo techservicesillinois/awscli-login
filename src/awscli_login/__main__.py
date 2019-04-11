@@ -96,7 +96,7 @@ def daemonize(profile: Profile, session: Session, client: boto3.client,
                     else:
                         break
 
-                expires = save_sts_token(session, client, saml, role)
+                expires = save_sts_token(session, client, saml, role, None)
 
         return is_parent
 
