@@ -1,5 +1,6 @@
 import os
 import logging
+import configparser
 
 from datetime import datetime, timezone
 from os import path
@@ -14,7 +15,11 @@ from .exceptions import SAML
 from .typing import Role
 
 awsconfigfile = path.join('.aws', 'credentials')
-
+accountsfile = path.join(
+                         os.path.expanduser("~"),
+                         '.aws-login',
+                         'accounts.ini'
+                        )
 logger = logging.getLogger(__name__)
 
 TRUE = ("yes", "true", "t", "1")
@@ -58,10 +63,23 @@ def get_selection(role_arns: List[Role], profile_role: str = None) -> Role:
 
     if n > 1:
         print("Please choose the role you would like to assume:")
+        account_names = {}
+        print(accountsfile)
+        if os.path.exists(accountsfile):
+            config = configparser.ConfigParser()
+            config.read(accountsfile)
+            for key in config['ACCOUNT_NAMES']:
+                account_names[key] = config['ACCOUNT_NAMES'][key]
 
         accounts = sort_roles(role_arns)
         for acct, roles in accounts:
-            print(' ' * 4, "Account:", acct)
+            if acct in account_names:
+                print(
+                        ' ' * 4,
+                        "Account: %s (%s)" % (account_names[acct], acct)
+                     )
+            else:
+                print(' ' * 4, "Account:", acct)
 
             for index, role in roles:
                 print(' ' * 8, "[ %d ]:" % i, role)
