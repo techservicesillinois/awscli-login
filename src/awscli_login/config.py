@@ -60,6 +60,8 @@ class Profile:
     force_refresh = False  # type: bool
     duration = 0  # type: int
     disable_refresh = False  # type: bool
+    http_header_factor = None  # type: str
+    http_header_passcode = None  # type: str
 
     # path to profile configuration file
     config_file = None  # type: str
@@ -78,7 +80,9 @@ class Profile:
             'refresh': 3000,  # in seconds (every 50 mins)
             'force_refresh': False,
             'duration': 0,  # duration can't be less than 900, btw
-            'disable_refresh': False
+            'disable_refresh': False,
+            'http_header_factor': None,
+            'http_header_passcode': None,
     }  # type: Dict[str, Any]
 
     _config_options = OrderedDict(
@@ -304,12 +308,20 @@ class Profile:
         if self.is_factor_valid():
             assert isinstance(self.factor, str), "Factor is not a string!"
 
-            headers['X-Shiboleth-Duo-Factor'] = self.factor
-            headers['X-Shibboleth-Duo-Factor'] = self.factor
+            if self.http_header_factor is not None:
+                headers[self.http_header_factor] = self.factor
+            else:
+                headers['X-Shiboleth-Duo-Factor'] = self.factor
+                headers['X-Shibboleth-Duo-Factor'] = self.factor
+
             if not first_pass or self.factor == 'passcode':
-                headers['X-Shiboleth-Duo-Passcode'] = input('Code: ')
-                headers['X-Shibboleth-Duo-Passcode'] = \
-                    headers['X-Shiboleth-Duo-Passcode']
+                code = input('Code: ')
+
+                if self.http_header_passcode is not None:
+                    headers[self.http_header_passcode] = code
+                else:
+                    headers['X-Shiboleth-Duo-Passcode'] = code
+                    headers['X-Shibboleth-Duo-Passcode'] = code
 
         return self.username, self.password, headers
 

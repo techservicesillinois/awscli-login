@@ -73,6 +73,8 @@ def login_cli_args(
     verbose=0,
     duration=0,
     disable_refresh=False,
+    http_header_factor=False,
+    http_header_passcode=False,
 ) -> Namespace:
     """
     Function for mocking cli args to login.
