@@ -1,5 +1,6 @@
 import os
 import stat
+import sys
 import unittest
 
 from os import environ, makedirs, path, walk, unlink
@@ -563,6 +564,9 @@ class CleanTestEnvironment(CleanAWSLoginEnvironment, CleanAWSEnvironment):
     """Sets up a clean test environment in a temporary directory. """
 
 
+# These tests depend on wurlitzer. wurlitzer does NOT support Windows:
+# https://github.com/minrk/wurlitzer/issues/12
+@unittest.skipIf(sys.platform.startswith("win"), "Windows is NOT supported!")
 class IntegrationTests(CleanTestEnvironment):
 
     def setUp(self):
