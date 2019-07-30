@@ -1,7 +1,12 @@
 # from signal import signal, SIGINT, SIGTERM
 import logging
+import signal
 import traceback
 import sys
+import os
+import subprocess
+import pickle
+
 
 from argparse import Namespace
 from datetime import datetime
@@ -12,6 +17,7 @@ import boto3
 from botocore.session import Session
 from daemoniker import Daemonizer, SignalHandler1
 from daemoniker import send, SIGINT, SIGTERM, SIGABRT
+from daemoniker._daemonize_windows import _NamespacePasser, _get_clean_env
 
 from .config import (
     Profile,
@@ -76,11 +82,11 @@ def daemonize(profile: Profile, session: Session, client: boto3.client,
             logger.info('Startig refresh process for role %s' % role[1])
 
             # TODO add retries!
-            while(True):
+            while (True):
                 retries = 0
                 nap(expires, 0.9)
 
-                while(True):
+                while (True):
                     try:
                         saml, _ = refresh(
                             profile.ecp_endpoint_url,
@@ -104,6 +110,7 @@ def daemonize(profile: Profile, session: Session, client: boto3.client,
 
 def error_handler(skip_args=True, validate=False):
     """ A decorator for exception handling and logging. """
+
     def decorator(f):
         @wraps(f)
         def wrapper(args: Namespace, session: Session):
@@ -142,7 +149,60 @@ def error_handler(skip_args=True, validate=False):
                 exit(code)
 
         return wrapper
+
     return decorator
+
+
+def windowsdaemonize(profile, role, expires):
+    python_path = sys.executable
+    python_path = os.path.abspath(python_path)
+    python_dir = os.path.dirname(python_path)
+    pythonw_path = python_dir + '/pythonw.exe'
+    success_timeout = 30
+
+    with _NamespacePasser() as worker_argpath:
+        # Write an argvector for the worker to the namespace passer
+        worker_argv = (
+            profile,  # namespace_path
+            role,
+            expires
+        )
+        with open(worker_argpath, 'wb') as f:
+            # Use the highest available protocol
+            pickle.dump(worker_argv, f, protocol=-1)
+
+        # Create an env for the worker to let it know what to do
+        worker_env = {'__CREATE_DAEMON__': 'True',
+                      '__AWSCLI_LOGIN_DAEMON_PATH': worker_argpath}
+
+        worker_env.update(_get_clean_env())
+        # Figure out the path to the current file
+        # worker_target = os.path.abspath(__file__)
+        worker_cmd = ('"' + python_path + '" -m ' +
+                      'awscli_login.windaemon ' +
+                      '"' + worker_argpath + '"')
+        print(worker_cmd)
+        try:
+            # This will wait for the worker to finish, or cancel it at
+            # the timeout.
+            worker = subprocess.Popen(
+                worker_cmd,
+                env=worker_env,
+                shell=True,
+                creationflags=subprocess.CREATE_NEW_CONSOLE
+            )
+            worker.wait()
+            # Make sure it actually terminated via the success signal
+            print("return code = " + str(worker.returncode))
+            #  if worker.returncode != signal.SIGINT:
+            #      raise RuntimeError(
+            #          'Daemon creation worker exited prematurely. in main'
+            #      )
+
+        except subprocess.TimeoutExpired as exc:
+            raise ChildProcessError(
+                'Timeout while waiting for daemon init.'
+            ) from exc
 
 
 @error_handler(skip_args=False, validate=True)
@@ -175,6 +235,9 @@ def main(profile: Profile, session: Session):
         if sys.platform != 'win32':
             if not profile.force_refresh and not profile.disable_refresh:
                 is_parent = daemonize(profile, session, client, role, expires)
+        else:
+            if not profile.force_refresh and not profile.disable_refresh:
+                windowsdaemonize(profile, role, expires)
     except Exception as e:
         raise
     finally:
@@ -190,4 +253,3 @@ def logout(profile: Profile, session: Session):
         remove_credentials(session)
     except IOError:
         raise AlreadyLoggedOut
-
