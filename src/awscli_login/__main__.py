@@ -1,6 +1,7 @@
 # from signal import signal, SIGINT, SIGTERM
 import logging
 import traceback
+import sys
 
 from argparse import Namespace
 from datetime import datetime
@@ -171,9 +172,9 @@ def main(profile: Profile, session: Session):
         duration = profile.duration
         role = get_selection(roles, profile.role_arn)
         expires = save_sts_token(session, client, saml, role, duration)
-
-        if not profile.force_refresh and not profile.disable_refresh:
-            is_parent = daemonize(profile, session, client, role, expires)
+        if sys.platform != 'win32':
+            if not profile.force_refresh and not profile.disable_refresh:
+                is_parent = daemonize(profile, session, client, role, expires)
     except Exception as e:
         raise
     finally:
@@ -184,7 +185,11 @@ def main(profile: Profile, session: Session):
 @error_handler()
 def logout(profile: Profile, session: Session):
     try:
-        send(profile.pidfile, SIGINT)
+        if sys.platform != 'win32':
+            send(profile.pidfile, SIGINT)
         remove_credentials(session)
     except IOError:
+        tb = traceback.format_exc()
+        print(tb)
         raise AlreadyLoggedOut
+
