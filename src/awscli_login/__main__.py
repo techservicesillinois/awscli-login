@@ -189,7 +189,5 @@ def logout(profile: Profile, session: Session):
             send(profile.pidfile, SIGINT)
         remove_credentials(session)
     except IOError:
-        tb = traceback.format_exc()
-        print(tb)
         raise AlreadyLoggedOut
 
