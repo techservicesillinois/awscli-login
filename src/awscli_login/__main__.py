@@ -173,7 +173,7 @@ def windowsdaemonize(profile, role, expires):
 
         # Create an env for the worker to let it know what to do
         worker_env = {'__CREATE_DAEMON__': 'True',
-                      '__AWSCLI_LOGIN_DAEMON_PATH': worker_argpath}
+                      '__AWSCLI_LOGIN_DAEMON_PATH__': worker_argpath}
 
         worker_env.update(_get_clean_env())
         # Figure out the path to the current file
@@ -185,13 +185,11 @@ def windowsdaemonize(profile, role, expires):
         try:
             # This will wait for the worker to finish, or cancel it at
             # the timeout.
-            worker = subprocess.Popen(
+            worker = subprocess.run(
                 worker_cmd,
                 env=worker_env,
-                shell=True,
-                creationflags=subprocess.CREATE_NEW_CONSOLE
             )
-            worker.wait()
+
             # Make sure it actually terminated via the success signal
             print("return code = " + str(worker.returncode))
             #  if worker.returncode != signal.SIGINT:
