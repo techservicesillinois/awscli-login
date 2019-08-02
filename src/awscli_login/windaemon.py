@@ -11,6 +11,7 @@ from awscli_login.saml import refresh
 from awscli_login.util import nap
 
 
+
 def main():
     dummy = "Hello World"
     pidFile = os.path.join("C:\\Users\\althor", "test.pid")
@@ -53,6 +54,7 @@ if __name__ == '__main__':
     profile = args[0]
     role = args[1]
     expires = args[2]
+    print(str(profile.config_file))
     with Daemonizer() as (is_setup, daemonizer):
         is_parent, profile, role, expires = daemonizer(
             pidfile, profile, role, expires
@@ -65,8 +67,29 @@ if __name__ == '__main__':
             sighandler.start()
 
             logger = configFileLogger(profile.logfile, logging.INFO)
-            logger.info('Starting refresh process for role %s' % role[1])
+            logger.info('Startig refresh process for role %s' % role[1])
 
             # TODO add retries!
             while (True):
                 retries = 0
+                nap(expires, 0.9)
+
+                while (True):
+                    try:
+                        saml, _ = refresh(
+                            profile.ecp_endpoint_url,
+                            profile.cookies,
+                        )
+                    except Exception as e:
+                        retries += 1
+
+                        if (retries < 4):
+                            logger.info('Refresh failed: %s' % str(e))
+                            nap(expires, 0.2)
+                        else:
+                            raise
+                    else:
+                        break
+                session = boto3.Session(profile=profile.name)
+                client = boto3.client('sts')
+                expires = save_sts_token(session, client, saml, role)

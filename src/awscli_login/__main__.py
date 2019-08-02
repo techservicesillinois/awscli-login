@@ -153,7 +153,7 @@ def error_handler(skip_args=True, validate=False):
     return decorator
 
 
-def windowsdaemonize(profile, role, expires):
+def windowsdaemonize(profile, role, expires, session: Session):
     python_path = sys.executable
     python_path = os.path.abspath(python_path)
     python_dir = os.path.dirname(python_path)
@@ -192,10 +192,10 @@ def windowsdaemonize(profile, role, expires):
 
             # Make sure it actually terminated via the success signal
             print("return code = " + str(worker.returncode))
-            if worker.returncode != signal.SIGINT:
-                raise RuntimeError(
-                    'Daemon creation worker exited prematurely. in main'
-                )
+            #if worker.returncode != signal.SIGINT:
+            #    raise RuntimeError(
+            #        'Daemon creation worker exited prematurely. in main'
+            #    )
 
         except subprocess.TimeoutExpired as exc:
             raise ChildProcessError(
@@ -235,7 +235,7 @@ def main(profile: Profile, session: Session):
                 is_parent = daemonize(profile, session, client, role, expires)
         else:
             if not profile.force_refresh and not profile.disable_refresh:
-                windowsdaemonize(profile, role, expires)
+                windowsdaemonize(profile, role, expires, session)
     except Exception as e:
         raise
     finally:
@@ -249,6 +249,8 @@ def logout(profile: Profile, session: Session):
         # if sys.platform != 'win32':
         send(profile.pidfile, SIGINT)
         if os.path.exists(profile.pidfile):
+            sighandler = SignalHandler1(profile.pidfile)
+            sighandler.stop()
             os.remove(profile.pidfile)
         remove_credentials(session)
     except IOError:
