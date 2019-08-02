@@ -1,9 +1,14 @@
+import logging
 import pickle
 import sys
 import os
 import tempfile
 
-from daemoniker import Daemonizer
+from daemoniker import Daemonizer, SignalHandler1
+
+from awscli_login.logger import configFileLogger
+from awscli_login.saml import refresh
+from awscli_login.util import nap
 
 
 def main():
@@ -18,7 +23,7 @@ if __name__ == '__main__':
     args = None
 
     if os.path.exists(argpath):
-        with open(argpath,'rb') as f:
+        with open(argpath, 'rb') as f:
             args = pickle.load(f)
         argFile = tempfile.NamedTemporaryFile()
         tempArgPath = argFile.name + "A"
@@ -45,19 +50,23 @@ if __name__ == '__main__':
 
         # print("one" + str(args[0].pidfile))
     pidfile = os.environ["__AWS_CLI_PID__"]
+    profile = args[0]
+    role = args[1]
+    expires = args[2]
     with Daemonizer() as (is_setup, daemonizer):
-        is_parent, dummy = daemonizer(
-            pidfile, dummy
+        is_parent, profile, role, expires = daemonizer(
+            pidfile, profile, role, expires
         )
         if is_parent:
             print("in parent")
             dummy = "Hello Parent"
         if not is_parent:
-            print("in child")
-            testFile = os.path.join("C:\\Users\\althor", "pyTest.txt")
-            f = open(testFile, 'a')
-            f.write(dummy)
-            f.close()
-            if os.path.exists(os.environ["__AWS_CLI_WINDAEMON__"]):
-                os.remove(os.environ["__AWS_CLI_WINDAEMON__"])
-            dummy = "Hello bob"
+            sighandler = SignalHandler1(profile.pidfile)
+            sighandler.start()
+
+            logger = configFileLogger(profile.logfile, logging.INFO)
+            logger.info('Starting refresh process for role %s' % role[1])
+
+            # TODO add retries!
+            while (True):
+                retries = 0

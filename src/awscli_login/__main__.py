@@ -192,10 +192,10 @@ def windowsdaemonize(profile, role, expires):
 
             # Make sure it actually terminated via the success signal
             print("return code = " + str(worker.returncode))
-            #  if worker.returncode != signal.SIGINT:
-            #      raise RuntimeError(
-            #          'Daemon creation worker exited prematurely. in main'
-            #      )
+            if worker.returncode != signal.SIGINT:
+                raise RuntimeError(
+                    'Daemon creation worker exited prematurely. in main'
+                )
 
         except subprocess.TimeoutExpired as exc:
             raise ChildProcessError(
@@ -246,8 +246,10 @@ def main(profile: Profile, session: Session):
 @error_handler()
 def logout(profile: Profile, session: Session):
     try:
-        if sys.platform != 'win32':
-            send(profile.pidfile, SIGINT)
+        # if sys.platform != 'win32':
+        send(profile.pidfile, SIGINT)
+        if os.path.exists(profile.pidfile):
+            os.remove(profile.pidfile)
         remove_credentials(session)
     except IOError:
         raise AlreadyLoggedOut
