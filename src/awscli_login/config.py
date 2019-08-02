@@ -21,7 +21,7 @@ from .exceptions import (
     ProfileMissingArgs,
     ProfileNotFound,
 )
-from .typing import Creds
+from .awscli_typing import Creds
 from .util import secure_touch
 
 CONFIG_DIR = '.aws-login'

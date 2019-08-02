@@ -30,9 +30,19 @@ if __name__ == '__main__':
         os.environ["__AWS_CLI_PID__"] = args[0].pidfile
         print("two" + args[0].pidfile)
     if os.path.exists(os.environ["__AWS_CLI_WINDAEMON__"]):
-        pass
-        # with open(os.environ["__AWS_CLI_WINDAEMON__"], 'rb') as f:
-        #    args = pickle.load(f)
+        # pass
+        try:
+            with open(os.environ["__AWS_CLI_WINDAEMON__"], 'rb') as f:
+                args = pickle.load(f)
+        except Exception as exc:
+            testFile = os.path.join("C:\\Users\\althor", "pyTest.txt")
+            f = open(testFile, 'a')
+            f.write("error reading from " + os.environ["__AWS_CLI_WINDAEMON__"] + "{0}".format(str(exc)))
+            f.close()
+            raise Exception(
+                'Timeout while waiting for daemon init.'
+            ) from exc
+
         # print("one" + str(args[0].pidfile))
     pidfile = os.environ["__AWS_CLI_PID__"]
     with Daemonizer() as (is_setup, daemonizer):

@@ -11,7 +11,7 @@ from botocore.session import Session
 
 from .const import ERROR_INVALID_PROFILE_ROLE
 from .exceptions import SAML
-from .typing import Role
+from .awscli_typing import Role
 
 awsconfigfile = path.join('.aws', 'credentials')
 

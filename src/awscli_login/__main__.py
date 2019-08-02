@@ -39,7 +39,7 @@ from .util import (
     remove_credentials,
     save_credentials,
 )
-from .typing import Role
+from .awscli_typing import Role
 
 logger = logging.getLogger(__package__)
 
