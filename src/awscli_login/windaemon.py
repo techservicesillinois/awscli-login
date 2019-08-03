@@ -90,6 +90,6 @@ if __name__ == '__main__':
                             raise
                     else:
                         break
-                session = boto3.Session(profile=profile.name)
-                client = boto3.client('sts')
-                expires = save_sts_token(session, client, saml, role)
+                #session = boto3.Session(profile=profile.name)
+                #client = boto3.client('sts')
+                #expires = save_sts_token(session, client, saml, role)

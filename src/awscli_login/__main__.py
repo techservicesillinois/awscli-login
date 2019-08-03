@@ -249,8 +249,6 @@ def logout(profile: Profile, session: Session):
         # if sys.platform != 'win32':
         send(profile.pidfile, SIGINT)
         if os.path.exists(profile.pidfile):
-            sighandler = SignalHandler1(profile.pidfile)
-            sighandler.stop()
             os.remove(profile.pidfile)
         remove_credentials(session)
     except IOError:
