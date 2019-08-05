@@ -11,17 +11,14 @@ from awscli_login.saml import refresh
 from awscli_login.util import nap
 
 
-
 def main():
-    dummy = "Hello World"
-    pidFile = os.path.join("C:\\Users\\althor", "test.pid")
-    testFile = os.path.join("C:\\Users\\althor", "pyTest.txt")
+    args = lookup_args()
+    daemonize_for_windows(*args)
 
 
-if __name__ == '__main__':
-    dummy = "Hello World"
-    argpath = sys.argv[1]
+def lookup_args():
     args = None
+    argpath = sys.argv[1]
     if os.path.exists(argpath):
         with open(argpath, 'rb') as f:
             args = pickle.load(f)
@@ -33,27 +30,27 @@ if __name__ == '__main__':
                 # Use the highest available protocol
                 pickle.dump(args, fw, protocol=-1)
         os.environ["__AWS_CLI_PID__"] = args[0].pidfile
-        print("two" + args[0].pidfile)
-    if os.path.exists(os.environ["__AWS_CLI_WINDAEMON__"]):
-        # pass
+        return args
+    elif os.path.exists(os.environ["__AWS_CLI_WINDAEMON__"]):
         try:
             with open(os.environ["__AWS_CLI_WINDAEMON__"], 'rb') as f:
                 args = pickle.load(f)
-            # TODO: remove this file.
+            with open(os.environ["__AWS_CLI_WINDAEMON__"], 'r+b') as f:
+                to_erase = f.read()
+                eraser = bytes(len(to_erase))
+                f.seek(0)
+                f.write(eraser)
+            os.remove(os.environ["__AWS_CLI_WINDAEMON__"])
+            del os.environ["__AWS_CLI_WINDAEMON__"]
+            return args
         except Exception as exc:
-            testFile = os.path.join("C:\\Users\\althor", "pyTest.txt")
-            f = open(testFile, 'a')
-            f.write("error reading from " + os.environ["__AWS_CLI_WINDAEMON__"] + "{0}".format(str(exc)))
-            f.close()
             raise Exception(
-                'Timeout while waiting for daemon init.'
+                'Problem loading args from file'
             ) from exc
 
-        # print("one" + str(args[0].pidfile))
-    profile = args[0]
+
+def daemonize_for_windows(profile, role, expires):
     pidfile = profile.pidfile
-    role = args[1]
-    expires = args[2]
     with Daemonizer() as (is_setup, daemonizer):
         is_parent, profile, role, expires = daemonizer(
             pidfile, profile, role, expires
@@ -82,7 +79,12 @@ if __name__ == '__main__':
                             raise
                     else:
                         break
-            profile_name = profile.name if profile.name else 'default'
-            session = boto3.Session(profile=profile_name)
-            client = boto3.client('sts')
-            expires = save_sts_token(session, client, saml, role)
+
+                profile_name = profile.name if profile.name else 'default'
+                session = boto3.Session(profile=profile_name)
+                client = boto3.client('sts')
+                expires = save_sts_token(session, client, saml, role)
+
+
+if __name__ == '__main__':
+    main()
