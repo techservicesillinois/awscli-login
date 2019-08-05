@@ -160,6 +160,7 @@ def windowsdaemonize(profile, role, expires, session: Session):
     pythonw_path = python_dir + '/pythonw.exe'
     success_timeout = 30
     print(str(session.full_config))
+    print(str(session.get_credentials()))
     with _NamespacePasser() as worker_argpath:
         # Write an argvector for the worker to the namespace passer
         worker_argv = [
