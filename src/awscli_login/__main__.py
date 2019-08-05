@@ -237,7 +237,6 @@ def main(profile: Profile, session: Session):
 @error_handler()
 def logout(profile: Profile, session: Session):
     try:
-        # if sys.platform != 'win32':
         send(profile.pidfile, SIGINT)
         if os.path.exists(profile.pidfile):
             os.remove(profile.pidfile)
