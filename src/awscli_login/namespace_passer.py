@@ -10,7 +10,7 @@ import shlex
 import tempfile
 import atexit
 
-''' This was taken daemoniker library as the class was 'protected' 
+''' This was taken daemoniker._daemonize_windoows library as the class was 'protected' 
     and wanted to ensure that the functionality didn't get removed
     in a future patch of daemoniker since it wasn't meant to be public
     
