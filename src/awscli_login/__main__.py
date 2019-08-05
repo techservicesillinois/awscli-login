@@ -17,8 +17,8 @@ import boto3
 from botocore.session import Session
 from daemoniker import Daemonizer, SignalHandler1
 from daemoniker import send, SIGINT, SIGTERM, SIGABRT
-from daemoniker._daemonize_windows import _NamespacePasser
 
+from awscli_login.namespace_passer import _LocalNamespacePasser
 from .config import (
     Profile,
     ERROR_NONE,
@@ -159,7 +159,7 @@ def windowsdaemonize(profile, role, expires):
     python_dir = os.path.dirname(python_path)
     pythonw_path = python_dir + '/pythonw.exe'
     success_timeout = 30
-    with _NamespacePasser() as worker_argpath:
+    with _LocalNamespacePasser() as worker_argpath:
         # Write an argvector for the worker to the namespace passer
         worker_argv = [
             profile,  # namespace_path
@@ -182,9 +182,10 @@ def windowsdaemonize(profile, role, expires):
         try:
             # This will wait for the worker to finish, or cancel it at
             # the timeout.
-            worker = subprocess.run(
+            subprocess.run(
                 worker_cmd,
                 env=worker_env,
+                timeout=success_timeout
             )
 
         except subprocess.TimeoutExpired as exc:
