@@ -22,7 +22,8 @@ if __name__ == '__main__':
     dummy = "Hello World"
     argpath = sys.argv[1]
     args = None
-
+    #TODO: move this into function(s) for readability
+    #TODO: handle full_session for auto-renewal of credentials.
     if os.path.exists(argpath):
         with open(argpath, 'rb') as f:
             args = pickle.load(f)
@@ -40,6 +41,7 @@ if __name__ == '__main__':
         try:
             with open(os.environ["__AWS_CLI_WINDAEMON__"], 'rb') as f:
                 args = pickle.load(f)
+            # TODO: remove this file.
         except Exception as exc:
             testFile = os.path.join("C:\\Users\\althor", "pyTest.txt")
             f = open(testFile, 'a')
