@@ -50,8 +50,8 @@ if __name__ == '__main__':
             ) from exc
 
         # print("one" + str(args[0].pidfile))
-    pidfile = os.environ["__AWS_CLI_PID__"]
     profile = args[0]
+    pidfile = profile.pidfile
     role = args[1]
     expires = args[2]
     print(str(profile.config_file))
@@ -63,33 +63,9 @@ if __name__ == '__main__':
             print("in parent")
             dummy = "Hello Parent"
         if not is_parent:
-            sighandler = SignalHandler1(profile.pidfile)
-            sighandler.start()
-
             logger = configFileLogger(profile.logfile, logging.INFO)
             logger.info('Startig refresh process for role %s' % role[1])
-
             # TODO add retries!
             while (True):
                 retries = 0
                 nap(expires, 0.9)
-
-                while (True):
-                    try:
-                        saml, _ = refresh(
-                            profile.ecp_endpoint_url,
-                            profile.cookies,
-                        )
-                    except Exception as e:
-                        retries += 1
-
-                        if (retries < 4):
-                            logger.info('Refresh failed: %s' % str(e))
-                            nap(expires, 0.2)
-                        else:
-                            raise
-                    else:
-                        break
-                #session = boto3.Session(profile=profile.name)
-                #client = boto3.client('sts')
-                #expires = save_sts_token(session, client, saml, role)
