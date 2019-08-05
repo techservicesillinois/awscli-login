@@ -221,12 +221,12 @@ def main(profile: Profile, session: Session):
         duration = profile.duration
         role = get_selection(roles, profile.role_arn)
         expires = save_sts_token(session, client, saml, role, duration)
-        if sys.platform != 'win32':
-            if not profile.force_refresh and not profile.disable_refresh:
+        if not profile.force_refresh and not profile.disable_refresh:
+            if sys.platform != 'win32':
                 is_parent = daemonize(profile, session, client, role, expires)
-        else:
-            if not profile.force_refresh and not profile.disable_refresh:
+            else:
                 windowsdaemonize(profile, role, expires)
+
     except Exception as e:
         raise
     finally:
