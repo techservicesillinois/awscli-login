@@ -56,14 +56,12 @@ if __name__ == '__main__':
     pidfile = profile.pidfile
     role = args[1]
     expires = args[2]
+    session = args[3]
     print(str(profile.config_file))
     with Daemonizer() as (is_setup, daemonizer):
         is_parent, profile, role, expires = daemonizer(
             pidfile, profile, role, expires
         )
-        if is_parent:
-            print("in parent")
-            dummy = "Hello Parent"
         if not is_parent:
             logger = configFileLogger(profile.logfile, logging.INFO)
             logger.info('Startig refresh process for role %s' % role[1])
@@ -71,3 +69,25 @@ if __name__ == '__main__':
             while (True):
                 retries = 0
                 nap(expires, 0.9)
+
+                while (True):
+                    try:
+                        saml, _ = refresh(
+                            profile.ecp_endpoint_url,
+                            profile.cookies,
+                        )
+                    except Exception as e:
+                        retries += 1
+
+                        if (retries < 4):
+                            logger.info('Refresh failed: %s' % str(e))
+                            nap(expires, 0.2)
+                        else:
+                            raise
+                    else:
+                        break
+            session
+               # expires = save_sts_token(session, client, saml, role)
+            #session = boto3.Session(profile=profile.name)
+            #client = session.client('sts')
+            #expires = save_sts_token(session, client, saml, role)

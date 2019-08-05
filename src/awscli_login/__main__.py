@@ -159,13 +159,14 @@ def windowsdaemonize(profile, role, expires, session: Session):
     python_dir = os.path.dirname(python_path)
     pythonw_path = python_dir + '/pythonw.exe'
     success_timeout = 30
-
+    print(str(session.full_config))
     with _NamespacePasser() as worker_argpath:
         # Write an argvector for the worker to the namespace passer
         worker_argv = [
             profile,  # namespace_path
             role,
-            expires
+            expires,
+            session.full_config
         ]
         with open(worker_argpath, 'wb') as f:
             # Use the highest available protocol
