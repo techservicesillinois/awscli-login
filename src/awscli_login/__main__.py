@@ -153,21 +153,18 @@ def error_handler(skip_args=True, validate=False):
     return decorator
 
 
-def windowsdaemonize(profile, role, expires, session: Session):
+def windowsdaemonize(profile, role, expires):
     python_path = sys.executable
     python_path = os.path.abspath(python_path)
     python_dir = os.path.dirname(python_path)
     pythonw_path = python_dir + '/pythonw.exe'
     success_timeout = 30
-    print(str(session.full_config))
-    print(str(session.get_credentials()))
     with _NamespacePasser() as worker_argpath:
         # Write an argvector for the worker to the namespace passer
         worker_argv = [
             profile,  # namespace_path
             role,
-            expires,
-            session.full_config
+            expires
         ]
         with open(worker_argpath, 'wb') as f:
             # Use the highest available protocol
@@ -183,7 +180,6 @@ def windowsdaemonize(profile, role, expires, session: Session):
         worker_cmd = ('"' + python_path + '" -m ' +
                       'awscli_login.windaemon ' +
                       '"' + worker_argpath + '"')
-        print(worker_cmd)
         try:
             # This will wait for the worker to finish, or cancel it at
             # the timeout.
@@ -191,13 +187,6 @@ def windowsdaemonize(profile, role, expires, session: Session):
                 worker_cmd,
                 env=worker_env,
             )
-
-            # Make sure it actually terminated via the success signal
-            print("return code = " + str(worker.returncode))
-            #if worker.returncode != signal.SIGINT:
-            #    raise RuntimeError(
-            #        'Daemon creation worker exited prematurely. in main'
-            #    )
 
         except subprocess.TimeoutExpired as exc:
             raise ChildProcessError(
@@ -237,7 +226,7 @@ def main(profile: Profile, session: Session):
                 is_parent = daemonize(profile, session, client, role, expires)
         else:
             if not profile.force_refresh and not profile.disable_refresh:
-                windowsdaemonize(profile, role, expires, session)
+                windowsdaemonize(profile, role, expires)
     except Exception as e:
         raise
     finally:

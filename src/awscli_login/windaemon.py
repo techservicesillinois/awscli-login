@@ -22,8 +22,6 @@ if __name__ == '__main__':
     dummy = "Hello World"
     argpath = sys.argv[1]
     args = None
-    #TODO: move this into function(s) for readability
-    #TODO: handle full_session for auto-renewal of credentials.
     if os.path.exists(argpath):
         with open(argpath, 'rb') as f:
             args = pickle.load(f)
@@ -56,8 +54,6 @@ if __name__ == '__main__':
     pidfile = profile.pidfile
     role = args[1]
     expires = args[2]
-    session = args[3]
-    print(str(profile.config_file))
     with Daemonizer() as (is_setup, daemonizer):
         is_parent, profile, role, expires = daemonizer(
             pidfile, profile, role, expires
@@ -86,7 +82,7 @@ if __name__ == '__main__':
                             raise
                     else:
                         break
-            profile_name =  profile.name if profile.name else 'default'
+            profile_name = profile.name if profile.name else 'default'
             session = boto3.Session(profile=profile_name)
             client = boto3.client('sts')
             expires = save_sts_token(session, client, saml, role)
