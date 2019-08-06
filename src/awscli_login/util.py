@@ -14,6 +14,7 @@ from .const import ERROR_INVALID_PROFILE_ROLE
 from .exceptions import SAML
 from .typing import Role
 
+## WHY CAN'T I IMPORT util or __main__ ??
 awsconfigfile = path.join('.aws', 'credentials')
 accountsfile = path.join(
                          os.path.expanduser("~"),
