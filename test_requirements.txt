@@ -1,0 +1,8 @@
+Sphinx
+coverage
+sphinx-autodoc-typehints
+sphinx_rtd_theme
+tblib
+tox
+tox-pyenv
+wurlitzer
