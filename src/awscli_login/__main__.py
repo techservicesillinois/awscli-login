@@ -1,6 +1,12 @@
 # from signal import signal, SIGINT, SIGTERM
 import logging
+import signal
 import traceback
+import sys
+import os
+import subprocess
+import pickle
+
 
 from argparse import Namespace
 from datetime import datetime
@@ -12,6 +18,7 @@ from botocore.session import Session
 from daemoniker import Daemonizer, SignalHandler1
 from daemoniker import send, SIGINT, SIGTERM, SIGABRT
 
+from awscli_login.namespace_passer import _LocalNamespacePasser
 from .config import (
     Profile,
     ERROR_NONE,
@@ -32,7 +39,7 @@ from .util import (
     remove_credentials,
     save_credentials,
 )
-from .typing import Role
+from .awscli_typing import Role
 
 logger = logging.getLogger(__package__)
 
@@ -75,11 +82,11 @@ def daemonize(profile: Profile, session: Session, client: boto3.client,
             logger.info('Startig refresh process for role %s' % role[1])
 
             # TODO add retries!
-            while(True):
+            while (True):
                 retries = 0
                 nap(expires, 0.9)
 
-                while(True):
+                while (True):
                     try:
                         saml, _ = refresh(
                             profile.ecp_endpoint_url,
@@ -103,6 +110,7 @@ def daemonize(profile: Profile, session: Session, client: boto3.client,
 
 def error_handler(skip_args=True, validate=False):
     """ A decorator for exception handling and logging. """
+
     def decorator(f):
         @wraps(f)
         def wrapper(args: Namespace, session: Session):
@@ -141,7 +149,47 @@ def error_handler(skip_args=True, validate=False):
                 exit(code)
 
         return wrapper
+
     return decorator
+
+
+def windowsdaemonize(profile, role, expires):
+    python_path = sys.executable
+    python_path = os.path.abspath(python_path)
+    python_dir = os.path.dirname(python_path)
+    pythonw_path = python_dir + '/pythonw.exe'
+    success_timeout = 30
+    with _LocalNamespacePasser() as worker_argpath:
+        # Write an argvector for the worker to the namespace passer
+        worker_argv = [
+            profile,  # namespace_path
+            role,
+            expires
+        ]
+        with open(worker_argpath, 'wb') as f:
+            # Use the highest available protocol
+            pickle.dump(worker_argv, f, protocol=-1)
+
+        # Create an env for the worker to let it know what to do
+        worker_env = {}
+
+        worker_env.update(dict(os.environ))
+        # Figure out the path to the current file
+        # worker_target = os.path.abspath(__file__)
+        worker_cmd = f'"{python_path}" -m awscli_login.windaemon "{worker_argpath}"'
+        try:
+            # This will wait for the worker to finish, or cancel it at
+            # the timeout.
+            subprocess.run(
+                worker_cmd,
+                env=worker_env,
+                timeout=success_timeout
+            )
+
+        except subprocess.TimeoutExpired as exc:
+            raise ChildProcessError(
+                'Timeout while waiting for daemon init.'
+            ) from exc
 
 
 @error_handler(skip_args=False, validate=True)
@@ -171,9 +219,12 @@ def main(profile: Profile, session: Session):
         duration = profile.duration
         role = get_selection(roles, profile.role_arn)
         expires = save_sts_token(session, client, saml, role, duration)
-
         if not profile.force_refresh and not profile.disable_refresh:
-            is_parent = daemonize(profile, session, client, role, expires)
+            if sys.platform != 'win32':
+                is_parent = daemonize(profile, session, client, role, expires)
+            else:
+                windowsdaemonize(profile, role, expires)
+
     except Exception as e:
         raise
     finally:
@@ -185,6 +236,8 @@ def main(profile: Profile, session: Session):
 def logout(profile: Profile, session: Session):
     try:
         send(profile.pidfile, SIGINT)
+        if os.path.exists(profile.pidfile):
+            os.remove(profile.pidfile)
         remove_credentials(session)
     except IOError:
         raise AlreadyLoggedOut

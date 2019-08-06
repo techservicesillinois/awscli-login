@@ -11,7 +11,7 @@ from botocore.session import Session
 
 from .const import ERROR_INVALID_PROFILE_ROLE
 from .exceptions import SAML
-from .typing import Role
+from .awscli_typing import Role
 
 awsconfigfile = path.join('.aws', 'credentials')
 
@@ -166,5 +166,6 @@ def secure_touch(path):
         path - A path to a file.
     """
     fd = os.open(path, os.O_CREAT | os.O_RDONLY, mode=0o600)
-    os.fchmod(fd, 0o600)
+    if hasattr(os, "fchmod"):
+        os.fchmod(fd, 0o600)
     os.close(fd)
