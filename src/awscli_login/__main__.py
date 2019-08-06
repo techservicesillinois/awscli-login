@@ -176,9 +176,7 @@ def windowsdaemonize(profile, role, expires):
         worker_env.update(dict(os.environ))
         # Figure out the path to the current file
         # worker_target = os.path.abspath(__file__)
-        worker_cmd = ('"' + python_path + '" -m ' +
-                      'awscli_login.windaemon ' +
-                      '"' + worker_argpath + '"')
+        worker_cmd = f'"{python_path}" -m awscli_login.windaemon "{worker_argpath}"'
         try:
             # This will wait for the worker to finish, or cancel it at
             # the timeout.
