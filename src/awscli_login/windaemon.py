@@ -75,7 +75,7 @@ def daemonize_for_windows(profile, role, expires):
         )
         if not is_parent:
             logger = configFileLogger(profile.logfile, logging.INFO)
-            logger.info('Startig refresh process for role %s' % role[1])
+            logger.info('Starting refresh process for role %s' % role[1])
             # TODO add retries!
             while (True):
                 retries = 0
