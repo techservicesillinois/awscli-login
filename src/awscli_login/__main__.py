@@ -31,7 +31,8 @@ from .util import (
     nap,
     remove_credentials,
     save_credentials,
-    write_identity_file
+    write_identity_file,
+    remove_identity_file
 )
 from .typing import Role
 
@@ -192,3 +193,6 @@ def logout(profile: Profile, session: Session):
         remove_credentials(session)
     except IOError:
         raise AlreadyLoggedOut
+    finally:
+        remove_identity_file()
+        

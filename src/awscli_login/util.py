@@ -142,9 +142,10 @@ def remove_credentials(session: Session) -> None:
     _aws_set(session, 'aws_secret_access_key', '')
     _aws_set(session, 'aws_session_token',  '')
     _aws_set(session, 'aws_security_token', '')
-    os.remove(identityfile)
     logger.info("Removed temporary STS credentials from profile: " + profile)
 
+def remove_identity_file():
+    os.remove(identityfile)
 
 def save_credentials(session: Session, token: Dict) -> datetime:
     """ Takes an Amazon token and stores it in ~/.aws/credentials """
