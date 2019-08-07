@@ -31,6 +31,7 @@ from .util import (
     nap,
     remove_credentials,
     save_credentials,
+    write_identity_file
 )
 from .typing import Role
 
@@ -51,7 +52,7 @@ def save_sts_token(session: Session, client, saml: str,
 
     token = client.assume_role_with_saml(**params)
     logger.info("Retrieved temporary Amazon credentials for role: " + role[1])
-
+    
     return save_credentials(session, token)
 
 
@@ -95,7 +96,7 @@ def daemonize(profile: Profile, session: Session, client: boto3.client,
                             raise
                     else:
                         break
-
+                
                 expires = save_sts_token(session, client, saml, role, None)
 
         return is_parent
@@ -171,6 +172,9 @@ def main(profile: Profile, session: Session):
         duration = profile.duration
         role = get_selection(roles, profile.role_arn)
         expires = save_sts_token(session, client, saml, role, duration)
+        _,role_arn = role
+        account_id = role_arn.split(':')[4]
+        write_identity_file(account_id)
 
         if not profile.force_refresh and not profile.disable_refresh:
             is_parent = daemonize(profile, session, client, role, expires)

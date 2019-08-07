@@ -21,6 +21,27 @@ accountsfile = path.join(
                          '.aws-login',
                          'accounts.ini'
                         )
+
+identityfile = path.join(
+                         os.path.expanduser("~"),
+                         '.aws-login',
+                         'identity.txt'
+                        )
+def read_account_names_file():
+    account_names = {}
+    if os.path.exists(accountsfile):
+        config = configparser.ConfigParser()
+        config.read(accountsfile)
+        for key in config['ACCOUNT_NAMES']:
+            account_names[key] = config['ACCOUNT_NAMES'][key]
+    return account_names
+
+
+def write_identity_file(account_id):
+    account_names = read_account_names_file()
+    with open(identityfile,'w') as f:
+        print(account_names[account_id], file=f)
+
 logger = logging.getLogger(__name__)
 
 TRUE = ("yes", "true", "t", "1")
@@ -64,13 +85,7 @@ def get_selection(role_arns: List[Role], profile_role: str = None) -> Role:
 
     if n > 1:
         print("Please choose the role you would like to assume:")
-        account_names = {}
-        print(accountsfile)
-        if os.path.exists(accountsfile):
-            config = configparser.ConfigParser()
-            config.read(accountsfile)
-            for key in config['ACCOUNT_NAMES']:
-                account_names[key] = config['ACCOUNT_NAMES'][key]
+        account_names = read_account_names_file()
 
         accounts = sort_roles(role_arns)
         for acct, roles in accounts:
@@ -127,6 +142,7 @@ def remove_credentials(session: Session) -> None:
     _aws_set(session, 'aws_secret_access_key', '')
     _aws_set(session, 'aws_session_token',  '')
     _aws_set(session, 'aws_security_token', '')
+    os.remove(identityfile)
     logger.info("Removed temporary STS credentials from profile: " + profile)
 
 

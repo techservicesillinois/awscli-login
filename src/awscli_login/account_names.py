@@ -27,15 +27,6 @@ def save_account_names(profile: Profile, session: Session):
     names = list_account_names(profile, session)
     write_account_names_file(names)
 
-def read_account_names_file():
-    account_names = {}
-    print(accountsfile)
-    if os.path.exists(accountsfile):
-        config = configparser.ConfigParser()
-        config.read(accountsfile)
-        for key in config['ACCOUNT_NAMES']:
-            account_names[key] = config['ACCOUNT_NAMES'][key]
-    return account_names
 
 def write_account_names_file(account_names):
     config = configparser.ConfigParser()
@@ -56,12 +47,22 @@ def list_account_names(profile: Profile, session: Session):
     """ Print account names to STDOUT """
     
     sts = boto3.client('sts')
-    # creds = profile.get_credentials()
-    saml, roles = refresh(profile.ecp_endpoint_url,
-                               profile.cookies)
+
+    profile.get_username()
+
+    try:
+        saml, roles = refresh(
+            profile.ecp_endpoint_url,
+            profile.cookies,
+        )
+    except Exception:
+        creds = profile.get_credentials()
+        saml, roles = authenticate(profile.ecp_endpoint_url,
+                                   profile.cookies, *creds)
 
     account_roles = [account_id for account_id, _ in sort_roles(roles)]
     discovered = {}
+
     for account_id, role  in list(zip(account_roles,roles)):
         save_sts_token(session, sts, saml, role, profile.duration)
 
