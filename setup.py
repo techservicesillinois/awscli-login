@@ -9,7 +9,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='awscli-login',
+    name='co-awscli-login',
     version='0.1.0a6',  # TODO change this to a git tag for Drone
     description='Plugin for the AWS CLI that retrieves and rotates '
     'credentials using SAML ECP and STS.',
