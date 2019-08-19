@@ -83,6 +83,31 @@ the IdP session expires::
             [ 1 ]: IAMUser
     Selection: 0
 
+If you want to show an account alias in the list of
+roles, you can generate one with::
+
+    $ aws login account_names --save
+
+This will write a file to ``~/.aws-login/accounts.ini`` that you can edit
+as needed. If you rerun the command it will add any accounts that do
+not exist, but will not change existing entries.
+
+If you want to display the account alias on your shell prompt it is stored in
+``~/.aws-login/identity.txt`` and updated as you log in / out. You can use that
+file with a bash function like this::
+
+    aws_prompt_info() {
+        local IDENTITY_FILE=~/.aws-login/identity.txt
+        local PROF=""
+
+        if [[ -f "$IDENTITY_FILE" ]] then
+
+            PROF=$( cat "$IDENTITY_FILE" 2>/dev/null)
+            [[ -n "$PROF" ]] && echo "[$PROF]"
+        fi
+    }
+
+
 Advanced Example
 -------------------
 
