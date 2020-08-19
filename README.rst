@@ -18,6 +18,10 @@ After awscli-login has been installed, run the following command
 to enable the plugin::
 
     $ aws configure set plugins.login awscli_login
+If you are using aws cli 2.0, you will need to enable legacy plugins in your ~/.aws/config file::
+    [plugins]
+    cli_legacy_plugin_path = <path-to-plugins>/python3.7/site-packages  
+    <plugin-name> = <plugin-module
 
 Getting Started
 -------------------
