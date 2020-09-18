@@ -216,7 +216,7 @@ def authn_request() -> bytes:
     Returns:
         A SOAP byte string.
     """
-    now = utcnow().strftime('%Y-%m-%dT%H:%M:%S')
+    now = utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     uuid = '_' + str.upper(str(uuid4())).replace('-', '')
 
     SOAP = "{%s}" % ns['S']
