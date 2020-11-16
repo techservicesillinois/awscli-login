@@ -5,15 +5,18 @@
 
 __pycache__
 build
+cache
 dist
 htmlcov
 venv
 docs/src/
 
 .coverage
-.report
-.summary
-.mypy_cache
+.coverage.develop
 .eggs
+.install
+.lint
+.mypy_cache
 .python-version
+.static
 .tox
