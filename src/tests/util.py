@@ -1,6 +1,6 @@
 from argparse import Namespace
 from functools import wraps
-from multiprocessing import Process, Pipe
+from multiprocessing import Process, Pipe, set_start_method, get_start_method
 from os import walk, sep
 from os.path import basename, getmtime
 from sys import exc_info
@@ -17,6 +17,41 @@ from awscli_login.util import (
     file2bytes,
 )
 
+# The @fork decorator does not work unless using the fork method. The fork
+# method is only supported on Unix systems.
+#
+# Changed in version 3.8: On macOS, the spawn start method is now
+# the default. The fork start method should be considered unsafe as
+# it can lead to crashes of the subprocess. See bpo-33725.
+#
+# https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
+try:
+    set_start_method("fork")
+except Exception:
+    pass
+
+
+class ForkException(Exception):
+    """
+    Exception raised for errors handled by the fork decorator
+    """
+
+    def __init__(self, etype, message, tb):
+        self.etype = etype
+        self.message = message
+
+        super().__init__(str(etype) + ': ' + message)
+        self.with_traceback(tb)
+
+
+class ForkExceptionPlatformNotSupported(Exception):
+    """
+    Exception raised on system that do not support the fork method
+    """
+
+    def __init__(self):
+        super().__init__("fork method not supported on this platform!")
+
 
 def fork():
     """A decorator for running a function in a separate forked process.
@@ -30,11 +65,15 @@ def fork():
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
+            if get_start_method() != 'fork':
+                raise ForkExceptionPlatformNotSupported
+
             parent, child = Pipe()
 
             def error_handler(conn, func, *args, **kwargs):
                 try:
-                    func(*args, **kwargs)
+                    r = func(*args, **kwargs)
+                    conn.send(r)
                 except Exception:
                     pickling_support.install()
                     etype, exp, tb = exc_info()
@@ -52,9 +91,9 @@ def fork():
             p.join()
 
             if p.exitcode == 1:
-                etype, message, tb = parent.recv()
-                raise Exception(str(etype) + ': ' + message).with_traceback(tb)
-            return
+                raise ForkException(*parent.recv())
+
+            return parent.recv()
         return wrapper
     return decorator
 

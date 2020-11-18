@@ -13,7 +13,7 @@ from wurlitzer import pipes
 
 from awscli_login.config import CONFIG_FILE
 
-from .util import exec_awscli, isFileChangedBy, isFileTouchedBy, tree
+from .util import exec_awscli, fork, isFileChangedBy, isFileTouchedBy, tree
 from .exceptions import NotRelativePathError
 
 PERMISSIONS = [
@@ -49,6 +49,7 @@ class SDGTestCase(unittest.TestCase):
         from tests.base import SDGTestCase
         self = SDGTestCase
     """
+    maxDiff = None
 
     @staticmethod
     def assertHasFilePerms(path: str, owner: str = '', group: str = '',
@@ -577,7 +578,8 @@ class IntegrationTests(CleanTestEnvironment):
         # exec_awscli('configure', 'set', 'plugins.login', 'awscli_login')
         self.aws_config = '[plugins]\nlogin = awscli_login\n'
 
-    def assertAwsCliReturns(self, *args, stdout='', stderr='', code=0):
+    def assertAwsCliReturns(self, *args, stdout='',
+                            stderr='', code=0, calls=None):
         """Runs awscli and tests the output.
 
         This test runs the awscli command with `*args`. It tests
@@ -599,40 +601,60 @@ class IntegrationTests(CleanTestEnvironment):
             stdout (str): Expected output to stdout.
             stderr (str): Expected output to stderr.
             code (int): Expected return code.
+            calls (list(unittest.mock.call)): List of expected calls.
 
         Raises:
             AssertionError
         """
-        try:
-            with pipes() as (out, err):
-                with self.assertRaises(SystemExit) as e:
+        t_out, t_err, t_code, cmd = _assertAwsCliReturns(args, calls)
+
+        mesg = "Error: ran '%s', on %s expected output: %s"
+        self.assertEqual(
+            t_out,
+            stdout,
+            mesg % (cmd, 'stdout', stdout)
+        )
+        self.assertEqual(
+            t_err,
+            stderr,
+            mesg % (cmd, 'stderr', stderr)
+        )
+        self.assertEqual(
+            t_code,
+            code,
+            "Error: '%s' returned %d, expected: %d" %
+            (cmd, t_code, code)
+        )
+
+
+@fork()
+def _assertAwsCliReturns(args, calls):
+    t_code = None
+
+    try:
+        with pipes() as (out, err):
+            try:
+                with patch('builtins.input', return_value='') as mock:
                     exec_awscli(*args)
+            except SystemExit as e:
+                t_code = e.code
+            else:
+                # This should never happen...
+                raise Exception("exec_awscli: Failed to raise SystemExit!")
 
-            import sys
-            cmd = ' '.join(sys.argv)
-            mesg = "Error: ran '%s', on %s expected output: %s"
+        import sys
+        cmd = ' '.join(sys.argv)
 
-            test_out = out.read()
-            test_err = err.read()
+        t_out = out.read()
+        t_err = err.read()
 
-            self.assertEqual(
-                test_out,
-                stdout,
-                mesg % (cmd, 'stdout', stdout)
-            )
-            self.assertEqual(
-                test_err,
-                stderr,
-                mesg % (cmd, 'stderr', stderr)
-            )
-            self.assertEqual(
-                e.exception.code,
-                code,
-                "Error: '%s' returned %d, expected: %d" %
-                (cmd, e.exception.code, code)
-            )
+        # Must be closed explicitly otherwise we receive warnings
+    finally:
+        out.close()
+        err.close()
 
-            # Must be closed explicitly otherwise we receive warnings
-        finally:
-            out.close()
-            err.close()
+    if calls:
+        mock.assert_has_calls(calls)
+        assert len(mock.call_args_list) == len(calls)
+
+    return t_out, t_err, t_code, cmd

@@ -47,6 +47,7 @@ AUTHNREQUEST = file2bytes(path.join(DATA, 'authnrequest.xml'))
 
 class saml(unittest.TestCase):
     """ Tests various SAML helper functions """
+    maxDiff = None
 
     def test_saml_authnfailed(self):
         """ raise_if_saml_failed should raise an error if AuthNfailed. """
@@ -88,6 +89,7 @@ class saml(unittest.TestCase):
 
 class auth(unittest.TestCase):
     """ Tests for saml.authenticate and saml.refresh. """
+    maxDiff = None
 
     class MockRespone:
         """ A class for mocking a requests' response. """

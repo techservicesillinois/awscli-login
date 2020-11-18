@@ -3,6 +3,7 @@ import unittest
 
 from datetime import datetime, timezone
 from io import StringIO
+from multiprocessing import get_start_method
 from os.path import isfile
 from typing import Any, Dict
 from unittest.mock import patch
@@ -19,6 +20,7 @@ from awscli_login.util import (
     sort_roles,
 )
 
+from .util import fork, ForkException
 from .base import CleanAWSEnvironment, TempDir
 
 
@@ -33,7 +35,64 @@ def token(akey: str, skey: str, stoken: str) -> Dict[str, Dict[str, Any]]:
            }
 
 
+# This must be here due to pickle errors.
+class WTF(Exception):
+    pass
+
+
 class util(unittest.TestCase):
+
+    @unittest.skipIf(
+        get_start_method() != 'fork',
+        "This platform does not suppport fork!"
+    )
+    def test_fork_return_value(self):
+        """ forked function can return a value """
+        @fork()
+        def add(x, y):
+            return x + y
+
+        self.assertEqual(add(1, 2), 3)
+
+    @unittest.skipIf(
+        get_start_method() != 'fork',
+        "This platform does not suppport fork!"
+    )
+    def test_fork_raises_exception(self):
+        """ forked function can raise an exception """
+        mesg = "What the fork!?"
+
+        @fork()
+        def wtf():
+            raise Exception(mesg)
+
+        with self.assertRaises(ForkException) as cm:
+            wtf()
+
+        self.assertEqual(str(cm.exception), "<class 'Exception'>: %s" % mesg)
+
+    @unittest.skipIf(
+        get_start_method() != 'fork',
+        "This platform does not suppport fork!"
+    )
+    def test_fork_raises_custom_exception(self):
+        """ forked function can raise a custom exception """
+        mesg = "What the fsck!?"
+
+        # # This class can NOT be defined here!
+        # # If it is you get a pickle exception.
+        #  class WTF(Exception):
+        #     pass
+
+        @fork()
+        def wtf():
+            raise WTF(mesg)
+
+        with self.assertRaises(ForkException) as cm:
+            wtf()
+
+        self.assertEqual(cm.exception.etype, WTF)
+        self.assertEqual(cm.exception.message, mesg)
 
     @patch('builtins.input', return_value=0)
     def test_get_single_selection(self, mock_input):
