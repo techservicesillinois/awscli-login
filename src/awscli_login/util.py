@@ -166,5 +166,6 @@ def secure_touch(path):
         path - A path to a file.
     """
     fd = os.open(path, os.O_CREAT | os.O_RDONLY, mode=0o600)
-    os.fchmod(fd, 0o600)
+    if hasattr(os, "fchmod"):
+        os.fchmod(fd, 0o600)
     os.close(fd)

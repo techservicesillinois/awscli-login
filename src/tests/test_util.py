@@ -329,7 +329,8 @@ class SecureTouchTests(TempDir):
         secure_touch(path)
 
         self.assertTrue(isfile(path), 'Failed to create file!')
-        self.assertHasFilePerms(path, owner='rw')
+        if os.name == 'posix':
+            self.assertHasFilePerms(path, owner='rw')
 
     def test_secure_touch_function_changes_perms(self):
         """File with perms 0x644 should be 0x600 after secure_touch. """
@@ -339,7 +340,8 @@ class SecureTouchTests(TempDir):
         os.close(fd)
 
         secure_touch(path)
-        self.assertHasFilePerms(path, owner='rw')
+        if os.name == 'posix':
+            self.assertHasFilePerms(path, owner='rw')
 
 
 if __name__ == '__main__':

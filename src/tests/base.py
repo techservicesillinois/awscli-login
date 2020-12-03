@@ -9,8 +9,6 @@ from tempfile import TemporaryDirectory
 from typing import Any, Callable, List, Optional  # NOQA
 from unittest.mock import patch
 
-from wurlitzer import pipes
-
 from awscli_login.config import CONFIG_FILE
 
 from .util import exec_awscli, fork, isFileChangedBy, isFileTouchedBy, tree
@@ -632,6 +630,7 @@ def _assertAwsCliReturns(args, calls):
     t_code = None
 
     try:
+        from wurlitzer import pipes
         with pipes() as (out, err):
             try:
                 with patch('builtins.input', return_value='') as mock:
