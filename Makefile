@@ -12,6 +12,7 @@ WHEEL = $(wildcard dist/*.whl)
 PIP = python -m pip install --upgrade --upgrade-strategy eager
 
 .PHONY: all install test lint static develop develop-coverage
+.PHONY: freeze shell clean docs coverage doctest win-tox
 
 all: test coverage docs doctest
 
@@ -21,6 +22,10 @@ deps: deps-build deps-doc deps-local deps-test deps-publish
 # Python packages needed to run the tests on a Unix system
 deps-posix: deps
 	$(PIP) tox-pyenv
+
+# Python packages needed to run the tests on a Windows system
+deps-win: deps
+	$(PIP) pyenv-win
 
 # Python packages needed to build a wheel
 deps-build:
@@ -72,7 +77,7 @@ tox: .python-version build | cache
 	pyenv install -s 3.9.0
 	pyenv local 3.5.10 3.6.12 3.7.9 3.8.6 3.9.0
 
-# Run tests on multiple versions of Python
+# Run tests on multiple versions of Python (Windows only)
 win-tox: .win-tox build | cache
 	tox --installpkg $(WHEEL)
 
