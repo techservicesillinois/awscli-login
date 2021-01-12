@@ -17,7 +17,8 @@ class ProfileBase(CleanAWSLoginEnvironment):
     for testing failure conditions for Profile().
     """
 
-    def Profile(self, profile: str='default', no_args: bool=False, **kwargs):
+    def Profile(self, profile: str = 'default', no_args: bool = False,
+                **kwargs):
         args = None if no_args else login_cli_args(**kwargs)
         session = MockSession(profile)
 

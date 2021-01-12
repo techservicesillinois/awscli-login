@@ -92,6 +92,16 @@ class Login(BasicCommand):
             'cli_type_name': 'boolean',
             'help_text': 'Disables automatic refresh of tokens'
         },
+        {
+            'name': 'http_header_factor',
+            'default': None,
+            'help_text': 'Name of HTTP Header to store the user\'s factor in'
+        },
+        {
+            'name': 'http_header_passcode',
+            'default': None,
+            'help_text': 'Name of HTTP Header to store the user\'s passcode in'
+        },
     ]
 
     UPDATE = False

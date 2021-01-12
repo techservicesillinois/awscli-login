@@ -1,11 +1,12 @@
 import os
 import stat
+import sys
 import unittest
 
 from os import environ, makedirs, path, walk, unlink
 from os.path import dirname, relpath, join
 from tempfile import TemporaryDirectory
-from typing import Any, Callable, List  # NOQA
+from typing import Any, Callable, List, Optional  # NOQA
 from unittest.mock import patch
 
 from wurlitzer import pipes
@@ -50,8 +51,8 @@ class SDGTestCase(unittest.TestCase):
     """
 
     @staticmethod
-    def assertHasFilePerms(path: str, owner: str='', group: str='',
-                           others: str='') -> None:
+    def assertHasFilePerms(path: str, owner: str = '', group: str = '',
+                           others: str = '') -> None:
         info = os.stat(path)
 
         users = [
@@ -74,7 +75,7 @@ class SDGTestCase(unittest.TestCase):
                     )
 
     @staticmethod
-    def _assertHasAttr(obj: object, attr: str, evalue: Any) -> str:
+    def _assertHasAttr(obj: object, attr: str, evalue: Any) -> Optional[str]:
         """Assert object has an attribute with a given value.
 
         Example:
@@ -92,7 +93,7 @@ class SDGTestCase(unittest.TestCase):
 
         try:
             rvalue = getattr(obj, attr)
-        except AttributeError as e:
+        except AttributeError:
             return "%s object does not have attr: %s" % (objName, attr)
 
         if type(rvalue) != type(evalue):
@@ -263,16 +264,14 @@ class TempDir(SDGTestCase):
 
         Raises:
             NotRelativePathError: If `rel_file_path` is an absolute path.
+            FileNotFoundError: If `rel_file_path` does not exist.
         """
         filename = self._abspath(rel_file_path)
 
-        try:
-            with open(filename, 'r') as f:
-                value = f.read()
+        with open(filename, 'r') as f:
+            value = f.read()
 
-            return value
-        except FileNotFoundError:
-            return None
+        return value
 
     def write(self, rel_file_path: str, value) -> None:
         """Writes a given value to a temporary file.
@@ -443,7 +442,7 @@ class CleanAWSEnvironment(TempDir):
     """
 
     @property
-    def profile(self) -> str:
+    def profile(self) -> Optional[str]:
         """Contents of environment variable AWS_PROFILE. """
         return environ.get('AWS_PROFILE')
 
@@ -565,6 +564,9 @@ class CleanTestEnvironment(CleanAWSLoginEnvironment, CleanAWSEnvironment):
     """Sets up a clean test environment in a temporary directory. """
 
 
+# These tests depend on wurlitzer. wurlitzer does NOT support Windows:
+# https://github.com/minrk/wurlitzer/issues/12
+@unittest.skipIf(sys.platform.startswith("win"), "Windows is NOT supported!")
 class IntegrationTests(CleanTestEnvironment):
 
     def setUp(self):

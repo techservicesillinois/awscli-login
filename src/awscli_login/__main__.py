@@ -1,10 +1,12 @@
 # from signal import signal, SIGINT, SIGTERM
+import sys
 import logging
 import traceback
 
 from argparse import Namespace
 from datetime import datetime
 from functools import wraps
+from typing import Optional
 
 import boto3
 
@@ -37,15 +39,15 @@ from .typing import Role
 logger = logging.getLogger(__package__)
 
 
-def save_sts_token(session: Session, client, saml: str,
-                   role: Role, duration) -> datetime:
+def save_sts_token(session: Session, client: boto3.client, saml: str,
+                   role: Role, duration: int = 0) -> datetime:
     params = dict(
         RoleArn=role[1],
         PrincipalArn=role[0],
         SAMLAssertion=saml,
     )
     if duration:
-        params['DurationSeconds'] = duration
+        params['DurationSeconds'] = str(duration)
         # duration is optional and can be set by the role;
         # avoid passing if not set.
 
@@ -106,7 +108,8 @@ def error_handler(skip_args=True, validate=False):
     def decorator(f):
         @wraps(f)
         def wrapper(args: Namespace, session: Session):
-            exp = None  # type: Exception
+            exp = None  # type: Optional[Exception]
+            exc_info = None
             code = ERROR_NONE
             sig = None
 
@@ -119,21 +122,29 @@ def error_handler(skip_args=True, validate=False):
 
                 f(profile, session)
             except AWSCLILogin as e:
+                exc_info = sys.exc_info()
                 code = e.code
                 exp = e
-            except SIGINT as e:
+            except SIGINT:
                 sig = 'SIGINT'
-            except SIGABRT as e:
+            except SIGABRT:
                 sig = 'SIGABRT'
-            except SIGTERM as e:
+            except SIGTERM:
                 sig = 'SIGTERM'
             except Exception as e:
+                traceback.print_exc()
+
+                exc_info = sys.exc_info()
                 code = ERROR_UNKNOWN
                 exp = e
             finally:
-                if code:
+                if exp:
                     logger.error(str(exp), exc_info=False)
-                    logger.debug(traceback.format_exc())
+
+                if exc_info:
+                    logger.debug(
+                        '\n' + ''.join(traceback.format_exception(*exc_info))
+                    )
 
                 if sig:
                     logger.info('Received signal: %s. Shutting down...' % sig)
@@ -174,7 +185,7 @@ def main(profile: Profile, session: Session):
 
         if not profile.force_refresh and not profile.disable_refresh:
             is_parent = daemonize(profile, session, client, role, expires)
-    except Exception as e:
+    except Exception:
         raise
     finally:
         if not is_parent:
