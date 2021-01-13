@@ -629,8 +629,9 @@ class IntegrationTests(CleanTestEnvironment):
 def _assertAwsCliReturns(args, calls):
     t_code = None
 
+    from wurlitzer import pipes
+
     try:
-        from wurlitzer import pipes
         with pipes() as (out, err):
             try:
                 with patch('builtins.input', return_value='') as mock:
