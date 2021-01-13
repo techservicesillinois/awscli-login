@@ -2,6 +2,7 @@
 import sys
 import logging
 import traceback
+import os
 
 from argparse import Namespace
 from datetime import datetime
@@ -183,7 +184,8 @@ def main(profile: Profile, session: Session):
         role = get_selection(roles, profile.role_arn)
         expires = save_sts_token(session, client, saml, role, duration)
 
-        if not profile.force_refresh and not profile.disable_refresh:
+        if os.name == 'posix' and not profile.force_refresh \
+           and not profile.disable_refresh:
             is_parent = daemonize(profile, session, client, role, expires)
     except Exception:
         raise
