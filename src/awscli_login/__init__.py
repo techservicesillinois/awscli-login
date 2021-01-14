@@ -84,7 +84,7 @@ class Login(BasicCommand):
         {
             'name': 'duration',
             'default': None,
-            'help_text': 'time in seconds that the token will last'
+            'help_text': 'STS credential lifetime in seconds'
         },
         {
             'name': 'disable-refresh',
@@ -95,12 +95,12 @@ class Login(BasicCommand):
         {
             'name': 'http_header_factor',
             'default': None,
-            'help_text': 'Name of HTTP Header to store the user\'s factor in'
+            'help_text': 'HTTP Header to store the user\'s Duo factor'
         },
         {
             'name': 'http_header_passcode',
             'default': None,
-            'help_text': 'Name of HTTP Header to store the user\'s passcode in'
+            'help_text': 'HTTP Header to store the user\'s Duo passcode'
         },
     ]
 
@@ -113,8 +113,8 @@ class Login(BasicCommand):
 
 class Logout(BasicCommand):
     NAME = 'logout'
-    DESCRIPTION = ("Kills the process that is renewing the user's"
-                   "credentials.")
+    DESCRIPTION = ("Kills the process that renews the user's"
+                   " credentials.")
     SYNOPSIS = ('aws logut')
 
     ARG_TABLE = [
@@ -139,13 +139,13 @@ class Configure(BasicCommand):
     DESCRIPTION = ('''
 Configure LOGIN options. If this command is run with no arguments,
 you will be prompted for configuration values such as your IdP's
-entity ID and its ECP endpoint URL.  You can configure a named
-profile using the --profile argument. If your config file does not
-exist (the default location is ~/.aws-login/config), it will be
-created for you. To keep an existing value, hit enter when prompted
-for the value.  When you are prompted for information, the current
-value will be dis- played in [brackets]. If the config item has
-no value, it be displayed as [None].
+entity ID and its ECP endpoint URL. You can configure a named profile
+using the --profile argument. If your config file does not exist
+(the default location is ~/.aws-login/config), it will be created
+for you. To keep an existing value, hit enter when prompted for the
+value. When you are prompted for information, the current value
+will be displayed in [brackets]. If the config item has no value,
+it be displayed as [None].
 
 =======================
 Configuration Variables
@@ -156,6 +156,17 @@ file:
 
 * **entity_id** - The entity ID of the IDP to use for authenitication
 * **ecp_endpoint_url** - The ECP endpoint URL of the IDP to use for authn
+* **username** - The username to use on login to the IdP.
+* **password** - The password to use on login to the IdP.
+* **factor** - The Duo factor to use for 2FA
+* **passcode** - A Duo passcode
+* **role_arn** - The role ARN to select
+* **enable_keyring** - If enabled retrieve password from keyring
+* **disable_refresh** - Set to True to disable credential refresh
+* **refresh** - How often in seconds to refresh credentials
+* **duration** - Time in seconds credentials are valid
+* **http_header_factor** - HTTP Header to store Duo factor
+* **http_header_passcode** - HTTP Header to store passcode
 ''')
     SYNOPSIS = ('aws login configure')
 
