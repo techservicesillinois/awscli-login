@@ -17,7 +17,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip
+        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
 
     - name: Upgrade pip
       run: |
@@ -75,7 +75,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
-        key: ${{ runner.os }}-pip
+        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
 
     - name: Cache tox virtualenv
       id: tox
@@ -84,7 +84,7 @@ jobs:
         path: |
             **/.tox
             **/cache
-        key: ${{ runner.os }}-${{ matrix.python-version }}-tox-${{ hashFiles('**/setup.py', '**/tox.ini') }}
+        key: ${{ runner.os }}-${{ matrix.python-version }}-tox-${{ hashFiles('**/setup.py', '**/tox.ini') }}-${{ secrets.CACHE_VERSION }}
 
     - name: Is cache old?
       if: steps.tox.outputs.cache-hit == 'true'
@@ -153,7 +153,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip
+        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
 
     - name: Upgrade pip
       run: |
