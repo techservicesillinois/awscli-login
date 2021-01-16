@@ -8,6 +8,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # setuptools_scm needs this to calculate the version
+
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:

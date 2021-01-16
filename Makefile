@@ -17,7 +17,7 @@ PIP = python -m pip install --upgrade --upgrade-strategy eager
 all: test coverage docs doctest
 
 # Python dependencies needed for local development
-deps: deps-build deps-doc deps-local deps-test deps-publish
+deps: deps-build deps-doc deps-test deps-publish
 
 # Python packages needed to run the tests on a Unix system
 deps-posix: deps
@@ -34,10 +34,6 @@ deps-build:
 # Python packages needed to build the documentation
 deps-doc:
 	$(PIP) Sphinx sphinx-autodoc-typehints sphinx_rtd_theme
-
-# Python packages needed to build a local production or test release
-deps-local:
-	$(PIP) GitPython
 
 # Python packages needed to run tests
 deps-test:
