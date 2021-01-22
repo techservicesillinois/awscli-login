@@ -115,7 +115,10 @@ def error_handler(skip_args=True, validate=False):
             sig = None
 
             try:
+                # verbosity can only be set at command line
                 configConsoleLogger(args.verbose)
+                del args.verbose
+
                 if not skip_args:
                     profile = Profile(session, args, validate)
                 else:
