@@ -177,7 +177,6 @@ Configuration Variables
 The following configuration variables are supported in the config
 file:
 
-* **entity_id** - The entity ID of the IDP to use for authenitication
 * **ecp_endpoint_url** - The ECP endpoint URL of the IDP to use for authn
 * **username** - The username to use on login to the IdP.
 * **password** - The password to use on login to the IdP.
