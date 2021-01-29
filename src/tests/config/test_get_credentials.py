@@ -41,7 +41,8 @@ class GetCredsProfileBase(ProfileBase):
         mock_password = self.patcher(
             'awscli_login.config.getpass',
             autospec=True,
-            side_effect=[inputs.password]
+            # getpass should always return a string value!
+            side_effect=[inputs.password if inputs.password else '']
         )
 
         mock_get_password = self.patcher(
@@ -119,12 +120,17 @@ class GetCredsProfileBase(ProfileBase):
                 )
 
     def _test_get_credentials(self, outputs: Creds) -> None:
+        usr, pwd, hdr = self.profile.get_credentials()
+
+        self._test_get_credentials_outputs(usr, pwd, hdr, outputs)
+
+    def _test_get_credentials_outputs(self, usr, pwd, hdr,
+                                      outputs: Creds) -> None:
+
         # Ensure actual outputs equal expected outputs
         errors = []
         mesg = 'get_credentials returned %s: %s. Expected: %s.'
         self.outputs = outputs
-
-        usr, pwd, hdr = self.profile.get_credentials()
 
         pairs = [
             ('username', usr),
@@ -287,3 +293,88 @@ enable_keyring = true
         mocks = self.mock_get_credentials_inputs(inputs)
         self._test_get_credentials(outputs)
         self.assertGetCredentialsMocksCalled(*mocks)
+
+
+class GetCredsWithArgsMinProfileTest(GetCredsProfileBase):
+    """ Test that cli arguments are able to override profile settings
+    and prevent the user from being prompted for the value set. """
+
+    def _test_clioverrides_profile(self, inputs: Creds, outputs: Creds,
+                                   **kwargs):
+        """ Test that get_credentials_inputs returns given outputs
+        when supplied with mocked user inputs.
+
+        inputs: Values used to mock user input.
+        outputs: Expected values set on profile after get_credentials is
+                 called with mocked inputs.
+        kwargs: Command line arguments passed to user profile.
+
+        """
+        # Pass cli arguments
+        self.Profile(**kwargs)
+
+        # Call get_credentials with mocked input
+        mocks = self.mock_get_credentials_inputs(inputs)
+        usr, pwd, hdr = self.profile.get_credentials()
+
+        # Ensure that only expected values asked for
+        self.assertGetCredentialsMocksCalled(*mocks)
+
+        # Ensure that values returned match expected values
+        self._test_get_credentials_outputs(usr, pwd, hdr, outputs)
+
+    def test_get_credentials_password_arg_set(self):
+        """ Prompt for just username when password cli flag is set. """
+        self.login_config = """
+[default]
+ecp_endpoint_url = foo
+factor = off
+    """
+        pwd = "1234"
+        inputs = Creds(username="user")
+        outputs = Creds(username="user", password=pwd)
+
+        self._test_clioverrides_profile(inputs, outputs, password=pwd)
+
+    def test_get_credentials_username_password_set_in_config(self):
+        """ Prompt for nothing when username & password properties are set. """
+        self.login_config = """
+[default]
+ecp_endpoint_url = foo
+factor = off
+password = 1234
+username = foo
+    """
+        inputs = Creds()
+        outputs = Creds(username="foo", password="1234")
+
+        self._test_clioverrides_profile(inputs, outputs)
+
+    def test_get_credentials_use_keyring_instead_of_property(self):
+        """ Use keyring even if password property is set. """
+        self.login_config = """
+[default]
+ecp_endpoint_url = foo
+enable_keyring = True
+factor = off
+password = 1234
+username = foo
+    """
+        inputs = Creds(keyring="secret")
+        outputs = Creds(username="foo", password="secret")
+
+        self._test_clioverrides_profile(inputs, outputs)
+
+    def test_get_credentials_use_keyring_instead_of_flag(self):
+        """ Use keyring even if password flag is set. """
+        self.login_config = """
+[default]
+ecp_endpoint_url = foo
+enable_keyring = True
+factor = off
+username = foo
+    """
+        inputs = Creds(keyring="secret")
+        outputs = Creds(username="foo", password="secret")
+
+        self._test_clioverrides_profile(inputs, outputs)
