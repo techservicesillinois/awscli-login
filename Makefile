@@ -11,7 +11,7 @@ TOX_ENV := .tox/wheel/pyvenv.cfg
 WHEEL = $(wildcard dist/*.whl)
 PIP = python -m pip install --upgrade --upgrade-strategy eager
 
-.PHONY: all install test lint static develop develop-coverage
+.PHONY: all check install test lint static develop develop-coverage
 .PHONY: freeze shell clean docs coverage doctest win-tox
 
 all: test coverage docs doctest
@@ -28,7 +28,7 @@ deps-win: deps
 	$(PIP) pyenv-win
 
 # Python packages needed to build a wheel
-deps-build:
+deps-build: deps-publish
 	$(PIP) setuptools tox wheel flake8 mypy
 
 # Python packages needed to build the documentation
@@ -44,8 +44,13 @@ deps-publish:
 	$(PIP) twine
 
 # Build wheel and source tarball for upload to PyPI
-build: $(SRCS)
+build: README.rst $(SRCS)
 	python setup.py sdist bdist_wheel
+	@touch $@
+
+check: .twinecheck
+.twinecheck: build
+	twine check --strict dist/*
 	@touch $@
 
 # Install wheel into tox virtualenv for testing
@@ -83,7 +88,7 @@ win-tox: .win-tox build | cache
 	touch $@
 
 # Run tests against wheel installed in virtualenv
-test: lint static .coverage
+test: lint static check .coverage
 
 # Run tests with coverage tool -- generates .coverage file
 .coverage: $(TOX_ENV) $(TSTS)

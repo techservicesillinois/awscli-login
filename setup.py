@@ -28,6 +28,7 @@ setup(
     description='Plugin for the AWS CLI that retrieves and rotates '
     'credentials using SAML ECP and STS.',
     long_description=long_description,
+    long_description_content_type='text/x-rst',
     url='https://github.com/techservicesillinois/awscli-login',
     author='David D. Riddle',
     author_email='ddriddle@illinois.edu',
