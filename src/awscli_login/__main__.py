@@ -20,7 +20,11 @@ from .config import (
     ERROR_NONE,
     ERROR_UNKNOWN,
 )
-from .exceptions import AlreadyLoggedOut, AWSCLILogin
+from .exceptions import (
+    AWSCLILogin,
+    AlreadyLoggedIn,
+    AlreadyLoggedOut,
+)
 from .logger import (
     configConsoleLogger,
     configFileLogger,
@@ -77,29 +81,31 @@ def daemonize(profile: Profile, session: Session, client: boto3.client,
             logger = configFileLogger(profile.logfile, logging.INFO)
             logger.info('Startig refresh process for role %s' % role[1])
 
-            # TODO add retries!
             while(True):
-                retries = 0
-                nap(expires, 0.9, profile.refresh)
+                try:
+                    retries = 0
+                    nap(expires, 0.9, profile.refresh)
 
-                while(True):
-                    try:
-                        saml, _ = refresh(
-                            profile.ecp_endpoint_url,
-                            profile.cookies,
-                        )
-                    except Exception as e:
-                        retries += 1
+                    while(True):
+                        try:
+                            saml, _ = refresh(
+                                profile.ecp_endpoint_url,
+                                profile.cookies,
+                            )
+                        except Exception as e:
+                            retries += 1
 
-                        if (retries < 4):
-                            logger.info('Refresh failed: %s' % str(e))
-                            nap(expires, 0.2, profile.refresh * 0.2)
+                            if (retries < 4):
+                                logger.info('Refresh failed: %s' % str(e))
+                                nap(expires, 0.2, profile.refresh * 0.2)
+                            else:
+                                raise
                         else:
-                            raise
-                    else:
-                        break
+                            break
 
-                expires = save_sts_token(session, client, saml, role)
+                    expires = save_sts_token(session, client, saml, role)
+                except SIGINT:
+                    pass
 
         return is_parent
 
@@ -161,12 +167,20 @@ def error_handler(skip_args=True, validate=False):
 def main(profile: Profile, session: Session):
     is_parent = True
 
+    if profile.force_refresh:
+        try:
+            profile.raise_if_logged_in()
+        except AlreadyLoggedIn:
+            send(profile.pidfile, SIGINT)
+            return
+
+        logger.warn("Logged out: ignoring --force-refresh.")
+
     try:
         client = boto3.client('sts')
 
-        # TODO force-refresh should kill refresh!
-        if not profile.force_refresh:
-            profile.raise_if_logged_in()
+        # Exit if already logged in
+        profile.raise_if_logged_in()
 
         # Must know username to lookup cookies
         profile.get_username()
@@ -185,8 +199,7 @@ def main(profile: Profile, session: Session):
         role = get_selection(roles, profile.role_arn)
         expires = save_sts_token(session, client, saml, role, duration)
 
-        if os.name == 'posix' and not profile.force_refresh \
-           and not profile.disable_refresh:
+        if os.name == 'posix' and not profile.disable_refresh:
             is_parent = daemonize(profile, session, client, role, expires)
     except Exception:
         raise
@@ -198,7 +211,7 @@ def main(profile: Profile, session: Session):
 @error_handler()
 def logout(profile: Profile, session: Session):
     try:
-        send(profile.pidfile, SIGINT)
+        send(profile.pidfile, SIGTERM)
         remove_credentials(session)
     except IOError:
         raise AlreadyLoggedOut
