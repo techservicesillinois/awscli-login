@@ -136,8 +136,6 @@ def error_handler(skip_args=True, validate=False):
             except SIGTERM:
                 sig = 'SIGTERM'
             except Exception as e:
-                traceback.print_exc()
-
                 exc_info = sys.exc_info()
                 code = ERROR_UNKNOWN
                 exp = e
