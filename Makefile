@@ -28,7 +28,7 @@ deps-win: deps
 	$(PIP) pyenv-win
 
 # Python packages needed to build a wheel
-deps-build:
+deps-build: deps-publish
 	$(PIP) setuptools tox wheel flake8 mypy
 
 # Python packages needed to build the documentation
@@ -44,8 +44,9 @@ deps-publish:
 	$(PIP) twine
 
 # Build wheel and source tarball for upload to PyPI
-build: $(SRCS)
+build: README.rst $(SRCS)
 	python setup.py sdist bdist_wheel
+	twine check dist/*.whl
 	@touch $@
 
 # Install wheel into tox virtualenv for testing
