@@ -79,19 +79,19 @@ class Login(BasicCommand):
         # Advancded Properites (can NOT be set interactively)
         {
             'name': 'disable-refresh',
-            'default': False,
+            'default': None,
             'cli_type_name': 'boolean',
             'help_text': 'Disables automatic refresh of tokens'
         },
         {
             'name': 'refresh',
-            'default': 0,
+            'default': None,
             'cli_type_name': 'integer',
             'help_text': 'How often in seconds to refresh the STS credentials'
         },
         {
             'name': 'duration',
-            'default': 0,
+            'default': None,
             'cli_type_name': 'integer',
             'help_text': 'STS credential lifetime in seconds'
         },
