@@ -80,7 +80,7 @@ def daemonize(profile: Profile, session: Session, client: boto3.client,
             # TODO add retries!
             while(True):
                 retries = 0
-                nap(expires, 0.9)
+                nap(expires, 0.9, profile.refresh)
 
                 while(True):
                     try:
@@ -93,7 +93,7 @@ def daemonize(profile: Profile, session: Session, client: boto3.client,
 
                         if (retries < 4):
                             logger.info('Refresh failed: %s' % str(e))
-                            nap(expires, 0.2)
+                            nap(expires, 0.2, profile.refresh * 0.2)
                         else:
                             raise
                     else:

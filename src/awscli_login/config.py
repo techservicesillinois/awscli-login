@@ -55,7 +55,7 @@ class Profile:
     enable_keyring = False  # type: bool
     factor = None  # type: Optional[str]
     passcode = None  # type: str
-    refresh = 3000  # type: int
+    refresh = 0  # type: int
     force_refresh = False  # type: bool
     duration = 0  # type: int
     disable_refresh = False  # type: bool
@@ -75,7 +75,7 @@ class Profile:
             'enable_keyring': False,
             'factor': None,
             'passcode': None,
-            'refresh': 3000,  # in seconds (every 50 mins)
+            'refresh': 0,  # in seconds (every 50 mins)
             'force_refresh': False,
             'duration': 0,  # duration can't be less than 900, btw
             'disable_refresh': False,
