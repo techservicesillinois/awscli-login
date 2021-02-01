@@ -52,7 +52,9 @@ def save_sts_token(session: Session, client: boto3.client, saml: str,
         SAMLAssertion=saml,
     )
     if duration:
-        params['DurationSeconds'] = str(duration)
+        # Mypy reports that DurationSeconds should be a string but
+        # botocore dies unless it is an int so ignore mypy.
+        params['DurationSeconds'] = duration  # type: ignore[assignment]
         # duration is optional and can be set by the role;
         # avoid passing if not set.
 
