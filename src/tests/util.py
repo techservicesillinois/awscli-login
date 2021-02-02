@@ -98,22 +98,27 @@ def fork():
     return decorator
 
 
+# Defaults MUST match defaults in __main__.py:class Login:ARG_TABLE!
 def login_cli_args(
-    ask_password=False,
+    # Basic Properites (can be set interactively)
     ecp_endpoint_url=None,
-    factor=None,
-    force_refresh=False,
-    passcode=None,
-    password=None,
-    refresh=0,
-    role_arn=None,
-    subcommand=None,  # TODO FIXME!?
     username=None,
-    verbose=0,
-    duration=0,
+    password=None,
+    factor=None,
+    passcode=None,
+    role_arn=None,
+    # Advanced Properties (can NOT be set interactively)
     disable_refresh=False,
-    http_header_factor=False,
-    http_header_passcode=False,
+    refresh=0,
+    duration=0,
+    http_header_factor=None,
+    http_header_passcode=None,
+    # CLI only
+    ask_password=False,
+    force_refresh=False,
+    verbose=0,
+
+    subcommand=None,  # TODO FIXME!?
 ) -> Namespace:
     """
     Function for mocking cli args to login.

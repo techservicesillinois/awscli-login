@@ -41,21 +41,48 @@ class Login(BasicCommand):
                    ' for authentication.')
     SYNOPSIS = ('aws login [<Arg> ...]')
 
+    # tests/util.py:login_cli_args defaults must match this table
     ARG_TABLE = [
-        {'name': 'entity-id', 'help_text': 'Entity ID of the IdP'},
+        # Ordering matches order in README.rst
+        # Basic Properites (can be set interactively)
         {
             'name': 'ecp-endpoint-url',
+            'default': None,
             'help_text': 'ECP endpoint URL of the IdP'
         },
-        {'name': 'username', 'help_text': 'Username to use on login to IdP'},
-        {'name': 'password', 'help_text': 'Password to use on login to IdP'},
+        {
+            'name': 'username',
+            'default': None,
+            'help_text': 'Username to use on login to IdP'
+        },
+        {
+            'name': 'password',
+            'default': None,
+            'help_text': 'Password to use on login to IdP'
+        },
+        {
+            'name': 'factor',
+            'default': None,
+            'help_text': 'The Duo factor to use on login'
+        },
+        {
+            'name': 'passcode',
+            'default': None,
+            'help_text': 'A Duo passcode'
+        },
         {
             'name': 'role-arn',
+            'default': None,
             'help_text': 'The Role ARN to select. '
                          'If the IdP returns a single Role it is autoselected.'
         },
-        {'name': 'factor', 'help_text': 'The Duo factor to use on login'},
-        {'name': 'passcode', 'help_text': 'A Duo passcode'},
+        # Advancded Properites (can NOT be set interactively)
+        {
+            'name': 'disable-refresh',
+            'default': False,
+            'cli_type_name': 'boolean',
+            'help_text': 'Disables automatic refresh of tokens'
+        },
         {
             'name': 'refresh',
             'default': 0,
@@ -63,12 +90,22 @@ class Login(BasicCommand):
             'help_text': 'How often in seconds to refresh the STS credentials'
         },
         {
-            'name': 'verbose',
-            'action': 'count',
+            'name': 'duration',
             'default': 0,
             'cli_type_name': 'integer',
-            'help_text': 'Display verbose output'
+            'help_text': 'STS credential lifetime in seconds'
         },
+        {
+            'name': 'http_header_factor',
+            'default': None,
+            'help_text': 'HTTP Header to store the user\'s Duo factor'
+        },
+        {
+            'name': 'http_header_passcode',
+            'default': None,
+            'help_text': 'HTTP Header to store the user\'s Duo passcode'
+        },
+        # CLI only
         {
             'name': 'ask-password',
             'action': 'store_true',
@@ -82,25 +119,11 @@ class Login(BasicCommand):
             'help_text': 'Forces a login attempt to the IdP using cookies'
         },
         {
-            'name': 'duration',
-            'default': None,
-            'help_text': 'STS credential lifetime in seconds'
-        },
-        {
-            'name': 'disable-refresh',
-            'default': False,
-            'cli_type_name': 'boolean',
-            'help_text': 'Disables automatic refresh of tokens'
-        },
-        {
-            'name': 'http_header_factor',
-            'default': None,
-            'help_text': 'HTTP Header to store the user\'s Duo factor'
-        },
-        {
-            'name': 'http_header_passcode',
-            'default': None,
-            'help_text': 'HTTP Header to store the user\'s Duo passcode'
+            'name': 'verbose',
+            'action': 'count',
+            'default': 0,
+            'cli_type_name': 'integer',
+            'help_text': 'Display verbose output'
         },
     ]
 
