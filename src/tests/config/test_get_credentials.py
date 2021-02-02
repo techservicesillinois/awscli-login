@@ -1,6 +1,10 @@
 from copy import copy
 from typing import List
 
+from awscli_login.const import (
+    DUO_HEADER_FACTOR,
+    DUO_HEADER_PASSCODE,
+)
 from awscli_login.exceptions import InvalidFactor
 
 from .base import ProfileBase
@@ -129,8 +133,8 @@ class GetCredsProfileBase(ProfileBase):
         pairs = [
             ('username', usr),
             ('password', pwd),
-            ('factor', hdr.get('X-Shiboleth-Duo-Factor')),
-            ('passcode', hdr.get('X-Shiboleth-Duo-Passcode')),
+            ('factor', hdr.get(DUO_HEADER_FACTOR)),
+            ('passcode', hdr.get(DUO_HEADER_PASSCODE)),
         ]
 
         for name, ret in pairs:
