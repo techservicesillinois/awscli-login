@@ -20,4 +20,5 @@ docs/src/
 .python-version
 .static
 .tox
+.twinecheck
 .win-tox
