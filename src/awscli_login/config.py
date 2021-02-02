@@ -139,7 +139,8 @@ class Profile:
         for option in options:
             value = getattr(self._args, option)
 
-            if value:
+            # Allow False, empty strings, zero, etc.
+            if value is not None:
                 setattr(self, option, value)
 
     def _set_override_attrs(self) -> None:
