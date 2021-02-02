@@ -15,6 +15,10 @@ from botocore.session import Session
 from keyring import get_password, set_password
 from psutil import pid_exists
 
+from .const import (
+    DUO_HEADER_FACTOR,
+    DUO_HEADER_PASSCODE,
+)
 from .exceptions import (
     AlreadyLoggedIn,
     InvalidFactor,
@@ -321,7 +325,7 @@ class Profile:
                 headers[self.http_header_factor] = self.factor
             else:
                 headers['X-Shiboleth-Duo-Factor'] = self.factor
-                headers['X-Shibboleth-Duo-Factor'] = self.factor
+                headers[DUO_HEADER_FACTOR] = self.factor
 
             if not first_pass or self.factor == 'passcode':
                 if self.passcode is None:
@@ -333,7 +337,7 @@ class Profile:
                     headers[self.http_header_passcode] = code
                 else:
                     headers['X-Shiboleth-Duo-Passcode'] = code
-                    headers['X-Shibboleth-Duo-Passcode'] = code
+                    headers[DUO_HEADER_PASSCODE] = code
 
         return self.username, self.password, headers
 
