@@ -220,7 +220,6 @@ factor = push
 role_arn = arn:aws:iam::account-id:role/role-name
 enable_keyring = True
 passcode = secret_code
-verbose = 1
 refresh = 1500
 duration = 900
 disable_refresh = True
@@ -240,7 +239,6 @@ http_header_passcode = X_Bar
             "role_arn": "arn:aws:iam::account-id:role/role-name",
             "enable_keyring": True,
             "passcode": "secret_code",
-            "verbose": 1,
             "refresh": 1500,
             "duration": 900,
             "disable_refresh": True,
@@ -263,7 +261,6 @@ class ReadFullProfileTestOverrides(ReadFullProfile):
             "factor": 'sms',
             "role_arn": "arn:aws:iam::account-id:role/role-name2",
             "passcode": "secret",
-            "verbose": 2,
             "refresh": 1000,
             "duration": 1500,
             "disable_refresh": True,

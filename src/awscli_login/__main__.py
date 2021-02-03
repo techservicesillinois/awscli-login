@@ -80,7 +80,7 @@ def daemonize(profile: Profile, session: Session, client: boto3.client,
             # TODO add retries!
             while(True):
                 retries = 0
-                nap(expires, 0.9)
+                nap(expires, 0.9, profile.refresh)
 
                 while(True):
                     try:
@@ -93,7 +93,7 @@ def daemonize(profile: Profile, session: Session, client: boto3.client,
 
                         if (retries < 4):
                             logger.info('Refresh failed: %s' % str(e))
-                            nap(expires, 0.2)
+                            nap(expires, 0.2, profile.refresh * 0.2)
                         else:
                             raise
                     else:
@@ -115,7 +115,10 @@ def error_handler(skip_args=True, validate=False):
             sig = None
 
             try:
+                # verbosity can only be set at command line
                 configConsoleLogger(args.verbose)
+                del args.verbose
+
                 if not skip_args:
                     profile = Profile(session, args, validate)
                 else:
@@ -133,8 +136,6 @@ def error_handler(skip_args=True, validate=False):
             except SIGTERM:
                 sig = 'SIGTERM'
             except Exception as e:
-                traceback.print_exc()
-
                 exc_info = sys.exc_info()
                 code = ERROR_UNKNOWN
                 exp = e
