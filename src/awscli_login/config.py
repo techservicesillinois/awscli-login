@@ -76,11 +76,14 @@ class Profile:
             'factor': None,
             'passcode': None,
             'refresh': 0,  # in seconds
-            'force_refresh': False,
             'duration': 0,  # duration can't be less than 900, btw
             'disable_refresh': False,
             'http_header_factor': None,
             'http_header_passcode': None,
+    }  # type: Dict[str, Any]
+
+    _cli_only = {
+            'force_refresh': False,
     }  # type: Dict[str, Any]
 
     _config_options = OrderedDict(
@@ -129,7 +132,8 @@ class Profile:
 
     def _set_attrs_from_args(self) -> None:
         """ Load command line options. """
-        self.options = self._required | frozenset(self._optional.keys())
+        self.options = self._required | frozenset(self._optional.keys()) \
+            | frozenset(self._cli_only.keys())
         options = self.options - frozenset(self._override.keys())
 
         for option in options:
@@ -257,7 +261,7 @@ class Profile:
             for attr in section:
                 if attr not in self._required and attr not in self._optional:
                     logger.warn('Unknown attribute "' + attr + '" in ' +
-                                self.name + ' profile ' + self.name)
+                                self.name + ' profile ')
 
     def is_factor_valid(self):
         """ Return True if self.factor is valid. False otherwise. """
