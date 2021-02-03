@@ -55,7 +55,6 @@ class Profile:
     enable_keyring = False  # type: bool
     factor = None  # type: Optional[str]
     passcode = None  # type: str
-    verbose = 0  # type: int
     refresh = 3000  # type: int
     force_refresh = False  # type: bool
     duration = 0  # type: int
@@ -76,7 +75,6 @@ class Profile:
             'enable_keyring': False,
             'factor': None,
             'passcode': None,
-            'verbose': 0,
             'refresh': 3000,  # in seconds (every 50 mins)
             'force_refresh': False,
             'duration': 0,  # duration can't be less than 900, btw
@@ -281,21 +279,27 @@ class Profile:
             username = getuser()
             self.username = input("Username [%s]: " % username) or username
 
+    def get_password(self):
+        """ Get password from user if necessary. """
+        if self.enable_keyring:
+            if self.password is not None:
+                logger.warn('Using keyring: Ignoring password set via'
+                            ' configuration file or command line.')
+
+            ukey = self.username + '@' + urlparse(self.ecp_endpoint_url).netloc
+            self.password = get_password("awscli_login", ukey)
+
+        if self.password is None:
+            self.password = getpass()
+
+        if self.enable_keyring:
+            set_password("awscli_login", ukey, self.password)
+
     # Can we make this DRYer?
     def get_credentials(self, first_pass: bool = True) -> Creds:
         """ Get credentials from user if necessary. """
         self.get_username()
-
-        password = None
-        if self.enable_keyring:
-            ukey = self.username + '@' + urlparse(self.ecp_endpoint_url).netloc
-            password = get_password("awscli_login", ukey)
-        if password is None:
-            password = getpass()
-        if self.enable_keyring:
-            set_password("awscli_login", ukey, password)
-        assert isinstance(password, str), "Password is not a string!"
-        self.password = password
+        self.get_password()
 
         # TODO add support for any factor...
         # https://github.com/JohnPfeifer/duo-non-browser/wiki
