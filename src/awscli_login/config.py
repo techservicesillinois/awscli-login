@@ -319,7 +319,10 @@ class Profile:
                 headers['X-Shibboleth-Duo-Factor'] = self.factor
 
             if not first_pass or self.factor == 'passcode':
-                code = input('Code: ')
+                if self.passcode is None:
+                    code = input('Code: ')
+                else:
+                    code = self.passcode
 
                 if self.http_header_passcode is not None:
                     headers[self.http_header_passcode] = code

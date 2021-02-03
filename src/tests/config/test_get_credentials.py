@@ -1,5 +1,5 @@
 from copy import copy
-from typing import List
+from typing import List, Iterator
 
 from awscli_login.exceptions import InvalidFactor
 
@@ -31,12 +31,23 @@ class Creds():
 
         return r
 
+    def input(self) -> Iterator[str]:
+        i = 0
+        r = self.get()
+
+        while True:
+            try:
+                yield r[i]
+                i += 1
+            except IndexError:
+                yield ''
+
 
 class GetCredsProfileBase(ProfileBase):
 
     def mock_get_credentials_inputs(self, inputs: Creds):
         mock_input = self.patcher('builtins.input', autospec=True,
-                                  side_effect=inputs.get())
+                                  side_effect=inputs.input())
 
         mock_password = self.patcher(
             'awscli_login.config.getpass',
@@ -73,7 +84,10 @@ class GetCredsProfileBase(ProfileBase):
             inputs,
     ):
         # Make sure the user was prompted for exactly the inputs given
-        self.assertEqual(mock_input.call_count, len(inputs.get()))
+        self.assertEqual(
+            mock_input.call_count, len(inputs.get()),
+            "%i user prompt(s) expected!" % len(inputs.get()),
+        )
 
         if inputs.password:
             try:  # Python 3.6 only
@@ -230,6 +244,43 @@ factor = passcode
         inputs = Creds(username="user", password="secret", passcode="1234")
         outputs = copy(inputs)
         outputs.factor = 'passcode'
+
+        mocks = self.mock_get_credentials_inputs(inputs)
+        self._test_get_credentials(outputs)
+        self.assertGetCredentialsMocksCalled(*mocks)
+
+    def test_get_credentials_no_prompt_for_passcode(self):
+        """ Should not prompt for passcode when set in profile. """
+        self.login_config = """
+[default]
+ecp_endpoint_url = foo
+factor = passcode
+passcode = abcd
+    """
+        self.Profile()
+
+        inputs = Creds(username="user", password="secret")
+        outputs = copy(inputs)
+        outputs.factor = 'passcode'
+        outputs.passcode = 'abcd'
+
+        mocks = self.mock_get_credentials_inputs(inputs)
+        self._test_get_credentials(outputs)
+        self.assertGetCredentialsMocksCalled(*mocks)
+
+    def test_get_credentials_no_prompt_for_cli_passcode(self):
+        """ Should not prompt for passcode when set on command line. """
+        self.login_config = """
+[default]
+ecp_endpoint_url = foo
+factor = passcode
+    """
+        self.Profile(passcode='abcd')
+
+        inputs = Creds(username="user", password="secret")
+        outputs = copy(inputs)
+        outputs.factor = 'passcode'
+        outputs.passcode = 'abcd'
 
         mocks = self.mock_get_credentials_inputs(inputs)
         self._test_get_credentials(outputs)
