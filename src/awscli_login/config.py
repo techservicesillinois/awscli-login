@@ -59,8 +59,7 @@ class Profile:
     enable_keyring = False  # type: bool
     factor = None  # type: Optional[str]
     passcode = None  # type: str
-    verbose = 0  # type: int
-    refresh = 3000  # type: int
+    refresh = 0  # type: int
     force_refresh = False  # type: bool
     duration = 0  # type: int
     disable_refresh = False  # type: bool
@@ -80,13 +79,15 @@ class Profile:
             'enable_keyring': False,
             'factor': None,
             'passcode': None,
-            'verbose': 0,
-            'refresh': 3000,  # in seconds (every 50 mins)
-            'force_refresh': False,
+            'refresh': 0,  # in seconds
             'duration': 0,  # duration can't be less than 900, btw
             'disable_refresh': False,
             'http_header_factor': None,
             'http_header_passcode': None,
+    }  # type: Dict[str, Any]
+
+    _cli_only = {
+            'force_refresh': False,
     }  # type: Dict[str, Any]
 
     _config_options = OrderedDict(
@@ -135,13 +136,15 @@ class Profile:
 
     def _set_attrs_from_args(self) -> None:
         """ Load command line options. """
-        self.options = self._required | frozenset(self._optional.keys())
+        self.options = self._required | frozenset(self._optional.keys()) \
+            | frozenset(self._cli_only.keys())
         options = self.options - frozenset(self._override.keys())
 
         for option in options:
             value = getattr(self._args, option)
 
-            if value:
+            # Allow False, empty strings, zero, etc.
+            if value is not None:
                 setattr(self, option, value)
 
     def _set_override_attrs(self) -> None:
@@ -262,7 +265,7 @@ class Profile:
             for attr in section:
                 if attr not in self._required and attr not in self._optional:
                     logger.warn('Unknown attribute "' + attr + '" in ' +
-                                self.name + ' profile ' + self.name)
+                                self.name + ' profile ')
 
     def is_factor_valid(self):
         """ Return True if self.factor is valid. False otherwise. """
@@ -285,21 +288,27 @@ class Profile:
             username = getuser()
             self.username = input("Username [%s]: " % username) or username
 
+    def get_password(self):
+        """ Get password from user if necessary. """
+        if self.enable_keyring:
+            if self.password is not None:
+                logger.warn('Using keyring: Ignoring password set via'
+                            ' configuration file or command line.')
+
+            ukey = self.username + '@' + urlparse(self.ecp_endpoint_url).netloc
+            self.password = get_password("awscli_login", ukey)
+
+        if self.password is None:
+            self.password = getpass()
+
+        if self.enable_keyring:
+            set_password("awscli_login", ukey, self.password)
+
     # Can we make this DRYer?
     def get_credentials(self, first_pass: bool = True) -> Creds:
         """ Get credentials from user if necessary. """
         self.get_username()
-
-        password = None
-        if self.enable_keyring:
-            ukey = self.username + '@' + urlparse(self.ecp_endpoint_url).netloc
-            password = get_password("awscli_login", ukey)
-        if password is None:
-            password = getpass()
-        if self.enable_keyring:
-            set_password("awscli_login", ukey, password)
-        assert isinstance(password, str), "Password is not a string!"
-        self.password = password
+        self.get_password()
 
         # TODO add support for any factor...
         # https://github.com/JohnPfeifer/duo-non-browser/wiki
@@ -319,7 +328,10 @@ class Profile:
                 headers[DUO_HEADER_FACTOR] = self.factor
 
             if not first_pass or self.factor == 'passcode':
-                code = input('Code: ')
+                if self.passcode is None:
+                    code = input('Code: ')
+                else:
+                    code = self.passcode
 
                 if self.http_header_passcode is not None:
                     headers[self.http_header_passcode] = code
