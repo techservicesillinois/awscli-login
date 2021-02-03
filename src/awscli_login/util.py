@@ -146,11 +146,14 @@ def file2str(filename: str) -> str:
     return data
 
 
-def nap(expires: datetime, percent: float) -> None:
+def nap(expires: datetime, percent: float, refresh: float = None) -> None:
     """TODO. """
-    tz = timezone.utc
-    ttl = int((expires - datetime.now(tz)).total_seconds())
-    sleep_for = ttl * 0.9
+    if refresh:
+        sleep_for = refresh
+    else:
+        tz = timezone.utc
+        ttl = int((expires - datetime.now(tz)).total_seconds())
+        sleep_for = ttl * percent
 
     logger.info('Going to sleep for %d seconds.' % sleep_for)
     sleep(sleep_for)
