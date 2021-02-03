@@ -220,8 +220,11 @@ factor = push
 role_arn = arn:aws:iam::account-id:role/role-name
 enable_keyring = True
 passcode = secret_code
-verbose = 1
 refresh = 1500
+duration = 900
+disable_refresh = True
+http_header_factor = X_Foo
+http_header_passcode = X_Bar
     """
 
     def test_full_config(self) -> None:
@@ -236,8 +239,11 @@ refresh = 1500
             "role_arn": "arn:aws:iam::account-id:role/role-name",
             "enable_keyring": True,
             "passcode": "secret_code",
-            "verbose": 1,
             "refresh": 1500,
+            "duration": 900,
+            "disable_refresh": True,
+            "http_header_factor": "X_Foo",
+            "http_header_passcode": "X_Bar",
         }
 
         self.assertProfileHasAttrs(**expected_attr_vals)
@@ -255,8 +261,33 @@ class ReadFullProfileTestOverrides(ReadFullProfile):
             "factor": 'sms',
             "role_arn": "arn:aws:iam::account-id:role/role-name2",
             "passcode": "secret",
-            "verbose": 2,
             "refresh": 1000,
+            "duration": 1500,
+            "disable_refresh": True,
+            "http_header_factor": "X_Bar",
+            "http_header_passcode": "X_Foo",
+        }  # Dict[str, Any]
+        expected_attr_vals = copy(args)
+        expected_attr_vals.update({'enable_keyring': False})
+        args.update({'ask_password': True})
+
+        self.Profile(profile='default', no_args=False, **args)
+        self.assertProfileHasAttrs(**expected_attr_vals)
+
+    def test_logically_false_args_full_config(self) -> None:
+        """ Testing logically False command line args override config. """
+        args = {
+            "ecp_endpoint_url": '',
+            "username": '',
+            "password": '',
+            "factor": '',
+            "role_arn": "",
+            "passcode": "",
+            "refresh": 0,
+            "duration": 0,
+            "disable_refresh": False,
+            "http_header_factor": "",
+            "http_header_passcode": "",
         }  # Dict[str, Any]
         expected_attr_vals = copy(args)
         expected_attr_vals.update({'enable_keyring': False})
