@@ -9,9 +9,8 @@ from datetime import datetime
 from functools import wraps
 from typing import Optional
 
-import boto3
-
 from botocore.session import Session
+from botocore import client as Client
 from daemoniker import Daemonizer, SignalHandler1
 from daemoniker import send, SIGINT, SIGTERM, SIGABRT
 
@@ -44,7 +43,7 @@ from .typing import Role
 logger = logging.getLogger(__package__)
 
 
-def save_sts_token(session: Session, client: boto3.client, saml: str,
+def save_sts_token(session: Session, client: Client, saml: str,
                    role: Role, duration: int = 0) -> datetime:
     params = dict(
         RoleArn=role[1],
@@ -64,7 +63,7 @@ def save_sts_token(session: Session, client: boto3.client, saml: str,
     return save_credentials(session, token)
 
 
-def daemonize(profile: Profile, session: Session, client: boto3.client,
+def daemonize(profile: Profile, session: Session, client: Client,
               role: Role, expires: datetime) -> bool:
     with Daemonizer() as (is_setup, daemonizer):
         is_parent, profile, session, client, role, expires = daemonizer(
@@ -179,7 +178,7 @@ def main(profile: Profile, session: Session):
         logger.warn("Logged out: ignoring --force-refresh.")
 
     try:
-        client = boto3.client('sts')
+        client = session.create_client('sts')
 
         # Exit if already logged in
         profile.raise_if_logged_in()

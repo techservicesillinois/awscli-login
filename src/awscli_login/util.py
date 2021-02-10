@@ -7,6 +7,7 @@ from time import sleep
 from typing import Dict, List, Tuple
 
 from awscli.customizations.configure.set import ConfigureSetCommand
+from botocore.utils import parse_timestamp
 from botocore.session import Session
 
 from .const import ERROR_INVALID_PROFILE_ROLE
@@ -130,9 +131,7 @@ def save_credentials(session: Session, token: Dict) -> datetime:
     _aws_set(session, 'aws_security_token',  creds['SessionToken'])
     logger.info("Saved temporary STS credentials to profile: " + profile)
 
-    assert isinstance(creds['Expiration'], datetime), \
-        "Amazon returned bad Expiration!"
-    return creds['Expiration']
+    return parse_timestamp(creds['Expiration'])
 
 
 def file2bytes(filename: str) -> bytes:

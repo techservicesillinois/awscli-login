@@ -1,7 +1,6 @@
 import os
 import unittest
 
-from datetime import datetime, timezone
 from io import StringIO
 from multiprocessing import get_start_method
 from os.path import isfile
@@ -33,7 +32,7 @@ def token(akey: str, skey: str, stoken: str) -> Dict[str, Dict[str, Any]]:
                                   'AccessKeyId': akey,
                                   'SecretAccessKey': skey,
                                   'SessionToken': stoken,
-                                  'Expiration': datetime.now(timezone.utc)
+                                  'Expiration': '2021-02-11T00:42:09Z'
                               }
            }
 
