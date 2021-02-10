@@ -4,6 +4,11 @@ Release History
 `Unreleased`_
 -------------
 
+Changed
+```````
+
+* invalid selection now issues a fatal error message `#71`_
+
 `0.2b1`_ 2021-02-04
 ---------------------
 
@@ -81,3 +86,4 @@ Fixed
 .. _#62: https://github.com/techservicesillinois/awscli-login/pull/62
 .. _#64: https://github.com/techservicesillinois/awscli-login/pull/64
 .. _#66: https://github.com/techservicesillinois/awscli-login/pull/66
+.. _#71: https://github.com/techservicesillinois/awscli-login/pull/71

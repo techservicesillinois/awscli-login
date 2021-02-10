@@ -86,3 +86,11 @@ class RoleParseFail(SAML):
     def __init__(self, role: str) -> None:
         mesg = "Bad SAML Response! Failed to parse role: %s!"
         super().__init__(mesg % role)
+
+
+class InvalidSelection(ConfigError):
+    code = 11
+
+    def __init__(self) -> None:
+        mesg = "Invalid selection!\a"
+        super().__init__(mesg)

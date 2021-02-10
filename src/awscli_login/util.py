@@ -10,7 +10,10 @@ from awscli.customizations.configure.set import ConfigureSetCommand
 from botocore.session import Session
 
 from .const import ERROR_INVALID_PROFILE_ROLE
-from .exceptions import SAML
+from .exceptions import (
+    InvalidSelection,
+    SAML,
+)
 from .typing import Role
 
 awsconfigfile = path.join('.aws', 'credentials')
@@ -69,8 +72,10 @@ def get_selection(role_arns: List[Role], profile_role: str = None) -> Role:
                 i += 1
 
         print("Selection:\a ", end='')
-# TODO need error checking
-        return role_arns[select[int(input())]]
+        try:
+            return role_arns[select[int(input())]]
+        except (ValueError, KeyError):
+            raise InvalidSelection
     elif n == 1:
         return role_arns[0]
     else:
