@@ -161,7 +161,7 @@ release: .release
 	twine upload "$(RELEASE)"
 
 clean:
-	rm -rf .coverage .coverage.develop .lint  .mypy_cache .static .tox .wheel htmlcov
+	rm -rf .coverage .coverage.develop .lint .mypy_cache .static .tox .wheel htmlcov .twinecheck
 	rm -rf $(PKG)/__pycache__ $(TPKG)/__pycache__ $(TPKG)/cli/__pycache__/ $(TPKG)/config/__pycache__
 	rm -rf build dist src/*.egg-info .eggs
 	make -C docs clean
