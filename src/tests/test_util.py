@@ -11,7 +11,10 @@ from unittest.mock import patch
 from botocore.session import Session
 
 from awscli_login.const import ERROR_INVALID_PROFILE_ROLE
-from awscli_login.exceptions import SAML
+from awscli_login.exceptions import (
+    InvalidSelection,
+    SAML,
+)
 from awscli_login.util import (
     get_selection,
     remove_credentials,
@@ -129,6 +132,30 @@ class util(unittest.TestCase):
         ]
 
         self.assertEqual(get_selection(roles), roles[1])
+
+    @patch('builtins.input', return_value=3)
+    @patch('sys.stdout', new=StringIO())
+    def test_get_bad_numeric_selection(self, *args):
+        """ Invalid numeric selection of two roles """
+        roles = [
+            ('idp1', 'arn:aws:iam::123577191723:role/KalturaAdmin'),
+            ('idp2', 'arn:aws:iam::271867855970:role/BoxAdmin'),
+        ]
+
+        with self.assertRaises(InvalidSelection):
+            get_selection(roles)
+
+    @patch('builtins.input', return_value="foo")
+    @patch('sys.stdout', new=StringIO())
+    def test_get_bad_type_selection(self, *args):
+        """ Invalid string selection of two roles """
+        roles = [
+            ('idp1', 'arn:aws:iam::123577191723:role/KalturaAdmin'),
+            ('idp2', 'arn:aws:iam::271867855970:role/BoxAdmin'),
+        ]
+
+        with self.assertRaises(InvalidSelection):
+            get_selection(roles)
 
     @patch('builtins.input', return_value=1)
     def test_selections_profile_role(self, *args):
