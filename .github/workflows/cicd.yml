@@ -84,6 +84,10 @@ jobs:
         path: ${{ steps.pip-cache.outputs.dir }}
         key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
 
+    - name: Get date
+      id: date
+      run: echo "::set-output name=week::$(date '+%U')"
+
     - name: Cache tox virtualenv
       id: tox
       uses: actions/cache@v2
@@ -91,30 +95,21 @@ jobs:
         path: |
             **/.tox
             **/cache
-        key: ${{ runner.os }}-${{ matrix.python-version }}-tox-${{ hashFiles('**/setup.py', '**/tox.ini') }}-${{ secrets.CACHE_VERSION }}
+        key: ${{ runner.os }}-${{ matrix.python-version }}-tox-${{ hashFiles('**/setup.py', '**/tox.ini') }}-${{ steps.date.outputs.week }}-${{ secrets.CACHE_VERSION }}
 
-    - name: Is cache old?
+    # touch cache and tox env so make will not rebuild them
+    - name: Update timestamps
       if: steps.tox.outputs.cache-hit == 'true'
-      id: age
-      run: |
-        set -x
-        if python scripts/weekold.py cache/*
-        then
-            # touch cache and tox env so make will not rebuild them
-            touch -c cache .tox/wheel/pyvenv.cfg
-        else
-            # If cache is old force rebuild of tox virtualenv(s)
-            rm -rf .tox cache
-        fi
+      run: touch -c cache .tox/wheel/pyvenv.cfg
       shell: bash
 
     - name: Install system dependencies
-      if: matrix.os == 'ubuntu-latest' && (steps.tox.outputs.cache-hit != 'true' || steps.age.outputs.weekold == 'True')
+      if: matrix.os == 'ubuntu-latest' && steps.tox.outputs.cache-hit != 'true'
       run: |
         sudo apt-get install -y libxml2-dev libxslt-dev
 
     - name: Upgrade pip
-      if: steps.tox.outputs.cache-hit != 'true' || steps.age.outputs.weekold == 'True'
+      if: steps.tox.outputs.cache-hit != 'true'
       run: |
         python -m pip install --upgrade --upgrade-strategy eager pip
 
@@ -123,11 +118,11 @@ jobs:
         python -m pip install --upgrade --upgrade-strategy eager tox wheel
 
     - name: Update Python wheel cache
-      if: steps.tox.outputs.cache-hit != 'true' || steps.age.outputs.weekold == 'True'
+      if: steps.tox.outputs.cache-hit != 'true'
       run: make cache
 
     - name: Install
-      if: steps.tox.outputs.cache-hit != 'true' || steps.age.outputs.weekold == 'True'
+      if: steps.tox.outputs.cache-hit != 'true'
       run: make install
 
     - name: Installed dependencies
