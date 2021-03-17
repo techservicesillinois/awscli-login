@@ -9,6 +9,16 @@ Subsystem for Linux <https://docs.microsoft.com/en-us/windows/wsl/about>`_.
 Currently, Windows PowerShell, Command Prompt, and Git Shell for
 Windows are supported with limitations (See `Windows Issues`_).
 
+This product is supported by the Cybersecurity Development team at the 
+University of Illinois, on a best-effort basis. As of the last update to 
+this README, the expected End-of-Life and End-of-Support dates of this 
+product are 05 October 2025.
+
+The End-of-Life was decided upon based on these dependencies::
+
++ AWSCLI V1 (End-of-Life is the same as Python V3)
++ Python V3.9 (05 October 2025)
+
 .. |--| unicode:: U+2013   .. en dash
 .. contents:: Jump to:
    :depth: 1
