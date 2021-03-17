@@ -12,7 +12,7 @@ Windows are supported with limitations (See `Windows Issues`_).
 This product is supported by the Cybersecurity Development team at the 
 University of Illinois, on a best-effort basis. As of the last update to 
 this README, the expected End-of-Life and End-of-Support dates of this 
-version are October, 2025, the same as its primary dependencies: the 
+version are October of 2025, the same as its primary dependencies: the 
 AWS CLI and 
 `Python V3.9 <https://www.python.org/dev/peps/pep-0596/#lifespan>`_.
 
