@@ -88,8 +88,8 @@ jobs:
       id: date
       run: echo "::set-output name=week::$(date '+%U')"
 
-    - name: Cache tox virtualenv
-      id: tox
+    - name: Cache tox virtualenv & wheel cache
+      id: ghcache
       uses: actions/cache@v2
       with:
         path: |
@@ -97,19 +97,30 @@ jobs:
             **/cache
         key: ${{ runner.os }}-${{ matrix.python-version }}-tox-${{ hashFiles('**/setup.py', '**/tox.ini') }}-${{ steps.date.outputs.week }}-${{ secrets.CACHE_VERSION }}
 
-    # touch cache and tox env so make will not rebuild them
-    - name: Update timestamps
-      if: steps.tox.outputs.cache-hit == 'true'
-      run: touch -c cache .tox/wheel/pyvenv.cfg
-      shell: bash
+    - name: Validate tox virtualenv
+      uses: techservicesillinois/cache-validation@v1
+      id: tox
+      with:
+        path: .tox
+        cache_hit: ${{ steps.ghcache.outputs.cache-hit }}
+        remove_invalid_paths: true
+        touch: true
+
+    - name: Validate wheel cache
+      uses: techservicesillinois/cache-validation@v1
+      id: cache
+      with:
+        path: cache
+        cache_hit: ${{ steps.ghcache.outputs.cache-hit }}
+        remove_invalid_files: true
+        touch: true
 
     - name: Install system dependencies
-      if: matrix.os == 'ubuntu-latest' && steps.tox.outputs.cache-hit != 'true'
+      if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.valid != 'true'
       run: |
         sudo apt-get install -y libxml2-dev libxslt-dev
 
     - name: Upgrade pip
-      if: steps.tox.outputs.cache-hit != 'true'
       run: |
         python -m pip install --upgrade --upgrade-strategy eager pip
 
@@ -118,11 +129,11 @@ jobs:
         python -m pip install --upgrade --upgrade-strategy eager tox wheel
 
     - name: Update Python wheel cache
-      if: steps.tox.outputs.cache-hit != 'true'
+      if: steps.cache.outputs.valid != 'true'
       run: make cache
 
     - name: Install
-      if: steps.tox.outputs.cache-hit != 'true'
+      if: steps.tox.outputs.valid != 'true'
       run: make install
 
     - name: Installed dependencies
