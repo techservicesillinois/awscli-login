@@ -9,6 +9,10 @@ Changed
 
 * invalid selection now issues a fatal error message `#71`_
 
+Fixed
+`````
+* drop boto3 dependency that conflicts with awscliv2 `#73`_
+
 `0.2b1`_ 2021-02-04
 ---------------------
 
@@ -87,3 +91,4 @@ Fixed
 .. _#64: https://github.com/techservicesillinois/awscli-login/pull/64
 .. _#66: https://github.com/techservicesillinois/awscli-login/pull/66
 .. _#71: https://github.com/techservicesillinois/awscli-login/pull/71
+.. _#73: https://github.com/techservicesillinois/awscli-login/pull/73
