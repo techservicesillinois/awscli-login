@@ -31,6 +31,15 @@ so we recommend ensuring setuptools is up to date before installing.::
     $ pip install --upgrade setuptools
     $ pip install awscli-login
 
+If installing within WSL (Windows Subsystem for Linux) use the following steps,
+to launch within a Python virtual environment.::
+
+    $ virtualenv -p python3 venv
+    $ source venv/bin/activate
+    $ pip3 install awscli
+    $ pip3 install --upgrade setuptools
+    $ pip3 install awscli-login
+
 After awscli-login has been installed, run the following command
 to enable the plugin::
 
