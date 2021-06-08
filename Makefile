@@ -29,7 +29,7 @@ deps-win: deps
 
 # Python packages needed to build a wheel
 deps-build: deps-publish
-	$(PIP) setuptools tox wheel flake8 mypy
+	$(PIP) setuptools tox wheel flake8 mypy types-requests
 
 # Python packages needed to build the documentation
 deps-doc:
