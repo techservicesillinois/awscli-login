@@ -139,6 +139,12 @@ def exec_awscli(*argv: str) -> None:
     """ Run the aws cli. """
     @patch('sys.argv', ['aws', *argv])
     def run_main():
+        # Suppress deprecation warnings that can occur when Python
+        # compiles awscli. This is the normal behavior of the aws
+        # utility and prevents the logout unit tests from failing.
+        # https://github.com/techservicesillinois/awscli-login/pull/75
+        import warnings
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
         main()
 
     run_main()
