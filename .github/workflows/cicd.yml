@@ -163,12 +163,15 @@ jobs:
     - name: Install awscliv2
       if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt-get update && sudo apt-get install -y awscli
+        rm -f /usr/local/bin/aws /usr/local/bin/aws_completer
+        brew install -f awscli
+        #sudo apt-get update && sudo apt-get install -y awscli
 
     - name: Install awscliv2
       if: matrix.os == 'macos-latest'
       run: |
-        brew update && brew install -f awscli
+        rm -f /usr/local/bin/aws /usr/local/bin/aws_completer
+        brew install -f awscli
 
     - name: Install awscliv2
       if: matrix.os == 'windows-latest'
