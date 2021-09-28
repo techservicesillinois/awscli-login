@@ -151,8 +151,36 @@ jobs:
         name: coverage-${{ runner.os }}-py${{ matrix.python-version }}
         path: htmlcov
 
+  awscliv2:
+    runs-on: ${{ matrix.os }}
+    needs: build
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    - name: Install awscliv2
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get install -y awscli
+
+    - name: Install awscliv2
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install awscli
+
+    - name: Install awscliv2
+      if: matrix.os == 'windows-latest'
+      run: |
+        choco install awscli
+
+    - name: Check that awscliv2 is installed
+      run: |
+        aws --version
+        aws --version | grep -q 'aws-cli/2'
+
   publish:
-    needs: test
+    needs: [test, awscliv2]
     runs-on: ubuntu-latest
 
     steps:
