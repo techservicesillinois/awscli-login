@@ -164,7 +164,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       run: |
         # Delete old aws-cli installed by Github
-        rm -r /usr/local/aws-cli
+        sudo rm -rf /usr/local/aws-cli
         rm -f /usr/local/bin/aws /usr/local/bin/aws_completer
         # Update brew and install new AWS CLI V2
         brew update
