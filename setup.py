@@ -50,8 +50,6 @@ setup(
     package_dir={'': 'src'},
     python_requires='>=3.5',
     install_requires=[
-       'awscli',
-       'botocore',
        'daemoniker',
        'keyring',
        'lxml',
@@ -60,6 +58,8 @@ setup(
     ],
     extras_require={
         'test': [
+            'awscli',
+            'botocore',
             'tblib',
             'wurlitzer',
         ],
