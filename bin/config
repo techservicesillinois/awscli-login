@@ -1,0 +1,4 @@
+#!/bin/bash
+
+aws configure set plugins.login awscli_login
+aws configure set plugins.cli_legacy_plugin_path /usr/local/lib/python3.9/site-packages
