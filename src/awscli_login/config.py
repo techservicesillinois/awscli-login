@@ -63,6 +63,7 @@ class Profile:
     disable_refresh: bool = False
     http_header_factor: str
     http_header_passcode: str
+    verify_ssl_certificate: bool = True
 
     # path to profile configuration file
     config_file: str
@@ -82,6 +83,7 @@ class Profile:
             'disable_refresh': False,
             'http_header_factor': None,
             'http_header_passcode': None,
+            'verify_ssl_certificate': True,
     }
 
     _cli_only: Dict[str, Any] = {
