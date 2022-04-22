@@ -65,6 +65,7 @@ class Profile:
     disable_refresh = False  # type: bool
     http_header_factor = None  # type: str
     http_header_passcode = None  # type: str
+    verify_ssl_certificate = True  # type: bool
 
     # path to profile configuration file
     config_file = None  # type: str
@@ -84,10 +85,12 @@ class Profile:
             'disable_refresh': False,
             'http_header_factor': None,
             'http_header_passcode': None,
+            'verify_ssl_certificate': True,
     }  # type: Dict[str, Any]
 
     _cli_only = {
             'force_refresh': False,
+            'verify_ssl_certificate': True,
     }  # type: Dict[str, Any]
 
     _config_options = OrderedDict(

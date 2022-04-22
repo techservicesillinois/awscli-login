@@ -92,6 +92,7 @@ def daemonize(profile: Profile, session: Session, client: Client,
                             saml, _ = refresh(
                                 profile.ecp_endpoint_url,
                                 profile.cookies,
+                                profile.verify_ssl_certificate,
                             )
                         except Exception as e:
                             retries += 1
@@ -190,11 +191,13 @@ def main(profile: Profile, session: Session):
             saml, roles = refresh(
                 profile.ecp_endpoint_url,
                 profile.cookies,
+                profile.verify_ssl_certificate,
             )
         except Exception:
             creds = profile.get_credentials()
             saml, roles = authenticate(profile.ecp_endpoint_url,
-                                       profile.cookies, *creds)
+                                       profile.cookies, *creds,
+                                       profile.verify_ssl_certificate)
 
         duration = profile.duration
         role = get_selection(roles, profile.role_arn)

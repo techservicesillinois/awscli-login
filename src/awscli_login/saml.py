@@ -24,6 +24,9 @@ from .exceptions import (
 from .typing import Role, Headers
 from .util import secure_touch
 
+from urllib3.exceptions import InsecureRequestWarning
+from urllib3 import disable_warnings
+
 SAML_SUCCESS = "urn:oasis:names:tc:SAML:2.0:status:Success"
 
 ns = {
@@ -65,7 +68,7 @@ def raise_if_saml_failed(soap: bytes) -> None:
 
 def saml_login(url: str, jar: LWPCookieJar,
                username: str = None, password: str = None,
-               headers: Headers = None) -> bytes:
+               headers: Headers = None, verify_cert: bool = True) -> bytes:
     """
     Generates and posts a SAML AuthNRequest to an IdP.
 
@@ -74,10 +77,15 @@ def saml_login(url: str, jar: LWPCookieJar,
         username: Username to provide to the IdP.
         password: Password to provide to the IdP.
         headers: optional headers to provide to the IdP.
+        verify_cert: whether to verify IdP SSL cert
 
     Returns:
         The SOAP response from the IdP.
     """
+
+    if not verify_cert:
+        disable_warnings(InsecureRequestWarning)
+
     s = Session()
     s.cookies = cast(RequestsCookieJar, jar)
     s.headers.update({'Content-Type': 'text/xml', 'charset': 'utf-8'})
@@ -86,7 +94,8 @@ def saml_login(url: str, jar: LWPCookieJar,
     auth = (username, password) if username and password else None
     logger.debug("POST %r\nheaders: %r\npayload %r" %
                  (url, headers, envelope))
-    r = s.post(url, data=envelope, headers=headers, auth=auth)
+    r = s.post(url, data=envelope, headers=headers, auth=auth,
+               verify=verify_cert)
     logger.debug("POST returned: %r" % r.content)
 
     r.raise_for_status()
@@ -99,7 +108,8 @@ def saml_login(url: str, jar: LWPCookieJar,
 
 def authenticate(url: str, cookies: str,
                  username: str, password: str,
-                 headers: Headers) -> Tuple[str, List[Role]]:
+                 headers: Headers,
+                 verify_cert: bool = True) -> Tuple[str, List[Role]]:
     """
     Authenitcate with user credentials to IdP.
 
@@ -109,13 +119,14 @@ def authenticate(url: str, cookies: str,
         username: Username to provide to the IdP.
         password: Password to provide to the IdP.
         headers: Optional headers to provide to the IdP.
+        verify_cert: whether to verify IdP SSL cert
 
     Returns:
         A base 64 encoded SAML assertion string, and a list of
         tuples containing a SAML provider ARN and a Role ARN.
     """
     jar = LWPCookieJar(cookies)
-    soap = saml_login(url, jar, username, password, headers)
+    soap = saml_login(url, jar, username, password, headers, verify_cert)
 
     mesg = "Successfully authenticated with username/password"
     logger.info(mesg + " to endpoint: " + url)
@@ -127,13 +138,15 @@ def authenticate(url: str, cookies: str,
     return parse_soap_response(soap)
 
 
-def refresh(url: str, cookies: str) -> Tuple[str, List[Role]]:
+def refresh(url: str, cookies: str,
+            verify_cert: bool = True) -> Tuple[str, List[Role]]:
     """
     Reauthenticate with cookies to IdP.
 
     Args:
         url: ECP endpoint URL for the IdP.
         cookies: A path to a cookie jar.
+        verify_cert: whether to verify IdP SSL cert
 
     Returns:
         A base 64 encoded SAML assertion string, and a list of
@@ -146,7 +159,7 @@ def refresh(url: str, cookies: str) -> Tuple[str, List[Role]]:
     except FileNotFoundError:
         raise MissingCookieJar(url)
 
-    soap = saml_login(url, jar)
+    soap = saml_login(url, jar, verify_cert=verify_cert)
 
     mesg = "Successfully authenticated with cookies"
     logger.info(mesg + " to endpoint: " + url)

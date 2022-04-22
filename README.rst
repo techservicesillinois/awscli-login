@@ -316,6 +316,11 @@ http_header_passcode
 
         http_header_passcode = X-Shibboleth-Duo-Passcode
 
+verify_ssl_certificate:
+    Whether to verify the SSL certificate from the IdP. Defaults to true.
+
+        verify_ssl_certificate = True
+
 Command line arguments
 ======================
 
