@@ -518,7 +518,8 @@ class CleanAWSEnvironment(TempDir):
         try:
             value = environ.pop(name)
         except KeyError:
-            self.addCleanup(environ.pop, name, None)
+            # Added type ignore below to work around mypy bug. #104
+            self.addCleanup(environ.pop, name, None)  # type: ignore
         else:
             self.addCleanup(environ.update, {name: value})
 
