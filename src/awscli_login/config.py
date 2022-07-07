@@ -4,6 +4,7 @@ import logging
 from argparse import Namespace
 from collections import OrderedDict
 from configparser import ConfigParser, SectionProxy
+from datetime import datetime
 from getpass import getuser, getpass
 from os import environ, makedirs, path
 from os.path import expanduser
@@ -18,15 +19,18 @@ from .const import (
     DUO_HEADER_PASSCODE,
 )
 from .exceptions import (
+    AlreadyLoggedIn,
+    AlreadyLoggedOut,
     InvalidFactor,
     ProfileMissingArgs,
     ProfileNotFound,
 )
-from ._typing import Creds
+from ._typing import Creds, Role
 
 CONFIG_DIR = '.aws-login'
 CONFIG_FILE = path.join(CONFIG_DIR, 'config')
 JAR_DIR = path.join(CONFIG_DIR, 'cookies')
+CREDENTIALS_FILE = path.join(CONFIG_DIR, 'credentials')
 
 ERROR_NONE = 0
 ERROR_UNKNOWN = 1
@@ -62,6 +66,7 @@ class Profile:
 
     # path to profile configuration file
     config_file: str
+    credentials_file: str
 
     # Private vars
     _args: Optional[Namespace] = None
@@ -104,6 +109,7 @@ class Profile:
 
         self.home = root if root is not None else expanduser('~')
         self.config_file = path.join(self.home, CONFIG_FILE)
+        self.credentials_file = path.join(self.home, CREDENTIALS_FILE)
 
         makedirs(path.join(self.home, CONFIG_DIR), mode=0o700, exist_ok=True)
         makedirs(path.join(self.home, JAR_DIR), mode=0o700, exist_ok=True)
@@ -183,7 +189,24 @@ class Profile:
 
     def raise_if_logged_in(self) -> None:
         """ Throws an exception if already logged in. """
-        raise NotImplementedError
+        config = self._credentials_file()
+        profile = config[self.name]
+
+        # A user is NOT logged in if credentials are expired
+        if self.are_credentials_expired():
+            return
+
+        if 'aws_role_arn' in profile and profile['aws_role_arn'] != '':
+            raise AlreadyLoggedIn
+
+    def raise_if_logged_out(self) -> None:
+        """ Throws an exception if already logged out. """
+        config = self._credentials_file()
+        profile = config[self.name]
+
+        # A user is NOT logged in if credentials can not be refreshed
+        if 'aws_role_arn' not in profile or profile['aws_role_arn'] == '':
+            raise AlreadyLoggedOut
 
     def _get_profile(self, config: ConfigParser,
                      validate: bool) -> Optional[SectionProxy]:
@@ -323,6 +346,11 @@ class Profile:
 
         return self.username, self.password, headers
 
+    # This is implemented in plugin child class
+    def update(self) -> None:
+        """ Interactively update the profile. """
+        raise NotImplementedError
+
     def reload(self, validate: bool = True):
         """ Reloads profile from disk [~/.aws-login/config]. """
         self._set_attrs(validate)
@@ -330,3 +358,86 @@ class Profile:
         if self._args:
             self._set_attrs_from_args()
             self._set_override_attrs()
+
+        self._set_attrs_from_credentials_file()
+
+    def _credentials_file(self) -> ConfigParser:
+        """ Returns credentials file as a ConfigParser object. """
+        config = ConfigParser()
+        config.read(self.credentials_file)
+
+        if not config.has_section(self.name):
+            config.add_section(self.name)
+        return config
+
+    def are_credentials_expired(self) -> bool:
+        """ Return True if credentials are expired. """
+        config = self._credentials_file()
+        profile = config[self.name]
+        try:
+            expiration = datetime.fromisoformat(profile['expiration'])
+            if expiration > datetime.now(tz=expiration.tzinfo):
+                return False
+        except (ValueError, TypeError, KeyError) as e:
+            logger.debug(f"Invalid or missing credentials: {e}")
+        return True
+
+    def load_credentials(self) -> Optional[Dict]:
+        """ Returns credentials token, None if missing or incomplete."""
+        config = self._credentials_file()
+        profile = config[self.name]
+        try:
+            return {
+                'Credentials': {
+                    'AccessKeyId': profile['aws_access_key_id'],
+                    'SecretAccessKey': profile['aws_secret_access_key'],
+                    'SessionToken': profile['aws_session_token'],
+                    'Expiration': datetime.fromisoformat(
+                        profile['expiration']),
+                }
+            }
+        except (KeyError, ValueError):
+            return None
+
+    def remove_credentials(self):
+        """ Remove Amazon token and role in ~/.aws-login/credentials. """
+        config = ConfigParser()
+        config.read(self.credentials_file)
+        if not config.remove_section(self.name):
+            raise AlreadyLoggedOut
+
+        with open(self.credentials_file, 'w') as configfile:
+            config.write(configfile)
+            logger.info("Removed temporary STS credentials from profile: "
+                        + self.name)
+
+    def save_credentials(self, token: Dict, role: Role):
+        """ Caches an Amazon token and role in ~/.aws-login/credentials. """
+        config = self._credentials_file()
+        creds = token['Credentials']
+        profile = config[self.name]
+
+        profile['aws_access_key_id'] = creds['AccessKeyId']
+        profile['aws_secret_access_key'] = creds['SecretAccessKey']
+        profile['aws_session_token'] = creds['SessionToken']
+        profile['aws_security_token'] = creds['SessionToken']
+        try:
+            profile['expiration'] = creds['Expiration'].isoformat()
+        except AttributeError:
+            profile['expiration'] = creds['Expiration']
+        profile['aws_principal_arn'] = role[0]
+        profile['aws_role_arn'] = role[1]
+        profile['username'] = self.username
+
+        with open(self.credentials_file, 'w') as configfile:
+            config.write(configfile)
+            logger.info("Saved temporary STS credentials to profile: "
+                        + self.name)
+
+    def _set_attrs_from_credentials_file(self):
+        """ Load username and role from credentials file. """
+        profile = self._credentials_file()[self.name]
+        if self.role_arn is None:
+            self.role_arn = profile.get('aws_role_arn')
+        if self.username is None:
+            self.username = profile.get('username')

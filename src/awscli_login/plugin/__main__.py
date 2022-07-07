@@ -1,21 +1,22 @@
 import logging
+
 from datetime import datetime
 
 from botocore import client as Client
 from botocore.session import Session
 
-from ..exceptions import AlreadyLoggedIn, AlreadyLoggedOut
+from ..config import Profile
+from ..exceptions import AlreadyLoggedIn
 from ..saml import authenticate, refresh
 from .._typing import Role
 from ..util import get_selection
-from .config import Profile
-from .util import error_handler, remove_credentials, save_credentials
-from .util import credentials_exist
+from .util import error_handler
+from .util import raise_if_credential_process_not_set
 
 logger = logging.getLogger(__package__)
 
 
-def save_sts_token(session: Session, client: Client, saml: str,
+def save_sts_token(profile: Profile, client: Client, saml: str,
                    role: Role, duration: int = 0) -> datetime:
     params = dict(
         RoleArn=role[1],
@@ -31,25 +32,28 @@ def save_sts_token(session: Session, client: Client, saml: str,
 
     token = client.assume_role_with_saml(**params)
     logger.info("Retrieved temporary Amazon credentials for role: " + role[1])
-
-    return save_credentials(session, token)
+    profile.save_credentials(token, role)
+    return token
 
 
 def login(profile: Profile, session: Session, interactive: bool = True):
     session.set_credentials(None, None)  # Disable credential lookup
     client = session.create_client('sts')
 
-    try:
-        if credentials_exist(session):
-            raise AlreadyLoggedIn
-        if profile.force_refresh:
-            logger.warn("Logged out: ignoring --force-refresh.")
-    except AlreadyLoggedIn:
-        if not profile.force_refresh:
-            raise
+    # Exit if already logged in
+    if interactive:
+        raise_if_credential_process_not_set(session, profile.name)
 
-    # Must know username to lookup cookies
-    profile.get_username()
+        try:
+            profile.raise_if_logged_in()
+            if profile.force_refresh:
+                logger.warn("Logged out: ignoring --force-refresh.")
+        except AlreadyLoggedIn:
+            if not profile.force_refresh:
+                raise
+
+        # Must know username to lookup cookies
+        profile.get_username()
 
     try:
         saml, roles = refresh(
@@ -67,15 +71,13 @@ def login(profile: Profile, session: Session, interactive: bool = True):
             raise
 
     duration = profile.duration
-    role = get_selection(roles, profile.role_arn)
-    return save_sts_token(session, client, saml, role, duration)
+    role = get_selection(roles, profile.role_arn, interactive)
+    return save_sts_token(profile, client, saml, role, duration)
 
 
 @error_handler()
-def logout(profile: Profile, session: Session):
-    if not credentials_exist(session):
-        raise AlreadyLoggedOut
-    remove_credentials(session)
+def logout(profile: Profile, session: Session, interactive: bool = True):
+    profile.remove_credentials()
 
 
 @error_handler(skip_args=False, validate=True)

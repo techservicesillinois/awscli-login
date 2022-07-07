@@ -9,7 +9,7 @@ from tempfile import TemporaryDirectory
 from typing import Any, Callable, List, Optional
 from unittest.mock import patch
 
-from awscli_login.config import CONFIG_FILE
+from awscli_login.config import CONFIG_FILE, CREDENTIALS_FILE
 
 from .util import exec_awscli, fork, isFileChangedBy, isFileTouchedBy, tree
 from .exceptions import NotRelativePathError
@@ -272,7 +272,7 @@ class TempDir(SDGTestCase):
 
         return value
 
-    def write(self, rel_file_path: str, value) -> None:
+    def write(self, rel_file_path: str, value) -> str:
         """Writes a given value to a temporary file.
 
         The file is rooted in a temporary directory using the given
@@ -283,6 +283,9 @@ class TempDir(SDGTestCase):
         Args:
             rel_file_path: A relative file path.
             value: String to write to disk.
+
+        Returns:
+            The absolute path to the file.
 
         Raises:
             NotRelativePathError: If `rel_file_path` is an absolute path.
@@ -297,6 +300,7 @@ class TempDir(SDGTestCase):
                 unlink(filename)
             except FileNotFoundError:
                 pass
+        return filename
 
     def dump(self):
         """Dumps temporary directory contents into an exception.
@@ -449,11 +453,24 @@ class CleanAWSLoginEnvironment(TempDir, CleanEnvironment):
         """Full path to `tmpd/.aws-login/config`. """
         return self._abspath(CONFIG_FILE)
 
+    @property
+    def login_credentials(self) -> str:
+        """Contents of the aws-login credentials file. """
+        return self.read(CREDENTIALS_FILE)
+
+    @login_credentials.setter
+    def login_credentials(self, value: str) -> None:
+        self.write(CREDENTIALS_FILE, value)
+
+    @property
+    def login_credentials_path(self) -> str:
+        """Full path to the aws-login credentials file. """
+        return self._abspath(CREDENTIALS_FILE)
+
     def setUp(self) -> None:
         """Creates `tmpd/.aws-login/config` and patches `awscli_login.config`
         to use it. """
         self._clear_environ('AWSCLI_LOGIN_ROOT')
-
         super().setUp()
         makedirs(dirname(self.login_config_path), 0o700)
 
@@ -463,6 +480,22 @@ class CleanAWSLoginEnvironment(TempDir, CleanEnvironment):
         )
         self.home = patcher.start()
         self.addCleanup(patcher.stop)
+
+    def assertCredentialsFileEquals(self, credentials: str) -> None:
+        """Assert aws-login credentials file equals given value.
+
+        Args:
+            credentials: Value to compare credentials file to.
+
+        Raises:
+            AssertionError
+        """
+        login_credentials = self.login_credentials
+        self.assertEqual(
+            login_credentials,
+            credentials,
+            'Did not expect:\n' + login_credentials + '---',
+        )
 
 
 class CleanAWSEnvironment(TempDir, CleanEnvironment):
@@ -578,9 +611,6 @@ class IntegrationTests(CleanTestEnvironment):
     def setUp(self):
         """Configures plugin to work with the awscli. """
         super().setUp()
-
-        # TODO Should this be split out? TODO THIS SHOULD BE A TEST!
-        # exec_awscli('configure', 'set', 'plugins.login', 'awscli_login')
         self.aws_config = '[plugins]\nlogin = awscli_login.plugin\n'
 
     def assertAwsCliReturns(self, *args, stdout='',

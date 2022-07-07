@@ -18,7 +18,10 @@ PIP = python -m pip install --upgrade --upgrade-strategy eager
 all: test coverage docs doctest
 
 # Python dependencies needed for local development
-deps: deps-build deps-doc deps-test deps-publish
+deps: deps-build deps-doc deps-test deps-publish v1
+
+v1:  # Integration test deps
+	$(PIP) vcrpy
 
 # Python packages needed to run the tests on a Windows system
 deps-win: deps

@@ -1,11 +1,15 @@
 from copy import copy
+from datetime import datetime
 from os import path
+from os.path import isfile
 from typing import Any, Dict
 
 from awscli_login.config import JAR_DIR
 from awscli_login.exceptions import (
-    ProfileNotFound,
+    AlreadyLoggedIn,
+    AlreadyLoggedOut,
     ProfileMissingArgs,
+    ProfileNotFound,
 )
 
 from ..base import (
@@ -13,6 +17,7 @@ from ..base import (
 )
 
 from .base import ProfileBase
+from .util import test_token
 
 
 class NoProfile(ProfileBase):
@@ -41,6 +46,7 @@ ecp_endpoint_url = foo
 
 class EmptyProfile(ProfileBase):
     """ Given an empty default profile. """
+
     def test_profile_with_no_args(self) -> None:
         """ Profile having no attrs should throw ProfileMissingArgs. """
         self.login_config = """
@@ -84,6 +90,7 @@ class ReadMinProfile(AttrTestMixin):
 [default]
 ecp_endpoint_url = foo
     """
+        # No credential file exists
         self.Profile()
 
     def test_simple_config(self) -> None:
@@ -92,19 +99,158 @@ ecp_endpoint_url = foo
 
     def test_bad_attr(self):
         """ Ensure AttributeError is thrown if a bad attr is referenced. """
-        profile = self.Profile()
         with self.assertRaises(AttributeError):
-            getattr(profile, 'manbearbig_does_not_exit')
+            getattr(self.profile, 'manbearbig_does_not_exit')
 
     def test_bad_magic_cookies(self):
         """ Ensure cookies returns None if username is not set! """
-        profile = self.Profile()
-
         self.assertEqual(
-            profile.cookies,
+            self.profile.cookies,
             None,
             'The username has not been set so cookies must be None!'
         )
+
+    def test_raise_if_logged_in_no_credential_file(self):
+        """Ensure no exception is raised if no credential file exists."""
+        self.assertFalse(isfile(self.login_credentials_path))
+
+        self.profile.raise_if_logged_in()
+        self.assertRaises(AlreadyLoggedOut, self.profile.raise_if_logged_out)
+
+    def test_raise_if_logged_in_empty_credential_file(self):
+        """Ensure no exception is raised if empty credential file exists."""
+        self.login_credentials = ""
+        self.profile.raise_if_logged_in()
+        self.assertRaises(AlreadyLoggedOut, self.profile.raise_if_logged_out)
+
+    def test_raise_if_logged_in_empty_credential(self):
+        """Ensure exception is not raised with empty credential."""
+        self.login_credentials = """[default]
+            aws_access_key_id =
+            aws_secret_access_key =
+            aws_session_token =
+            aws_security_token =
+            aws_principal_arn =
+            aws_role_arn =
+            expiration = """
+        self.profile.raise_if_logged_in()
+        self.assertRaises(AlreadyLoggedOut, self.profile.raise_if_logged_out)
+
+    def test_raise_if_logged_in_valid_credential_file(self):
+        """Ensure exception is raised with valid credentials."""
+        self.login_credentials = """[default]
+            aws_access_key_id = ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            aws_secret_access_key = 1234567890
+            aws_session_token = reallycooltoken
+            aws_security_token = securitytoken
+            aws_principal_arn = somearn
+            aws_role_arn = someotherarn
+            expiration = 2100-07-13T17:54:39"""
+        self.assertRaises(AlreadyLoggedIn, self.profile.raise_if_logged_in)
+        self.profile.raise_if_logged_out()
+
+    def test_raise_if_logged_in_empty_arn_credential_file(self):
+        """Ensure exception is not raised when aws_role_arn is not set."""
+        self.login_credentials = """[default]
+            aws_access_key_id = ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            aws_secret_access_key = 1234567890
+            aws_session_token = reallycooltoken
+            aws_security_token = securitytoken
+            aws_principal_arn = somearn
+            aws_role_arn =
+            expiration = 1970-01-01T17:54:39Z"""
+        self.profile.raise_if_logged_in()
+        self.assertRaises(AlreadyLoggedOut, self.profile.raise_if_logged_out)
+
+    def test_raise_if_logged_in_missing_arn_credential_file(self):
+        """Ensure exception is not raised when aws_role_arn is missing."""
+        self.login_credentials = """[default]
+            aws_access_key_id = ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            aws_secret_access_key = 1234567890
+            aws_session_token = reallycooltoken
+            aws_security_token = securitytoken
+            aws_principal_arn = somearn
+            expiration = 1970-01-01T17:54:39Z"""
+        self.profile.raise_if_logged_in()
+        self.assertRaises(AlreadyLoggedOut, self.profile.raise_if_logged_out)
+
+    def test_are_credentials_expired(self):
+        """Ensure return True when expiration is expired."""
+        self.login_credentials = """[default]
+            expiration = 1970-01-01T17:54:39Z"""
+        self.assertTrue(self.profile.are_credentials_expired())
+
+    def test_are_credentials_expired_invalid(self):
+        """Ensure return True when expiration is invalid."""
+        self.login_credentials = """[default]
+            expiration = abc"""
+        self.assertTrue(self.profile.are_credentials_expired())
+
+    def test_are_credentials_expired_missing_expiration(self):
+        """Ensure return True when expiration is missing."""
+        self.login_credentials = "[default]\n"
+        self.assertTrue(self.profile.are_credentials_expired())
+
+    def test_are_credentials_expired_not_expired(self):
+        """Ensure return False when credentials are not expired."""
+        self.login_credentials = """[default]
+            expiration = 2100-07-13T17:54:39"""
+        self.assertFalse(self.profile.are_credentials_expired())
+
+    def test_load_credentials(self):
+        """Ensure can load credentials."""
+        token = {
+            'Credentials': {
+                'AccessKeyId': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                'SecretAccessKey': '1234567890',
+                'SessionToken': 'reallycooltoken',
+                'Expiration': datetime(2100, 7, 13, 17, 54, 39),
+            }
+        }
+        self.login_credentials = """[default]
+            aws_access_key_id = ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            aws_secret_access_key = 1234567890
+            aws_session_token = reallycooltoken
+            aws_security_token = securitytoken
+            aws_principal_arn = somearn
+            aws_role_arn = someotherarn
+            expiration = 2100-07-13T17:54:39"""
+        self.assertEquals(token, self.profile.load_credentials())
+
+    def test_load_credentials_invalid_expiration(self):
+        """Ensure can load credentials."""
+        token = {
+            'Credentials': {
+                'AccessKeyId': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                'SecretAccessKey': '1234567890',
+                'SessionToken': 'reallycooltoken',
+                'Expiration': datetime(2100, 7, 13, 17, 54, 39),
+            }
+        }
+        self.login_credentials = """[default]
+            aws_access_key_id = ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            aws_secret_access_key = 1234567890
+            aws_session_token = reallycooltoken
+            aws_security_token = reallycooltoken
+            aws_principal_arn = somearn
+            aws_role_arn = someotherarn
+            expiration = 2100-07-13T17:54:39"""
+        self.assertEquals(token, self.profile.load_credentials())
+
+    def test_load_credentials_empty_file(self):
+        """Ensure None is returned if credentials file is empty."""
+        self.assertEquals(None, self.profile.load_credentials())
+
+    def test_load_credentials_incomplete_credentials(self):
+        """Ensure None is returned if credentials are incomplete."""
+        self.login_credentials = """[default]
+            aws_secret_access_key = 1234567890
+            aws_session_token = reallycooltoken
+            aws_security_token = reallycooltoken
+            aws_principal_arn = somearn
+            aws_role_arn = someotherarn
+            expiration = 2100-07-13T17:54:39"""
+        self.assertEquals(None, self.profile.load_credentials())
 
 
 class CookieMixin(TempDir):
@@ -238,6 +384,76 @@ class ReadFullProfileTestOverrides(ReadFullProfile):
 
         self.Profile(profile='default', no_args=False, **args)
         self.assertProfileHasAttrs(**expected_attr_vals)
+
+
+class TestCredentials(ReadFullProfile):
+
+    def setUp(self):
+        super().setUp()
+        self.Profile(profile='default', no_args=True)
+        self.login_credentials = """[wtf]
+aws_access_key_id = 123
+aws_secret_access_key = 456
+aws_session_token = 789
+aws_security_token = 789
+
+"""
+
+    def test_save_credentials(self):
+        """ Test save to ~/.aws-login/credentials """
+
+        credentials = self.login_credentials
+        credentials += """[default]
+aws_access_key_id = a
+aws_secret_access_key = b
+aws_session_token = c
+aws_security_token = c
+expiration = 2021-02-11T00:42:09Z
+aws_principal_arn = love
+aws_role_arn = thunder
+username = NetID
+
+"""
+        role = ('love', 'thunder')
+        self.profile.username = "NetID"
+        self.profile.save_credentials(test_token('a', 'b', 'c'), role)
+        self.assertCredentialsFileEquals(credentials)
+
+
+class TestLoadFromCredentialsFile(ProfileBase):
+
+    def test_login_credentials_loaded(self):
+        """ Ensure username and role are loaded from login_credentials. """
+        self.login_config = """
+[default]
+ecp_endpoint_url = url
+"""
+        self.login_credentials = """[default]
+aws_principal_arn = love
+aws_role_arn = thunder
+username = thor
+"""
+        self.Profile(profile='default', no_args=True)
+        self.assertEqual(self.profile.username, "thor")
+        self.assertEqual(self.profile.role_arn, "thunder")
+
+    def test_login_credentials_not_loaded(self):
+        """ Ensure username and role are not loaded from login_credentials. """
+        self.login_config = """
+[default]
+ecp_endpoint_url = url
+username = thor
+role_arn = jane
+"""
+        self.login_credentials = """[default]
+aws_principal_arn = love
+aws_role_arn = thunder
+username = NetID
+"""
+        self.Profile(profile='default', no_args=True)
+
+        self.assertEqual(self.profile.username, "thor")
+        self.assertEqual(self.profile.role_arn, "jane")
 
 
 # This ensures that shared tests in mixins are not run with empty
