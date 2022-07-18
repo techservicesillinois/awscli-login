@@ -6,7 +6,7 @@ import unittest
 from os import environ, makedirs, path, walk, unlink
 from os.path import dirname, relpath, join
 from tempfile import TemporaryDirectory
-from typing import Any, Callable, List, Optional  # NOQA
+from typing import Any, Callable, List, Optional
 from unittest.mock import patch
 
 from awscli_login.config import CONFIG_FILE
@@ -206,7 +206,7 @@ class SDGTestCase(unittest.TestCase):
             AssertionError: Attribute x has unexpected value 0
             Expected 1 on Coordinates object!
         """
-        errors = []  # type: List[str]
+        errors: List[str] = []
 
         for attr, value in kwargs.items():
             error = SDGTestCase._assertHasAttr(obj, attr, value)

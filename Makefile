@@ -71,12 +71,12 @@ tox: .python-version build | cache
 	tox --installpkg $(WHEEL)
 
 .python-version:
-	pyenv install -s 3.5.10
 	pyenv install -s 3.6.12
-	pyenv install -s 3.7.9
-	pyenv install -s 3.8.6
-	pyenv install -s 3.9.0
-	pyenv local 3.5.10 3.6.12 3.7.9 3.8.6 3.9.0
+	pyenv install -s 3.7.13
+	pyenv install -s 3.8.13
+	pyenv install -s 3.9.13
+	pyenv install -s 3.10.5
+	pyenv local 3.6.12 3.7.13 3.8.13 3.9.13 3.10.5
 
 # Run tests on multiple versions of Python (Windows only)
 win-tox: .win-tox build | cache
