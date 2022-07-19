@@ -1,7 +1,7 @@
 from copy import copy
 from os import getpid, path
 from os.path import isfile
-from typing import Any, Dict  # NOQA
+from typing import Any, Dict
 from unittest import SkipTest
 from unittest.mock import patch
 
@@ -254,7 +254,7 @@ class ReadFullProfileTestOverrides(ReadFullProfile):
 
     def test_full_config(self) -> None:
         """ Testing command line args are processed. """
-        args = {
+        args: Dict[str, Any] = {
             "ecp_endpoint_url": 'url2',
             "username": 'netid2',
             "password": 'secret2',
@@ -266,7 +266,7 @@ class ReadFullProfileTestOverrides(ReadFullProfile):
             "disable_refresh": True,
             "http_header_factor": "X_Bar",
             "http_header_passcode": "X_Foo",
-        }  # Dict[str, Any]
+        }
         expected_attr_vals = copy(args)
         expected_attr_vals.update({'enable_keyring': False})
         args.update({'ask_password': True})
@@ -276,7 +276,7 @@ class ReadFullProfileTestOverrides(ReadFullProfile):
 
     def test_logically_false_args_full_config(self) -> None:
         """ Testing logically False command line args override config. """
-        args = {
+        args: Dict[str, Any] = {
             "ecp_endpoint_url": '',
             "username": '',
             "password": '',
@@ -288,7 +288,7 @@ class ReadFullProfileTestOverrides(ReadFullProfile):
             "disable_refresh": False,
             "http_header_factor": "",
             "http_header_passcode": "",
-        }  # Dict[str, Any]
+        }
         expected_attr_vals = copy(args)
         expected_attr_vals.update({'enable_keyring': False})
         args.update({'ask_password': True})

@@ -6,6 +6,7 @@ from datetime import datetime
 from os import path
 from os.path import dirname, abspath
 from requests.exceptions import HTTPError
+from typing import Optional
 from unittest.mock import patch, MagicMock
 
 from lxml.etree import XMLSyntaxError
@@ -93,8 +94,8 @@ class auth(unittest.TestCase):
 
     class MockRespone:
         """ A class for mocking a requests' response. """
-        status_code = 0  # type: int
-        content = None  # type: bytes
+        status_code: int = 0
+        content: Optional[bytes] = None
 
         def raise_for_status(self):
             pass

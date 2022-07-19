@@ -7,7 +7,7 @@ from configparser import ConfigParser, SectionProxy
 from getpass import getuser, getpass
 from os import path, makedirs, unlink
 from os.path import expanduser, isfile
-from typing import Any, Dict, FrozenSet, Optional  # NOQA
+from typing import Any, Dict, FrozenSet, Optional
 from urllib.parse import urlparse
 
 from awscli.customizations.configure.writer import ConfigFileWriter
@@ -47,32 +47,32 @@ class Profile:
     This class reads the current login profile from ~/.aws-login/config
     """
     # Public vars
-    name = None  # type: str  # Profile name
+    name: str  # Profile name
 
     # Required args from profile
-    ecp_endpoint_url = None  # type: str
+    ecp_endpoint_url: str
 
     # Optional args from profile
-    username = None  # type: str
-    password = None  # type: str
-    role_arn = None  # type: str
-    enable_keyring = False  # type: bool
-    factor = None  # type: Optional[str]
-    passcode = None  # type: str
-    refresh = 0  # type: int
-    force_refresh = False  # type: bool
-    duration = 0  # type: int
-    disable_refresh = False  # type: bool
-    http_header_factor = None  # type: str
-    http_header_passcode = None  # type: str
+    username: str
+    password: str
+    role_arn: str
+    enable_keyring: bool = False
+    factor: Optional[str]
+    passcode: str
+    refresh: int = 0
+    force_refresh: bool = False
+    duration: int = 0
+    disable_refresh: bool = False
+    http_header_factor: str
+    http_header_passcode: str
 
     # path to profile configuration file
-    config_file = None  # type: str
+    config_file: str
 
     # Private vars
-    _args = None  # type: Optional[Namespace]
-    _required = frozenset(['ecp_endpoint_url'])  # type: FrozenSet[str]
-    _optional = {
+    _args: Optional[Namespace] = None
+    _required: FrozenSet[str] = frozenset(['ecp_endpoint_url'])
+    _optional: Dict[str, Any] = {
             'username': None,
             'password': None,
             'role_arn': None,
@@ -84,13 +84,13 @@ class Profile:
             'disable_refresh': False,
             'http_header_factor': None,
             'http_header_passcode': None,
-    }  # type: Dict[str, Any]
+    }
 
-    _cli_only = {
+    _cli_only: Dict[str, Any] = {
             'force_refresh': False,
-    }  # type: Dict[str, Any]
+    }
 
-    _config_options = OrderedDict(
+    _config_options: Dict[str, str] = OrderedDict(
         [
             ('ecp_endpoint_url', 'ECP Endpoint URL'),
             ('username', 'Username'),
@@ -98,12 +98,12 @@ class Profile:
             ('factor', 'Duo Factor'),
             ('role_arn', 'Role ARN'),
         ]
-    )  # type: Dict[str, str]
+    )
 
     # Extra override args from command line
-    _override = {
+    _override: Dict[str, str] = {
         'enable_keyring': 'ask_password',
-    }  # type: Dict[str, str]
+    }
 
     def _init_dir(self) -> None:
         """ Create ~/.aws-login directory if it does not exist. """
@@ -234,7 +234,7 @@ class Profile:
 
     def _set_opt_attrs(self, config: ConfigParser, validate: bool) -> None:
         """ Load optional args from profile [~/.aws-login/config]. """
-        value = None  # type: Any
+        value: Any = None
         section = self._get_profile(config, validate)
 
         for attr, default in self._optional.items():
