@@ -299,5 +299,5 @@ class ReadFullProfileTestOverrides(ReadFullProfile):
 
 # This ensures that shared tests in mixins are not run with empty
 # data sets!
-del(CookieMixin)
-del(AttrTestMixin)
+del CookieMixin
+del AttrTestMixin

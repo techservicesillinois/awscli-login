@@ -420,8 +420,8 @@ class CleanAWSLoginEnvironment(TempDir):
         return self._abspath(CONFIG_FILE)
 
     def setUp(self) -> None:
-        """Creates `tmpd/.aws-login/config` and patches `awscli_login.config` to
-        use it. """
+        """Creates `tmpd/.aws-login/config` and patches `awscli_login.config`
+        to use it. """
         super().setUp()
         makedirs(dirname(self.login_config_path), 0o700)
 

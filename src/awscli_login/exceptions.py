@@ -30,8 +30,9 @@ class ProfileNotFound(ConfigError):
     code = 4
 
     def __init__(self, profile: str) -> None:
-        mesg = 'The login profile (%s) could not be found!'
-        super().__init__(mesg % profile)
+        super().__init__(f'The login profile {profile} could not be found!\n'
+                         'Configure the profile with the following command:'
+                         f'aws login configure --profile {profile}')
 
 
 class ProfileMissingArgs(ConfigError):
