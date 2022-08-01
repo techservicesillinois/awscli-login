@@ -82,12 +82,12 @@ def daemonize(profile: Profile, session: Session, client: Client,
             logger = configFileLogger(profile.logfile, logging.INFO)
             logger.info('Startig refresh process for role %s' % role[1])
 
-            while(True):
+            while True:
                 try:
                     retries = 0
                     nap(expires, 0.9, profile.refresh)
 
-                    while(True):
+                    while True:
                         try:
                             saml, _ = refresh(
                                 profile.ecp_endpoint_url,
