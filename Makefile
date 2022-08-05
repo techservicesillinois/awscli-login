@@ -63,7 +63,7 @@ $(TOX_ENV): build | cache
 # https://packaging.python.org/guides/index-mirrors-and-caches/#caching-with-pip
 # https://www.gnu.org/software/make/manual/make.html#Prerequisite-Types
 cache: setup.py | build
-	pip wheel --wheel-dir=$@ $(WHEEL) $(WHEEL)[test] coverage
+	pip wheel --wheel-dir=$@ $(WHEEL)[test] coverage
 	@touch $@
 
 # Run tests on multiple versions of Python (POSIX only)
