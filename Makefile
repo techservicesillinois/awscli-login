@@ -71,20 +71,19 @@ tox: .python-version build | cache
 	tox --installpkg $(WHEEL)
 
 .python-version:
-	pyenv install -s 3.6.12
 	pyenv install -s 3.7.13
 	pyenv install -s 3.8.13
 	pyenv install -s 3.9.13
 	pyenv install -s 3.10.5
-	pyenv local 3.6.12 3.7.13 3.8.13 3.9.13 3.10.5
+	pyenv local 3.7.13 3.8.13 3.9.13 3.10.5
 
 # Run tests on multiple versions of Python (Windows only)
 win-tox: .win-tox build | cache
 	tox --installpkg $(WHEEL)
 
 .win-tox:
-	pyenv install 3.5.4 3.6.8 3.7.9 3.8.7 3.9.1
-	python scripts/windows_bat.py 3.5.4 3.6.8 3.7.9 3.8.7 3.9.1
+	pyenv install 3.7.9 3.8.7 3.9.1
+	python scripts/windows_bat.py 3.7.9 3.8.7 3.9.1
 	touch $@
 
 # Run tests against wheel installed in virtualenv

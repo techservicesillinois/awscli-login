@@ -39,7 +39,6 @@ setup(
         'Intended Audience :: System Administrators',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
@@ -48,7 +47,7 @@ setup(
     keywords='Amazon AWS SAML login access keys',
     packages=find_packages('src', exclude=['tests.*', 'tests']),
     package_dir={'': 'src'},
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     install_requires=[
        'awscli',
        'botocore',
