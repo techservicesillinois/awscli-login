@@ -94,48 +94,16 @@ class GetCredsProfileBase(ProfileBase):
         )
 
         if inputs.password:
-            try:  # Python 3.6 only
-                mock_password.assert_called_once()
-            except AttributeError:
-                self.assertEqual(
-                    1,
-                    mock_password.call_count
-                )
+            mock_password.assert_called_once()
         else:
-            try:  # Python 3.6 only
-                mock_password.assert_not_called()
-            except AttributeError:
-                self.assertEqual(
-                    0,
-                    mock_password.call_count
-                )
+            mock_password.assert_not_called()
 
         if self.profile.enable_keyring:
-            try:  # Python 3.6 only
-                mock_get_password.assert_called_once()
-                mock_set_password.assert_called_once()
-            except AttributeError:
-                self.assertEqual(
-                    1,
-                    mock_get_password.call_count
-                )
-                self.assertEqual(
-                    1,
-                    mock_set_password.call_count
-                )
+            mock_get_password.assert_called_once()
+            mock_set_password.assert_called_once()
         else:
-            try:
-                mock_get_password.assert_not_called()
-                mock_set_password.assert_not_called()
-            except AttributeError:
-                self.assertEqual(
-                    0,
-                    mock_get_password.call_count
-                )
-                self.assertEqual(
-                    0,
-                    mock_set_password.call_count
-                )
+            mock_get_password.assert_not_called()
+            mock_set_password.assert_not_called()
 
     def _test_get_credentials(self, outputs: Creds) -> None:
         usr, pwd, hdr = self.profile.get_credentials()
