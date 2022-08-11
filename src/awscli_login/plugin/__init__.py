@@ -44,7 +44,7 @@ class Login(BasicCommand):
     # tests/util.py:login_cli_args defaults must match this table
     ARG_TABLE = [
         # Ordering matches order in docs/readme.rst
-        # Basic Properites (can be set interactively)
+        # Basic Properties (can be set interactively)
         {
             'name': 'ecp-endpoint-url',
             'default': None,
@@ -76,7 +76,7 @@ class Login(BasicCommand):
             'help_text': 'The Role ARN to select. '
                          'If the IdP returns a single Role it is autoselected.'
         },
-        # Advancded Properites (can NOT be set interactively)
+        # Advanced Properties (can NOT be set interactively)
         {
             'name': 'disable-refresh',
             'default': None,
@@ -147,7 +147,7 @@ class Logout(BasicCommand):
     NAME = 'logout'
     DESCRIPTION = ("Kills the process that renews the user's"
                    " credentials.")
-    SYNOPSIS = ('aws logut')
+    SYNOPSIS = ('aws logout')
 
     ARG_TABLE = [
         {
@@ -185,7 +185,7 @@ Configuration Variables
 The following configuration variables are supported in the config
 file:
 
-* **ecp_endpoint_url** - The ECP endpoint URL of the IDP to use for authn
+* **ecp_endpoint_url** - The ECP endpoint URL of the IDP to use for AuthN
 * **username** - The username to use on login to the IdP.
 * **password** - The password to use on login to the IdP.
 * **factor** - The Duo factor to use for 2FA

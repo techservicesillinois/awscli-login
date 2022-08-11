@@ -282,7 +282,7 @@ passcode
 
     It is not recommended to store a passcode in your configuration
     file since a passcode can only be used once. A passcode is
-    better passed interactivally or by the ``--passcode`` command
+    better passed interactively or by the ``--passcode`` command
     line flag.
 role_arn
     The role ARN to select. If the IdP returns a single role it is
@@ -350,7 +350,7 @@ with a corresponding command line option. Properties that contain
 an underscore will have a corresponding option with hyphens, for
 example the property ecp_endpoint_url becomes ``--ecp-endpoint-url``.
 For details on these options see the documentation above or refer
-to the online documentation. Options not avaliable as properties
+to the online documentation. Options not available as properties
 are documented below.
 
 options
@@ -432,7 +432,7 @@ Command line flag ``--ecp-endpoint-url`` error parsing parameter
 ----------------------------------------------------------------
 
 If you encounter the following error it is because the awscli expects
-urls passed as arguments to return a 200 on an HTTP GET (See
+URLs passed as arguments to return a 200 on an HTTP GET (See
 `aws-cli#4473 <https://github.com/aws/aws-cli/issues/4473>`_)::
 
     $ aws login --ecp-endpoint-url https://shibboleth.illinois.edu/idp/profile/SAML2/SOAP/ECP
@@ -460,7 +460,7 @@ be because you have a space in the path of your Python interpreter::
 
 To fix this issue either reinstall your Python interpreter to a
 path that does not contain a space and then reinstall the awscli
-package, or more simply just define an alias in your bashrc file::
+package, or more simply just define an alias in your `~/.bashrc` file::
 
     alias aws='python $(which aws)'
 

@@ -13,8 +13,8 @@ class TestNoProfile(CleanTestEnvironment):
     profile = None  # default
 
     @patch('builtins.input', return_value='')
-    def test_save_credentials_default_profile(self, mock_input):
-        """ Creates a default entry in ~/.aws/credentials """
+    def test_login_configure_default_profile(self, mock_input):
+        """ Creates a default entry in ~/.aws-login/config """
         args = login_cli_args()
         session = Session()
         code = configure(args, session)
