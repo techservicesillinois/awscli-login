@@ -636,12 +636,9 @@ def _assertAwsCliReturns(args, calls):
         with pipes() as (out, err):
             try:
                 with patch('builtins.input', return_value='') as mock:
-                    exec_awscli(*args)
+                    t_code = exec_awscli(*args)
             except SystemExit as e:
                 t_code = e.code
-            else:
-                # This should never happen...
-                raise Exception("exec_awscli: Failed to raise SystemExit!")
 
         import sys
         cmd = ' '.join(sys.argv)

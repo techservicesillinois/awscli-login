@@ -130,8 +130,7 @@ class Login(BasicCommand):
     UPDATE = False
 
     def _run_main(self, args: Namespace, parsed_globals):
-        main(args, self._session)
-        return 0
+        return main(args, self._session)
 
 
 class Logout(BasicCommand):
@@ -153,8 +152,7 @@ class Logout(BasicCommand):
     UPDATE = False
 
     def _run_main(self, args: Namespace, parsed_globals):
-        logout(args, self._session)
-        return 0
+        return logout(args, self._session)
 
 
 class Configure(BasicCommand):
@@ -219,5 +217,4 @@ To update just the entity ID::\n
 ''')
 
     def _run_main(self, args: Namespace, parsed_globals):
-        configure(args, self._session)
-        return 0
+        return configure(args, self._session)

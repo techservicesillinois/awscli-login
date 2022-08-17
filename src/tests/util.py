@@ -1,3 +1,5 @@
+import sys
+
 from argparse import Namespace
 from functools import wraps
 from multiprocessing import Process, Pipe, set_start_method, get_start_method
@@ -78,7 +80,7 @@ def fork():
                     pickling_support.install()
                     etype, exp, tb = exc_info()
                     conn.send((etype, str(exp), tb))
-                    exit(1)
+                    sys.exit(1)
                 finally:
                     conn.close()
 
@@ -145,9 +147,9 @@ def exec_awscli(*argv: str) -> None:
         # https://github.com/techservicesillinois/awscli-login/pull/75
         import warnings
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-        main()
+        return main()
 
-    run_main()
+    return run_main()
 
 
 # Based on code from:
