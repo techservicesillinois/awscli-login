@@ -16,10 +16,12 @@ from awscli_login.exceptions import (
 )
 from awscli_login.util import (
     get_selection,
-    remove_credentials,
-    save_credentials,
     secure_touch,
     sort_roles,
+)
+from awscli_login.plugin.util import (
+    remove_credentials,
+    save_credentials,
 )
 
 from .util import fork, ForkException

@@ -575,7 +575,7 @@ class IntegrationTests(CleanTestEnvironment):
 
         # TODO Should this be split out? TODO THIS SHOULD BE A TEST!
         # exec_awscli('configure', 'set', 'plugins.login', 'awscli_login')
-        self.aws_config = '[plugins]\nlogin = awscli_login\n'
+        self.aws_config = '[plugins]\nlogin = awscli_login.plugin\n'
 
     def assertAwsCliReturns(self, *args, stdout='',
                             stderr='', code=0, calls=None):

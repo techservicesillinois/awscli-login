@@ -1,44 +1,25 @@
 # from signal import signal, SIGINT, SIGTERM
-import sys
 import logging
-import traceback
 import os
-
-from argparse import Namespace
 from datetime import datetime
-from functools import wraps
-from typing import Optional
 
-from botocore.session import Session
 from botocore import client as Client
-from daemoniker import Daemonizer, SignalHandler1
-from daemoniker import send, SIGINT, SIGTERM, SIGABRT
+from botocore.session import Session
+from daemoniker import (
+    SIGINT,
+    SIGTERM,
+    Daemonizer,
+    SignalHandler1,
+    send
+)
 
-from .config import (
-    Profile,
-    ERROR_NONE,
-    ERROR_UNKNOWN,
-)
-from .exceptions import (
-    AWSCLILogin,
-    AlreadyLoggedIn,
-    AlreadyLoggedOut,
-)
-from .logger import (
-    configConsoleLogger,
-    configFileLogger,
-)
-from .saml import (
-    authenticate,
-    refresh,
-)
-from .util import (
-    get_selection,
-    nap,
-    remove_credentials,
-    save_credentials,
-)
-from .typing import Role
+from ..exceptions import AlreadyLoggedIn, AlreadyLoggedOut
+from ..logger import configFileLogger
+from ..saml import authenticate, refresh
+from ..typing import Role
+from ..util import get_selection, nap
+from .config import Profile
+from .util import error_handler, remove_credentials, save_credentials
 
 logger = logging.getLogger(__package__)
 
@@ -109,59 +90,6 @@ def daemonize(profile: Profile, session: Session, client: Client,
                     pass
 
         return is_parent
-
-
-def error_handler(skip_args=True, validate=False):
-    """ A decorator for exception handling and logging. """
-    def decorator(f):
-        @wraps(f)
-        def wrapper(args: Namespace, session: Session):
-            exp: Optional[Exception] = None
-            exc_info = None
-            code = ERROR_NONE
-            sig = None
-
-            try:
-                # verbosity can only be set at command line
-                configConsoleLogger(args.verbose)
-                del args.verbose
-
-                if not skip_args:
-                    profile = Profile(session, args, validate)
-                else:
-                    profile = Profile(session, None, validate)
-
-                f(profile, session)
-            except AWSCLILogin as e:
-                exc_info = sys.exc_info()
-                code = e.code
-                exp = e
-            except SIGINT:
-                sig = 'SIGINT'
-            except SIGABRT:
-                sig = 'SIGABRT'
-            except SIGTERM:
-                sig = 'SIGTERM'
-            except Exception as e:
-                exc_info = sys.exc_info()
-                code = ERROR_UNKNOWN
-                exp = e
-            finally:
-                if exp:
-                    logger.error(str(exp), exc_info=False)
-
-                if exc_info:
-                    logger.debug(
-                        '\n' + ''.join(traceback.format_exception(*exc_info))
-                    )
-
-                if sig:
-                    logger.info('Received signal: %s. Shutting down...' % sig)
-
-                exit(code)
-
-        return wrapper
-    return decorator
 
 
 @error_handler(skip_args=False, validate=True)

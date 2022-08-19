@@ -34,10 +34,31 @@ so we recommend ensuring setuptools is up to date before installing.::
 After awscli-login has been installed, run the following command
 to enable the plugin::
 
-    $ aws configure set plugins.login awscli_login
+    $ aws configure set plugins.login awscli_login.plugin
 
 If you receive a bad interpreter error or other error please see
 the `Known Issues`_ section below.
+
+Upgrade
+=======
+
+The module path for the plugin has changed. This requires a
+configuration change before upgrading::
+
+    $ aws configure set plugins.login awscli_login.plugin
+    $ pip install --upgrade awscli-login
+
+If you receive the following error from the ``aws`` command::
+
+    AttributeError: module 'awscli_login' has no attribute 'awscli_initialize'
+
+Then you will need to change the module path manually. To do so
+open the awscli configuration file ``~/.aws/config``. Find or add
+the ``plugins`` section and change or add the ``login`` key to have
+the value ``awscli_login.plugin``::
+
+    [plugins]
+    login = awscli_login.plugin
 
 Getting Started
 ===============
@@ -180,7 +201,7 @@ Here is a simple example configuration file::
 and the corresponding awscli configuration file ``~/.aws/config`` ::
 
     [plugins]
-    login = awscli_login
+    login = awscli_login.plugin
 
     [default]
     region = us-east-2

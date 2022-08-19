@@ -1,28 +1,24 @@
-import os
 import logging
+import os
+import sys
+import traceback
 
+from argparse import Namespace
 from datetime import datetime, timezone
-from os import path
+from functools import wraps
 from time import sleep
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
-from awscli.customizations.configure.set import ConfigureSetCommand
-from botocore.utils import parse_timestamp
 from botocore.session import Session
+from daemoniker import SIGABRT, SIGINT, SIGTERM
 
+from .config import ERROR_NONE, ERROR_UNKNOWN, Profile
 from .const import ERROR_INVALID_PROFILE_ROLE
-from .exceptions import (
-    InvalidSelection,
-    SAML,
-)
+from .exceptions import SAML, AWSCLILogin, InvalidSelection
+from .logger import configConsoleLogger
 from .typing import Role
 
-awsconfigfile = path.join('.aws', 'credentials')
-
 logger = logging.getLogger(__name__)
-
-TRUE = ("yes", "true", "t", "1")
-FALSE = ("no", "false", "f", "0")
 
 
 def sort_roles(role_arns: List[Role]) \
@@ -83,57 +79,6 @@ def get_selection(role_arns: List[Role], profile_role: str = None) -> Role:
         raise SAML("No roles returned!")
 
 
-class Args:
-    """ A stub class for passing arguments to ConfigureSetCommand """
-    def __init__(self, varname: str, value: str) -> None:
-        self.varname = varname
-        self.value = value
-
-
-def _aws_set(session: Session, varname: str, value: str) -> None:
-    """
-    This is a helper function for save_credentials.
-
-    The function is the same as running:
-
-    $ aws configure set varname value
-    """
-    set_command = ConfigureSetCommand(session)
-    set_command._run_main(Args(varname, value), parsed_globals=None)
-
-
-def remove_credentials(session: Session) -> None:
-    """
-    Removes current profile's credentials from ~/.aws/credentials.
-    """
-
-    ConfigureSetCommand._WRITE_TO_CREDS_FILE.append("aws_security_token")
-    profile = session.profile if session.profile else 'default'
-
-    _aws_set(session, 'aws_access_key_id', '')
-    _aws_set(session, 'aws_secret_access_key', '')
-    _aws_set(session, 'aws_session_token',  '')
-    _aws_set(session, 'aws_security_token', '')
-    logger.info("Removed temporary STS credentials from profile: " + profile)
-
-
-def save_credentials(session: Session, token: Dict) -> datetime:
-    """ Takes an Amazon token and stores it in ~/.aws/credentials """
-
-    ConfigureSetCommand._WRITE_TO_CREDS_FILE.append("aws_security_token")
-
-    creds = token['Credentials']
-    profile = session.profile if session.profile else 'default'
-
-    _aws_set(session, 'aws_access_key_id', creds['AccessKeyId'])
-    _aws_set(session, 'aws_secret_access_key', creds['SecretAccessKey'])
-    _aws_set(session, 'aws_session_token',  creds['SessionToken'])
-    _aws_set(session, 'aws_security_token',  creds['SessionToken'])
-    logger.info("Saved temporary STS credentials to profile: " + profile)
-
-    return parse_timestamp(creds['Expiration'])
-
-
 def file2bytes(filename: str) -> bytes:
     """
     Takes a filename and returns a byte string with the content of the file.
@@ -176,3 +121,61 @@ def secure_touch(path):
     if hasattr(os, "fchmod"):
         os.fchmod(fd, 0o600)
     os.close(fd)
+
+
+def _error_handler(Profile, skip_args=True, validate=False):
+    """ Helper function to generate a logging & exception decorator. """
+    def decorator(f):
+        @wraps(f)
+        def wrapper(args: Namespace, session: Session):
+            exp: Optional[Exception] = None
+            exc_info = None
+            code = ERROR_NONE
+            sig = None
+
+            try:
+                # verbosity can only be set at command line
+                configConsoleLogger(args.verbose)
+                del args.verbose
+
+                if not skip_args:
+                    profile = Profile(session, args, validate)
+                else:
+                    profile = Profile(session, None, validate)
+
+                f(profile, session)
+            except AWSCLILogin as e:
+                exc_info = sys.exc_info()
+                code = e.code
+                exp = e
+            except SIGINT:
+                sig = 'SIGINT'
+            except SIGABRT:
+                sig = 'SIGABRT'
+            except SIGTERM:
+                sig = 'SIGTERM'
+            except Exception as e:
+                exc_info = sys.exc_info()
+                code = ERROR_UNKNOWN
+                exp = e
+            finally:
+                if exp:
+                    logger.error(str(exp), exc_info=False)
+
+                if exc_info:
+                    logger.debug(
+                        '\n' + ''.join(traceback.format_exception(*exc_info))
+                    )
+
+                if sig:
+                    logger.info('Received signal: %s. Shutting down...' % sig)
+
+                exit(code)
+
+        return wrapper
+    return decorator
+
+
+def error_handler(skip_args=True, validate=False):
+    """ A decorator for exception handling and logging. """
+    return _error_handler(Profile, skip_args, validate)

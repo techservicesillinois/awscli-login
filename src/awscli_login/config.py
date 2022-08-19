@@ -10,7 +10,6 @@ from os.path import expanduser, isfile
 from typing import Any, Dict, FrozenSet, Optional
 from urllib.parse import urlparse
 
-from awscli.customizations.configure.writer import ConfigFileWriter
 from botocore.session import Session
 from keyring import get_password, set_password
 from psutil import pid_exists
@@ -26,7 +25,6 @@ from .exceptions import (
     ProfileNotFound,
 )
 from .typing import Creds
-from .util import secure_touch
 
 CONFIG_DIR = '.aws-login'
 CONFIG_FILE = path.join(CONFIG_DIR, 'config')
@@ -340,28 +338,6 @@ class Profile:
                     headers[DUO_HEADER_PASSCODE] = code
 
         return self.username, self.password, headers
-
-    # TODO Add validation...
-    def update(self) -> None:
-        """ Interactively update the profile. """
-        new_values = {}
-        writer = ConfigFileWriter()
-
-        for attr, string in self._config_options.items():
-            value = getattr(self, attr, self._optional.get(attr))
-
-            prompt = "%s [%s]: " % (string, value)
-            value = input(prompt)
-
-            if value:
-                new_values[attr] = value
-
-        if new_values:
-            if self.name != 'default':
-                new_values['__section__'] = self.name
-
-            secure_touch(self.config_file)
-            writer.update_config(new_values, self.config_file)
 
     def reload(self, validate: bool = True):
         """ Reloads profile from disk [~/.aws-login/config]. """
