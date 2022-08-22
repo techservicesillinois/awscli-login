@@ -1,6 +1,6 @@
 from botocore.session import Session
 
-from .__main__ import error_handler
+from .util import error_handler
 from .config import Profile
 
 

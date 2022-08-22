@@ -7,6 +7,7 @@ Release History
 Changed
 ```````
 
+* rename awscli_login plugin to awscli_login.plugin `#115`_
 * invalid selection now issues a fatal error message `#71`_
 
 Fixed
@@ -92,3 +93,4 @@ Fixed
 .. _#66: https://github.com/techservicesillinois/awscli-login/pull/66
 .. _#71: https://github.com/techservicesillinois/awscli-login/pull/71
 .. _#73: https://github.com/techservicesillinois/awscli-login/pull/73
+.. _#115: https://github.com/techservicesillinois/awscli-login/pull/115
