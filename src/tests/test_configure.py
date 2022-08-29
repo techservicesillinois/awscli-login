@@ -17,10 +17,9 @@ class TestNoProfile(CleanTestEnvironment):
         """ Creates a default entry in ~/.aws/credentials """
         args = login_cli_args()
         session = Session()
-        with self.assertRaises(SystemExit) as e:
-            configure(args, session)
+        code = configure(args, session)
 
-        self.assertEqual(e.exception.code, 0)
+        self.assertEqual(code, 0)
         mock_input.assert_has_calls(
             [
                 call('ECP Endpoint URL [None]: '),
