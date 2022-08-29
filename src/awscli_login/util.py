@@ -170,7 +170,7 @@ def _error_handler(Profile, skip_args=True, validate=False):
                 if sig:
                     logger.info('Received signal: %s. Shutting down...' % sig)
 
-                exit(code)
+                return code
 
         return wrapper
     return decorator
