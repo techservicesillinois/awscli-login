@@ -125,6 +125,16 @@ class Login(BasicCommand):
             'cli_type_name': 'integer',
             'help_text': 'Display verbose output'
         },
+        {
+            'name': 'save-http-traffic',
+            'default': None,
+            'help_text': 'Save http traffic to a file for debugging'
+        },
+        {
+            'name': 'load-http-traffic',
+            'default': None,
+            'help_text': 'Load http traffic from file for debugging'
+        },
     ]
 
     UPDATE = False

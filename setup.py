@@ -61,6 +61,7 @@ setup(
         'test': [
             'tblib',
             'wurlitzer',
+            'vcrpy',
         ],
     },
     test_suite="tests",

@@ -6,6 +6,7 @@ import traceback
 from argparse import Namespace
 from datetime import datetime, timezone
 from functools import wraps
+from pathlib import Path
 from time import sleep
 from typing import Dict, List, Optional, Tuple
 
@@ -14,7 +15,8 @@ from daemoniker import SIGABRT, SIGINT, SIGTERM
 
 from .config import ERROR_NONE, ERROR_UNKNOWN, Profile
 from .const import ERROR_INVALID_PROFILE_ROLE
-from .exceptions import SAML, AWSCLILogin, InvalidSelection
+from .exceptions import SAML, AWSCLILogin, InvalidSelection, MissingTape
+from .exceptions import ExistingTape, TooManyHttpTrafficFlags, VcrFailedToLoad
 from .logger import configConsoleLogger
 from .typing import Role
 
@@ -123,6 +125,34 @@ def secure_touch(path):
     os.close(fd)
 
 
+def config_vcr(args: Namespace) -> Tuple[Optional[str], Optional[bool]]:
+    """ Process optional save_http_traffic and load_http_traffic flags. """
+    if not hasattr(args, "save_http_traffic"):
+        return None, None
+
+    if not hasattr(args, "load_http_traffic"):
+        return None, None
+
+    if args.save_http_traffic and args.load_http_traffic:
+        raise TooManyHttpTrafficFlags
+
+    filename = None
+    load = None
+
+    if args.save_http_traffic:
+        filename = args.save_http_traffic
+        load = False
+
+    if args.load_http_traffic:
+        filename = args.load_http_traffic
+        load = True
+
+    del args.save_http_traffic
+    del args.load_http_traffic
+
+    return filename, load
+
+
 def _error_handler(Profile, skip_args=True, validate=False):
     """ Helper function to generate a logging & exception decorator. """
     def decorator(f):
@@ -137,13 +167,40 @@ def _error_handler(Profile, skip_args=True, validate=False):
                 # verbosity can only be set at command line
                 configConsoleLogger(args.verbose)
                 del args.verbose
+                filename, load = config_vcr(args)
 
                 if not skip_args:
                     profile = Profile(session, args, validate)
                 else:
                     profile = Profile(session, None, validate)
 
-                f(profile, session)
+                if load is not None and filename is not None:
+                    try:
+                        from vcr import VCR
+                        vcr = VCR(record_mode='none' if load else 'all')
+
+                        path = Path(filename)
+                        if load and not path.is_file():
+                            raise MissingTape(filename)
+                        if not load and path.exists():
+                            raise ExistingTape(filename)
+
+                        # 169.254.169.254 is the AWS EC2 instance metadata
+                        # service. Botocore always attempts to connect. It
+                        # should recieve a timeout, but vcrpy cassettes can
+                        # not record timeouts so we need to add the instance
+                        # metadata service to the ignore_hosts field so the
+                        # the request timeout is allowed to happen.
+                        #
+                        # NOTA BENE: Cassettes that return an empty response
+                        # for 169.254.169.254 cause botocore to crash.
+                        vcr_args = {"ignore_hosts": ('169.254.169.254', )}
+                        with vcr.use_cassette(filename, **vcr_args):
+                            f(profile, session)
+                    except ModuleNotFoundError:
+                        raise VcrFailedToLoad
+                else:
+                    f(profile, session)
             except AWSCLILogin as e:
                 exc_info = sys.exc_info()
                 code = e.code

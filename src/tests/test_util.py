@@ -1,6 +1,7 @@
 import os
 import unittest
 
+from argparse import Namespace
 from io import StringIO
 from multiprocessing import get_start_method
 from os.path import isfile
@@ -13,8 +14,10 @@ from awscli_login.const import ERROR_INVALID_PROFILE_ROLE
 from awscli_login.exceptions import (
     InvalidSelection,
     SAML,
+    TooManyHttpTrafficFlags,
 )
 from awscli_login.util import (
+    config_vcr,
     get_selection,
     secure_touch,
     sort_roles,
@@ -230,6 +233,22 @@ class util(unittest.TestCase):
             '\nReturned: %s'
             '\nExpected: %s' % (output, expected)
         )
+
+    def test_config_vcr(self):
+        self.assertEqual(config_vcr(Namespace()), (None, None))
+
+        ns = Namespace(load_http_traffic="foo", save_http_traffic="bar")
+        self.assertRaises(TooManyHttpTrafficFlags, config_vcr, ns)
+
+        ns = Namespace(load_http_traffic="foo", save_http_traffic=None)
+        self.assertEqual(config_vcr(ns), ("foo", True))
+        self.assertNotIn("load_http_traffic", ns)
+        self.assertNotIn("save_http_traffic", ns)
+
+        ns = Namespace(load_http_traffic=None, save_http_traffic="bar")
+        self.assertEqual(config_vcr(ns), ("bar", False))
+        self.assertNotIn("load_http_traffic", ns)
+        self.assertNotIn("save_http_traffic", ns)
 
 
 class SaveDefaultCreds(CleanAWSEnvironment):
