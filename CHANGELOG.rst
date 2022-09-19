@@ -7,6 +7,7 @@ Release History
 Changed
 ```````
 
+* add support for environment variable AWSCLI_LOGIN_ROOT `#121`_
 * rename awscli_login plugin to awscli_login.plugin `#115`_
 * invalid selection now issues a fatal error message `#71`_
 
@@ -94,3 +95,4 @@ Fixed
 .. _#71: https://github.com/techservicesillinois/awscli-login/pull/71
 .. _#73: https://github.com/techservicesillinois/awscli-login/pull/73
 .. _#115: https://github.com/techservicesillinois/awscli-login/pull/115
+.. _#121: https://github.com/techservicesillinois/awscli-login/pull/121

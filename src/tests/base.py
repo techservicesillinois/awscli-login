@@ -398,7 +398,37 @@ class TempDir(SDGTestCase):
                                  relpath(filename, self.tmpd.name))
 
 
-class CleanAWSLoginEnvironment(TempDir):
+class CleanEnvironment(unittest.TestCase):
+    """Mixin Class for clearing and setting environment variables."""
+
+    def _set_environ(self, key: str, value) -> None:
+        """Set key in environment to value.
+
+        Note:
+            If value is None the key is removed from the
+            environment.
+        """
+        if value is not None:
+            environ[key] = value
+        else:
+            environ.pop(key, None)
+
+    def _clear_environ(self, name: str) -> None:
+        """Removes an environment variable from the environment.
+
+        Ensures that after the test has finished the environment
+        is restored, even if the test failes with an exception.
+        """
+        try:
+            value = environ.pop(name)
+        except KeyError:
+            # Added type ignore below to work around mypy bug. #104
+            self.addCleanup(environ.pop, name, None)  # type: ignore
+        else:
+            self.addCleanup(environ.update, {name: value})
+
+
+class CleanAWSLoginEnvironment(TempDir, CleanEnvironment):
     """Sets up a clean environment for testing aws-login Profiles.
 
     This works by creating a temporary directory and setting it up
@@ -422,6 +452,8 @@ class CleanAWSLoginEnvironment(TempDir):
     def setUp(self) -> None:
         """Creates `tmpd/.aws-login/config` and patches `awscli_login.config`
         to use it. """
+        self._clear_environ('AWSCLI_LOGIN_ROOT')
+
         super().setUp()
         makedirs(dirname(self.login_config_path), 0o700)
 
@@ -433,7 +465,7 @@ class CleanAWSLoginEnvironment(TempDir):
         self.addCleanup(patcher.stop)
 
 
-class CleanAWSEnvironment(TempDir):
+class CleanAWSEnvironment(TempDir, CleanEnvironment):
     """Class for testing the AWS CLI.
 
     Sets up a clean test environment for working with the AWS CLI
@@ -496,32 +528,6 @@ class CleanAWSEnvironment(TempDir):
             credentials,
             'Did not expect:\n' + aws_credentials + '---',
         )
-
-    def _set_environ(self, key: str, value) -> None:
-        """Set key in environment to value.
-
-        Note:
-            If value is None the key is removed from the
-            environment.
-        """
-        if value is not None:
-            environ[key] = value
-        else:
-            environ.pop(key, None)
-
-    def _clear_environ(self, name: str) -> None:
-        """Removes an environment variable from the environment.
-
-        Ensures that after the test has finished the environment
-        is restored, even if the test failes with an exception.
-        """
-        try:
-            value = environ.pop(name)
-        except KeyError:
-            # Added type ignore below to work around mypy bug. #104
-            self.addCleanup(environ.pop, name, None)  # type: ignore
-        else:
-            self.addCleanup(environ.update, {name: value})
 
     def setUp(self) -> None:
         """Creates an empty AWS environment in a temporary directory.
