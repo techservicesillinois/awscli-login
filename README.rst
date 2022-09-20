@@ -407,6 +407,17 @@ options
     times. Each time it is repeated more detailed information is
     returned.
 
+Environment Variables
+=====================
+
+``AWSCLI_LOGIN_ROOT``
+    The environment variable ``AWSCLI_LOGIN_ROOT`` may be used to
+    change the location of the plugin's configuration files from
+    the default (``~/.aws-login``), rooted in the user's home
+    directory, to a location rooted at the path
+    ``$AWSCLI_LOGIN_ROOT/.aws-login``.  For example, if
+    ``AWSCLI_LOGIN_ROOT`` is set to ``/tmp`` then the plugin will
+    look for configuration files in (``/tmp/.aws-login/``).
 
 Known Issues
 ============

@@ -5,7 +5,7 @@ from argparse import Namespace
 from collections import OrderedDict
 from configparser import ConfigParser, SectionProxy
 from getpass import getuser, getpass
-from os import path, makedirs, unlink
+from os import environ, makedirs, path, unlink
 from os.path import expanduser, isfile
 from typing import Any, Dict, FrozenSet, Optional
 from urllib.parse import urlparse
@@ -105,17 +105,17 @@ class Profile:
 
     def _init_dir(self) -> None:
         """ Create ~/.aws-login directory if it does not exist. """
-        home = expanduser('~')
+        root = environ.get('AWSCLI_LOGIN_ROOT')
 
-        self.home = home
+        self.home = root if root is not None else expanduser('~')
         self.config_file = path.join(self.home, CONFIG_FILE)
 
-        makedirs(path.join(home, CONFIG_DIR), mode=0o700, exist_ok=True)
-        makedirs(path.join(home, LOG_DIR), mode=0o700, exist_ok=True)
-        makedirs(path.join(home, JAR_DIR), mode=0o700, exist_ok=True)
+        makedirs(path.join(self.home, CONFIG_DIR), mode=0o700, exist_ok=True)
+        makedirs(path.join(self.home, LOG_DIR), mode=0o700, exist_ok=True)
+        makedirs(path.join(self.home, JAR_DIR), mode=0o700, exist_ok=True)
 
-        self.pidfile = path.join(home, CONFIG_DIR, self.name + '.pid')
-        self.logfile = path.join(home, LOG_DIR, self.name + '.log')
+        self.pidfile = path.join(self.home, CONFIG_DIR, self.name + '.pid')
+        self.logfile = path.join(self.home, LOG_DIR, self.name + '.log')
 
     def _set_attrs(self, validate: bool) -> None:
         """ Load login profile from configuration. """
