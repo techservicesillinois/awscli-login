@@ -95,3 +95,39 @@ class InvalidSelection(ConfigError):
     def __init__(self) -> None:
         mesg = "Invalid selection!\a"
         super().__init__(mesg)
+
+
+class TooManyHttpTrafficFlags(ConfigError):
+    code = 12
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Can not specify both --save-http-traffic"
+            " and --load-http-traffic"
+        )
+
+
+class VcrFailedToLoad(ConfigError):
+    code = 13
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Failed to load vcr module. "
+            "Install vcr to use the --save_http_traffic\n"
+            "or --load_http_traffic flags:\n\n"
+            "    $ pip install vcrpy"
+        )
+
+
+class MissingTape(ConfigError):
+    code = 14
+
+    def __init__(self, filename) -> None:
+        super().__init__(f"{filename}: No such file")
+
+
+class ExistingTape(ConfigError):
+    code = 15
+
+    def __init__(self, filename) -> None:
+        super().__init__(f"{filename}: file or directory already exists")
