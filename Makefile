@@ -44,7 +44,7 @@ deps-publish:
 	$(PIP) twine
 
 # Build wheel and source tarball for upload to PyPI
-build: README.rst $(SRCS)
+build: docs/readme.rst $(SRCS)
 	python setup.py sdist bdist_wheel
 	@touch $@
 

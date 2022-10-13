@@ -1,4 +1,4 @@
-DOCSRCS := $(wildcard *.rst *.py ../README.rst)
+DOCSRCS := $(wildcard *.rst *.py readme.rst)
 SRCS := $(patsubst %.py,../%.py,$(SRCS))
 TSTS := $(patsubst %.py,../%.py,$(TSTS))
 

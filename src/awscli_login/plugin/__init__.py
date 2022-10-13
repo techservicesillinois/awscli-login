@@ -43,7 +43,7 @@ class Login(BasicCommand):
 
     # tests/util.py:login_cli_args defaults must match this table
     ARG_TABLE = [
-        # Ordering matches order in README.rst
+        # Ordering matches order in docs/readme.rst
         # Basic Properites (can be set interactively)
         {
             'name': 'ecp-endpoint-url',
