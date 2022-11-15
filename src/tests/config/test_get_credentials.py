@@ -1,5 +1,5 @@
 from copy import copy
-from typing import List, Iterator
+from typing import Optional, List, Iterator
 
 from awscli_login.const import (
     DUO_HEADER_FACTOR,
@@ -12,9 +12,10 @@ from .base import ProfileBase
 
 class Creds():
 
-    def __init__(self, username: str = None, password: str = None,
-                 factor: str = None, passcode: str = None,
-                 keyring: str = None) -> None:
+    def __init__(self, username: Optional[str] = None,
+                 password: Optional[str] = None,
+                 factor: Optional[str] = None, passcode: Optional[str] = None,
+                 keyring: Optional[str] = None) -> None:
         self.username = username
         self.password = password
         self.factor = factor
