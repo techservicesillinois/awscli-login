@@ -13,7 +13,7 @@ class MockSession:
     """
     profile: Optional[str] = None
 
-    def __init__(self, profile: str = None) -> None:
+    def __init__(self, profile: Optional[str] = None) -> None:
         self.profile = profile
 
 

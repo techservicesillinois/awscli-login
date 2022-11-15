@@ -6,7 +6,7 @@ import lxml.etree as ET
 from base64 import b64encode
 from datetime import datetime
 from http.cookiejar import LWPCookieJar
-from typing import List, Tuple
+from typing import Optional, List, Tuple
 from typing import cast
 from uuid import uuid4
 
@@ -64,8 +64,8 @@ def raise_if_saml_failed(soap: bytes) -> None:
 
 
 def saml_login(url: str, jar: LWPCookieJar,
-               username: str = None, password: str = None,
-               headers: Headers = None) -> bytes:
+               username: Optional[str] = None, password: Optional[str] = None,
+               headers: Optional[Headers] = None) -> bytes:
     """
     Generates and posts a SAML AuthNRequest to an IdP.
 

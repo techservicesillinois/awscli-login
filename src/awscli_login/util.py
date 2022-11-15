@@ -44,7 +44,8 @@ def sort_roles(role_arns: List[Role]) \
     return r
 
 
-def get_selection(role_arns: List[Role], profile_role: str = None) -> Role:
+def get_selection(role_arns: List[Role], profile_role: Optional[str] = None
+                  ) -> Role:
     """ Interactively prompts the user for a role selection. """
     i = 0
     n = len(role_arns)
@@ -97,7 +98,8 @@ def file2str(filename: str) -> str:
     return data
 
 
-def nap(expires: datetime, percent: float, refresh: float = None) -> None:
+def nap(expires: datetime, percent: float, refresh: Optional[float] = None
+        ) -> None:
     """TODO. """
     if refresh:
         sleep_for = refresh
