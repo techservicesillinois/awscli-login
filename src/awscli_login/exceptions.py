@@ -32,7 +32,7 @@ class ProfileNotFound(ConfigError):
     def __init__(self, profile: str) -> None:
         super().__init__(f'The login profile {profile} could not be found!\n'
                          'Configure the profile with the following command:'
-                         f'aws login configure --profile {profile}')
+                         f'\n\naws login configure --profile {profile}')
 
 
 class ProfileMissingArgs(ConfigError):

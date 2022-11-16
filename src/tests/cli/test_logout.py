@@ -25,8 +25,8 @@ class TestNoProfile(IntegrationTests):
         get_start_method() != 'fork',
         "This platform does not suppport fork!"
     )
-    def test_save_credentials_default_profile(self):
-        """ Creates a default entry in ~/.aws/credentials """
+    def test_login_configure_default_profile(self):
+        """ Creates a default entry in ~/.aws-login/config """
         calls = [
             call('ECP Endpoint URL [None]: '),
             call('Username [None]: '),
