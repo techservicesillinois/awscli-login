@@ -64,6 +64,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
@@ -144,6 +147,19 @@ jobs:
 
     - name: Coverage report
       run: make coverage report
+
+    - name: Install (local)
+      run: make .install
+
+    - name: Integration Tests (POSIX)
+      if: matrix.os != 'windows-latest'
+      run: make integration_tests
+
+    - name: Integration Tests (Windows)
+      if: matrix.os == 'windows-latest'
+      run: make integration_tests
+      env:
+        AWSCLI_LOGIN_WINDOWS_TEST: 1
 
     - name: Archive coverage report
       uses: actions/upload-artifact@v3

@@ -1,0 +1,12 @@
+[submodule "src/integration_tests/bats"]
+	path = src/integration_tests/bats
+	url = https://github.com/bats-core/bats-core.git
+[submodule "src/integration_tests/test_helper/bats-support"]
+	path = src/integration_tests/test_helper/bats-support
+	url = https://github.com/bats-core/bats-support.git
+[submodule "src/integration_tests/test_helper/bats-assert"]
+	path = src/integration_tests/test_helper/bats-assert
+	url = https://github.com/bats-core/bats-assert.git
+[submodule "src/integration_tests/test_helper/bats-file"]
+	path = src/integration_tests/test_helper/bats-file
+	url = https://github.com/bats-core/bats-file

@@ -1,0 +1,100 @@
+interactions:
+- request:
+    body: <S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/" xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion"
+      xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol"><S:Body><saml2p:AuthnRequest
+      AssertionConsumerServiceURL="https://signin.aws.amazon.com/saml" ID="_278585DB55B94963A63C87F526D81B57"
+      IssueInstant="2022-09-06T22:13:37Z" ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:PAOS"
+      Version="2.0"><saml2:Issuer>urn:amazon:webservices</saml2:Issuer></saml2p:AuthnRequest></S:Body></S:Envelope>
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '506'
+      Content-Type:
+      - text/xml
+      User-Agent:
+      - python-requests/2.28.1
+      charset:
+      - utf-8
+    method: POST
+    uri: https://shibboleth.illinois.edu/idp/profile/SAML2/SOAP/ECP
+  response:
+    body:
+      string: '<?xml version="1.0" encoding="UTF-8"?>
+        <soap11:Envelope xmlns:soap11="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap11:Body><saml2p:Response xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol">
+        <saml2p:Status><saml2p:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/></saml2p:Status>
+
+        <saml2:Assertion xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion"><saml2:AttributeStatement>
+
+        <saml2:Attribute
+        FriendlyName="Role" Name="https://aws.amazon.com/SAML/Attributes/Role" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+
+        <saml2:AttributeValue
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">arn:aws:iam::123456789010:saml-provider/shibboleth.illinois.edu,arn:aws:iam::123456789010:role/Team</saml2:AttributeValue>
+
+        <saml2:AttributeValue
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">arn:aws:iam::987654321098:saml-provider/shibboleth.illinois.edu,arn:aws:iam::987654321098:role/Admins</saml2:AttributeValue>
+
+        </saml2:Attribute>
+
+
+        </saml2:AttributeStatement></saml2:Assertion>
+
+        </saml2p:Response></soap11:Body></soap11:Envelope>'
+
+
+    headers:
+      Cache-Control:
+      - no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/xml;charset=UTF-8
+      Date:
+      - Tue, 06 Sep 2022 22:13:38 GMT
+      Pragma:
+      - no-cache
+      SOAPAction:
+      - http://www.oasis-open.org/committees/security
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: ''
+- request:
+    body: Action=AssumeRoleWithSAML...MORE STUFF GOES HERE
+    headers:
+    method: POST
+    uri: https://sts.amazonaws.com/
+  response:
+    body:
+      string: "<AssumeRoleWithSAMLResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\">\n
+        \ <AssumeRoleWithSAMLResult>\n    <Audience>https://signin.aws.amazon.com/saml</Audience>\n
+        \   <AssumedRoleUser>\n      <AssumedRoleId>1234:netid@illinois.edu</AssumedRoleId>\n
+        \     <Arn>arn:aws:sts::012345678910:assumed-role/Admin/netid@illinois.edu</Arn>\n
+        \   </AssumedRoleUser>\n    <Credentials>\n      <AccessKeyId>ABCDEFGHIJKLMNOPQRST</AccessKeyId>\n
+        \     <SecretAccessKey>SUPER DUPER SECRET KEY</SecretAccessKey>\n
+        \     <SessionToken>BOGUS TOKEN</SessionToken>\n
+        \     <Expiration>2222-09-06T22:28:39Z</Expiration>\n    </Credentials>\n
+        \   <Subject>netid@illinois.edu</Subject>\n    <NameQualifier>STUFF</NameQualifier>\n
+        \   <SubjectType>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</SubjectType>\n
+        \   <Issuer>urn:mace:incommon:uiuc.edu</Issuer>\n  </AssumeRoleWithSAMLResult>\n
+        \ <ResponseMetadata>\n    <RequestId>MORE STUFF</RequestId>\n
+        \ </ResponseMetadata>\n</AssumeRoleWithSAMLResponse>\n"
+    headers:
+      Content-Length:
+      - '1547'
+      Content-Type:
+      - text/xml
+      Date:
+      - Tue, 06 Sep 2022 22:13:38 GMT
+      x-amzn-RequestId:
+      - d0384282-c340-40a2-8f00-3ad304e4363d
+    status:
+      code: 200
+      message: OK

@@ -89,6 +89,9 @@ win-tox: .win-tox build | cache
 # Run tests against wheel installed in virtualenv
 test: lint static check .coverage
 
+integration_tests: .install
+	make -C src/integration_tests/
+
 # Run tests with coverage tool -- generates .coverage file
 .coverage: $(TOX_ENV) $(TSTS)
 	$(TOX)
