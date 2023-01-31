@@ -262,8 +262,8 @@ class Profile:
         if section:
             for attr in section:
                 if attr not in self._required and attr not in self._optional:
-                    logger.warn('Unknown attribute "' + attr + '" in ' +
-                                self.name + ' profile ')
+                    logger.warning('Unknown attribute "' + attr + '" in ' +
+                                   self.name + ' profile ')
 
     def is_factor_valid(self):
         """ Return True if self.factor is valid. False otherwise. """
@@ -290,8 +290,8 @@ class Profile:
         """ Get password from user if necessary. """
         if self.enable_keyring:
             if self.password is not None:
-                logger.warn('Using keyring: Ignoring password set via'
-                            ' configuration file or command line.')
+                logger.warning('Using keyring: Ignoring password set via'
+                               ' configuration file or command line.')
 
             ukey = self.username + '@' + urlparse(self.ecp_endpoint_url).netloc
             self.password = get_password("awscli_login", ukey)
