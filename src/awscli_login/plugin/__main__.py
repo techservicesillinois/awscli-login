@@ -103,7 +103,7 @@ def main(profile: Profile, session: Session):
             send(profile.pidfile, SIGINT)
             return
 
-        logger.warn("Logged out: ignoring --force-refresh.")
+        logger.warning("Logged out: ignoring --force-refresh.")
 
     try:
         client = session.create_client('sts')
