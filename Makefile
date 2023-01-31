@@ -19,10 +19,6 @@ all: test coverage docs doctest
 # Python dependencies needed for local development
 deps: deps-build deps-doc deps-test deps-publish
 
-# Python packages needed to run the tests on a Unix system
-deps-posix: deps
-	$(PIP) tox-pyenv
-
 # Python packages needed to run the tests on a Windows system
 deps-win: deps
 	$(PIP) pyenv-win
@@ -56,7 +52,7 @@ check: .twinecheck
 # Install wheel into tox virtualenv for testing
 install: $(TOX_ENV)
 $(TOX_ENV): build | cache
-	tox -e wheel --notest --installpkg $(WHEEL) -vv
+	tox -e wheel --notest --installpkg $(WHEEL)
 	@touch $@
 
 # Build and save dependencies for reuse
