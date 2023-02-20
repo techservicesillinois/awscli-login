@@ -24,7 +24,7 @@ from .exceptions import (
     ProfileMissingArgs,
     ProfileNotFound,
 )
-from .typing import Creds
+from ._typing import Creds
 
 CONFIG_DIR = '.aws-login'
 CONFIG_FILE = path.join(CONFIG_DIR, 'config')

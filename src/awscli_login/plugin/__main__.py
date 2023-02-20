@@ -16,7 +16,7 @@ from daemoniker import (
 from ..exceptions import AlreadyLoggedIn, AlreadyLoggedOut
 from ..logger import configFileLogger
 from ..saml import authenticate, refresh
-from ..typing import Role
+from .._typing import Role
 from ..util import get_selection, nap
 from .config import Profile
 from .util import error_handler, remove_credentials, save_credentials

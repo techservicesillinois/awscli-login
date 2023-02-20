@@ -18,7 +18,7 @@ from .const import ERROR_INVALID_PROFILE_ROLE
 from .exceptions import SAML, AWSCLILogin, InvalidSelection, MissingTape
 from .exceptions import ExistingTape, TooManyHttpTrafficFlags, VcrFailedToLoad
 from .logger import configConsoleLogger
-from .typing import Role
+from ._typing import Role
 
 logger = logging.getLogger(__name__)
 

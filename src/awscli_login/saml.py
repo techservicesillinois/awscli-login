@@ -21,7 +21,7 @@ from .exceptions import (
     MissingCookieJar,
     RoleParseFail,
 )
-from .typing import Role, Headers
+from ._typing import Role, Headers
 from .util import secure_touch
 
 SAML_SUCCESS = "urn:oasis:names:tc:SAML:2.0:status:Success"
