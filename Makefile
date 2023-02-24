@@ -2,7 +2,7 @@ PACKAGE_NAME := awscli-login
 
 PKG  := src/awscli_login
 TPKG := src/tests
-MODULE_SRCS := $(wildcard $(PKG)/*.py)
+MODULE_SRCS := $(wildcard $(PKG)/*.py $(PKG)/plugin/*.py)
 export TSTS := $(wildcard $(TPKG)/*.py $(TPKG)/*/*.py)
 export SRCS := $(wildcard $(MODULE_SRCS) setup.py)
 HTML = htmlcov/index.html
