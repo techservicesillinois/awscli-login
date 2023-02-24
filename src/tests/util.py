@@ -115,6 +115,7 @@ def login_cli_args(
     duration=None,
     http_header_factor=None,
     http_header_passcode=None,
+    verify_ssl_certificate=True,
     # CLI only
     ask_password=False,
     force_refresh=False,
