@@ -1,0 +1,31 @@
+version: "3.3"
+
+services:
+  ldap:
+    # https://github.com/bitnami/containers/tree/main/bitnami/openldap#readme
+    image: bitnami/openldap:latest
+    platform: linux
+    environment:
+     - LDAP_USERS=user01,user02,nobody
+     - LDAP_PASSWORDS=password,password,password
+    logging:
+      options:
+         tag: "ldap"
+    networks:
+     - back
+
+  idp:
+    image: test-idp:latest
+    build: src/idp
+    logging:
+      options:
+         tag: "idp"
+    networks:
+     - front
+     - back
+    ports:
+     - "8443:443"
+
+networks:
+  front:
+  back:    
