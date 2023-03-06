@@ -11,17 +11,16 @@ load 'common-docker-idp'
 		
 	EOF
 
-    run aws login --verify-ssl-certificate=false --password password
+    run aws $LOGIN
     assert_failure
     assert_output "404 Client Error:  for url: https://localhost:8443/bad/endpoint"
-    run aws login --verify-ssl-certificate=false --password password \
-        --ecp-endpoint-url 'https://localhost:8443/idp/profile/SAML2/SOAP/ECP'
-    assert_failure
-    assert_output -e "An error occurred \(InvalidIdentityToken\) when calling the AssumeRoleWithSAML operation: Specified provider doesn't exist \(Service: AWSOpenIdDiscoveryService; Status Code: 400; Error Code: AuthSamlManifestNotFoundException; Request ID: [0-9a-f-]+; Proxy: null\)"
+    run aws $LOGIN --ecp-endpoint-url 'https://localhost:8443/idp/profile/SAML2/SOAP/ECP'
+    assert_success
+    assert_output ""
 }
 
 @test "Login with Docker IdP" {
-    run aws login --verify-ssl-certificate=false --password password
-    assert_failure
-    assert_output -e "An error occurred \(InvalidIdentityToken\) when calling the AssumeRoleWithSAML operation: Specified provider doesn't exist \(Service: AWSOpenIdDiscoveryService; Status Code: 400; Error Code: AuthSamlManifestNotFoundException; Request ID: [0-9a-f-]+; Proxy: null\)"
+    run aws $LOGIN
+    assert_success
+    assert_output ""
 }

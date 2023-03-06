@@ -86,6 +86,7 @@ class Profile:
     http_header_factor: str
     http_header_passcode: str
     verify_ssl_certificate: bool = True
+    sts_endpoint_url: Optional[str]
 
     # path to profile configuration file
     config_file: str
@@ -108,6 +109,7 @@ class Profile:
             'http_header_factor': None,
             'http_header_passcode': None,
             'verify_ssl_certificate': True,
+            'sts_endpoint_url': None,
     }
 
     _cli_only: Dict[str, Any] = {
