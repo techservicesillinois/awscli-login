@@ -107,6 +107,12 @@ class Login(BasicCommand):
             'help_text': 'HTTP Header to store the user\'s Duo passcode'
         },
         {
+            'name': 'sts-endpoint-url',
+            'no_paramfile': True,
+            'default': None,
+            'help_text': 'AWS STS endpoint URL to retrieve credentials from'
+        },
+        {
             'name': 'verify-ssl-certificate',
             'default': None,
             'cli_type_name': 'boolean',
@@ -204,6 +210,7 @@ file:
 * **duration** - Time in seconds credentials are valid
 * **http_header_factor** - HTTP Header to store Duo factor
 * **http_header_passcode** - HTTP Header to store passcode
+* **sts_endpoint_url** - Set to override default AWS STS endpoint
 * **verify_ssl_certificate** - Set to False to skip check of IdP SSL cert
 ''')
     SYNOPSIS = ('aws login configure')
