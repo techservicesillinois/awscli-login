@@ -6,6 +6,15 @@ eval "_base_$(declare -f setup)"  # Rename setup to _base_setup
 
 setup() {
     _base_setup
+
+    # We cannot run integration tests dependent on Linux docker
+    # containers on Windows runners because GitHub Actions does not
+    # support Linux containers on Windows (See actions/runner-images#1143,
+    # actions/runner#904, and actions/runner-images#5760).
+    if [ $RUNNER_OS == "Windows" ]; then
+        skip "Windows runners do not support Docker IdP integration tests."
+    fi
+    
     aws login configure <<- EOF  # NOTA BENE: <<- strips tabs
 		https://localhost:8443/idp/profile/SAML2/SOAP/ECP
 		user01
