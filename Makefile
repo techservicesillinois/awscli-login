@@ -95,7 +95,12 @@ idp-down:
 	docker-compose down --rmi all
 	rm -f .idp.docker
 
-integration_tests: .install .idp.docker
+ifeq ($(OS_RUNNER),Windows)
+    idp_integration_deps=
+else
+    idp_integration_deps=.idp.docker
+endif
+integration_tests: .install $(idp_integration_deps)
 	make -C src/integration_tests/
 
 # Run tests with coverage tool -- generates .coverage file
