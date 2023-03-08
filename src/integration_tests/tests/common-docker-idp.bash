@@ -1,5 +1,5 @@
 # Creates a clean environment where awscli-login is enabled and
-# configured.
+# configured to work with a local test IdP.
 
 load 'base'
 eval "_base_$(declare -f setup)"  # Rename setup to _base_setup
