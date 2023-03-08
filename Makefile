@@ -95,7 +95,7 @@ idp-down:
 	docker-compose down --rmi all
 	rm -f .idp.docker
 
-ifeq ($(OS_RUNNER),Windows)
+ifeq ($(RUNNER_OS),Windows)
     idp_integration_deps=
 else
     idp_integration_deps=.idp.docker
