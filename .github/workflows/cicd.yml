@@ -123,6 +123,12 @@ jobs:
       run: |
         sudo apt-get install -y libxml2-dev libxslt-dev
 
+    - name: Install system dependencies
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install docker docker-compose
+        colima start
+
     - name: Upgrade pip
       run: |
         python -m pip install --upgrade --upgrade-strategy eager pip

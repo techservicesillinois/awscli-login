@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AttributeResolver
+        xmlns="urn:mace:shibboleth:2.0:resolver" 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:schemaLocation="urn:mace:shibboleth:2.0:resolver http://shibboleth.net/schema/idp/shibboleth-attribute-resolver.xsd">
+
+
+    <!-- ========================================== -->
+    <!--      Attribute Definitions                 -->
+    <!-- ========================================== -->
+
+    <AttributeDefinition id="uid" xsi:type="PrincipalName" />
+
+    <AttributeDefinition id="awsRoleSessionName" xsi:type="Template">
+        <InputAttributeDefinition ref="uid" />
+        <Template>
+          <![CDATA[
+               ${uid}@example.org
+          ]]>
+        </Template>
+    </AttributeDefinition>
+
+    <AttributeDefinition id="awsRoles" xsi:type="Mapped">
+        <InputAttributeDefinition ref="uid" />
+
+	<ValueMap>
+	    <ReturnValue>arn:aws:iam::111222333444:saml-provider/idp.example.org,arn:aws:iam::111222333444:role/Administrator</ReturnValue>
+	    <SourceValue>user.*</SourceValue>
+	</ValueMap>
+	<ValueMap>
+	    <ReturnValue>arn:aws:iam::111222333444:saml-provider/idp.example.org,arn:aws:iam::111222333444:role/PowerUser</ReturnValue>
+	    <SourceValue>user02</SourceValue>
+	</ValueMap>
+    </AttributeDefinition>
+
+</AttributeResolver>

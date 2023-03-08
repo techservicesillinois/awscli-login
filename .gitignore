@@ -11,6 +11,7 @@ htmlcov
 venv
 docs/src/
 
+.*.docker
 .coverage
 .coverage.develop
 .eggs
@@ -21,5 +22,5 @@ docs/src/
 .static
 .tox
 .twinecheck
-.win-tox
 .vscode 
+.win-tox

@@ -86,7 +86,21 @@ win-tox: .win-tox build | cache
 # Run tests against wheel installed in virtualenv
 test: lint static check .coverage
 
-integration_tests: .install
+idp: .idp.docker
+.idp.docker:
+	docker-compose up -d
+	@touch $@
+
+idp-down:
+	docker-compose down --rmi all
+	rm -f .idp.docker
+
+ifeq ($(RUNNER_OS),Windows)
+    idp_integration_deps=
+else
+    idp_integration_deps=.idp.docker
+endif
+integration_tests: .install $(idp_integration_deps)
 	make -C src/integration_tests/
 
 # Run tests with coverage tool -- generates .coverage file
@@ -159,7 +173,7 @@ release: .release
         'invalid' in l];"
 	twine upload "$(RELEASE)"
 
-clean:
+clean: idp-down
 	rm -rf .coverage .coverage.develop .lint .mypy_cache .static .tox .wheel htmlcov .twinecheck
 	rm -rf $(PKG)/__pycache__ $(TPKG)/__pycache__ $(TPKG)/cli/__pycache__/ $(TPKG)/config/__pycache__
 	rm -rf build dist src/*.egg-info .eggs
