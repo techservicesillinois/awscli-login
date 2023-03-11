@@ -47,6 +47,7 @@ class Login(BasicCommand):
         # Basic Properties (can be set interactively)
         {
             'name': 'ecp-endpoint-url',
+            'no_paramfile': True,
             'default': None,
             'help_text': 'ECP endpoint URL of the IdP'
         },
