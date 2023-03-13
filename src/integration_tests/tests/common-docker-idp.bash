@@ -4,7 +4,10 @@
 load 'base'
 eval "_base_$(declare -f setup)"  # Rename setup to _base_setup
 
-export LOGIN="login --sts-endpoint-url=http://127.0.0.1:5000 --verify-ssl-certificate=false --password password"
+# TODO: Can we use add code so we can use --endpoint-url instead
+#       of --sts-endpoint-url?
+export LOGIN="login --sts-endpoint-url=http://localhost:5000 --verify-ssl-certificate=false --password password"
+export AWS="aws --endpoint-url=http://localhost:5000"
 
 setup() {
     _base_setup
