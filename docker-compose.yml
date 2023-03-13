@@ -26,6 +26,20 @@ services:
     ports:
      - "8443:443"
 
+  aws:
+    image: motoserver/moto:4.1.4
+    environment:
+     # Enable IAM. If not set everything is permitted.
+     - INITIAL_NO_AUTH_ACTION_COUNT=0
+    logging:
+      options:
+         tag: "idp"
+    networks:
+     - front
+     - back
+    ports:
+     - "8443:443"
+
 networks:
   front:
-  back:    
+  back:
