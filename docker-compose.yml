@@ -33,12 +33,11 @@ services:
      - INITIAL_NO_AUTH_ACTION_COUNT=0
     logging:
       options:
-         tag: "idp"
+         tag: "aws"
     networks:
      - front
-     - back
     ports:
-     - "8443:443"
+     - "5000:5000"
 
 networks:
   front:
