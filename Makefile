@@ -92,7 +92,11 @@ idp: .idp.docker
 	@touch $@
 
 idp-down:
-	docker-compose down --rmi all
+	docker-compose down
+	rm -f .idp.docker
+
+idp-clean:
+	docker-compose down --rmi=all
 	rm -f .idp.docker
 
 ifeq ($(RUNNER_OS),Windows)
@@ -179,5 +183,5 @@ clean: idp-down
 	rm -rf build dist src/*.egg-info .eggs
 	make -C docs clean
 
-clean-all: clean
+clean-all: clean idp-clean
 	rm -rf cache

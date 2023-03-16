@@ -107,7 +107,10 @@ def main(profile: Profile, session: Session):
         logger.warning("Logged out: ignoring --force-refresh.")
 
     try:
-        client = session.create_client('sts')
+        client = session.create_client(
+            'sts',
+            endpoint_url=profile.sts_endpoint_url
+        )
 
         # Exit if already logged in
         profile.raise_if_logged_in()
