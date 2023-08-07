@@ -247,9 +247,9 @@ class Profile:
                 # Type cast string to correct type
                 # based on the default value
                 if value != default:
-                    if type(default) == bool:
+                    if type(default) is bool:
                         value = section.getboolean(attr)
-                    elif type(default) == int:
+                    elif type(default) is int:
                         value = int(value)
             else:
                 value = default
