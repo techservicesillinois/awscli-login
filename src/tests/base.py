@@ -95,7 +95,7 @@ class SDGTestCase(unittest.TestCase):
         except AttributeError:
             return "%s object does not have attr: %s" % (objName, attr)
 
-        if type(rvalue) != type(evalue):
+        if type(rvalue) is not type(evalue):
             return "Attribute %s has unexpected type: %s\n" \
                    "Expected %s on %s object!" % \
                    (attr, type(rvalue), type(evalue), object)
