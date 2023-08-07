@@ -5,7 +5,7 @@ load 'common'
 @test "Login and logout" {
     ! read -r -d '' CREDS_AWS_FILE <<- EOF
 		[default]$CR
-		credential_process = aws-login-credentials --profile default
+		credential_process = aws-login --profile default
 	EOF
 
     ! read -r -d '' CREDS <<- EOF

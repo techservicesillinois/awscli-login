@@ -267,7 +267,7 @@ class SaveDefaultCreds(CleanAWSEnvironment):
     def test_credential_process_valid(self):
         """Ensure does not raise exception"""
         self.profile = 'default'
-        path = self.write("aws-login-credentials", "")
+        path = self.write("aws-login", "")
         # Windows Python versions 3.6, 3.7, and 3.8 require
         # that files created in a temporary directory are
         # writable otherwise cleanup will fail on deletion (#133)
@@ -310,7 +310,7 @@ aws_security_token = 789
 
         credentials = self.aws_credentials
         credentials += """[foo]
-credential_process = aws-login-credentials --profile foo
+credential_process = aws-login --profile foo
 """
 
         session = Session()

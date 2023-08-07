@@ -74,7 +74,7 @@ def update_credential_file(session: Session, profile: str):
         _safe_aws_set(session, aws_access_key_id='', aws_secret_access_key='',
                       aws_session_token='')
 
-    cmd = f'aws-login-credentials --profile {profile}'
+    cmd = f'aws-login --profile {profile}'
     ConfigureSetCommand._WRITE_TO_CREDS_FILE.append("credential_process")
     current_cmd = _aws_get(session, 'credential_process')
     if not current_cmd:
@@ -96,7 +96,7 @@ def raise_if_credential_process_not_set(
     args = proc.split()
     cmd = args[0]
 
-    if not (which(cmd) and cmd.endswith("aws-login-credentials")):
+    if not (which(cmd) and cmd.endswith("aws-login")):
         raise CredentialProcessMisconfigured(profile)
     try:
         if not (args[args.index("--profile") + 1] == profile):

@@ -70,7 +70,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'aws-login-credentials = awscli_login.credentials:main',
+            'aws-login = awscli_login.credentials:main',
         ],
     }
 )
