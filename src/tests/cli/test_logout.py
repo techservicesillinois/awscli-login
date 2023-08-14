@@ -1,6 +1,7 @@
 # from contextlib import redirect_stdout, redirect_stderr
 # from io import StringIO
 import unittest
+import os
 
 from multiprocessing import get_start_method
 from unittest.mock import call
@@ -8,8 +9,13 @@ from unittest.mock import call
 from ..base import IntegrationTests
 
 
+@unittest.skipIf(
+    os.environ.get('AWSCLI_LOGIN_FAST_TEST_ONLY'), 'Skipping slow test')
 class TestNoProfile(IntegrationTests):
-    """ Integration tests for no profile. """
+    """ Integration tests for no profile.
+
+    This test takes about 2.16 seconds to run.
+    """
 
     @unittest.skipIf(
         get_start_method() != 'fork',

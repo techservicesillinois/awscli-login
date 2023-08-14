@@ -86,6 +86,7 @@ win-tox: .win-tox build | cache
 # Run tests against wheel installed in virtualenv
 test: lint static check .coverage
 
+<<<<<<< HEAD
 idp: .idp.docker
 .idp.docker:
 	docker-compose up -d
@@ -102,6 +103,10 @@ else
 endif
 integration_tests: .install $(idp_integration_deps)
 	make -C src/integration_tests/
+
+test_fast: export AWSCLI_LOGIN_FAST_TEST_ONLY=1
+test_fast: .install
+	python -m unittest discover --failfast -s src
 
 # Run tests with coverage tool -- generates .coverage file
 .coverage: $(TOX_ENV) $(TSTS)
@@ -121,7 +126,7 @@ develop: lint static .install develop-coverage
 	@touch $@
 
 .coverage.develop: export COVERAGE_FILE=.coverage.develop
-.coverage.develop: $(MODULE_SRCS) $(TSTS)
+.coverage.develop: .install $(MODULE_SRCS) $(TSTS)
 	coverage run -m unittest discover -s src -v
 
 develop-coverage: export COVERAGE_FILE=.coverage.develop
