@@ -86,7 +86,6 @@ win-tox: .win-tox build | cache
 # Run tests against wheel installed in virtualenv
 test: lint static check .coverage
 
-<<<<<<< HEAD
 idp: .idp.docker
 .idp.docker:
 	docker-compose up -d
