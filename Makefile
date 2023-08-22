@@ -13,6 +13,7 @@ PIP = python -m pip install --upgrade --upgrade-strategy eager
 
 .PHONY: all check install test lint static develop develop-coverage
 .PHONY: freeze shell clean docs coverage doctest win-tox
+.PHONY: install-build
 
 all: test coverage docs doctest
 
@@ -34,6 +35,10 @@ deps-doc:
 # Python packages needed to run tests
 deps-test:
 	$(PIP) coverage
+
+# Python packages needed to run integration_tests tests
+deps-integration-test:
+	$(PIP) vcrpy
 
 # Python packages needed to publish a production or test release
 deps-publish:
@@ -95,12 +100,16 @@ idp-down:
 	docker-compose down --rmi all
 	rm -f .idp.docker
 
+.install-build: build
+install-build: .install-build
+	pip install dist/awscli_login-*.whl
+
 ifeq ($(RUNNER_OS),Windows)
     idp_integration_deps=
 else
     idp_integration_deps=.idp.docker
 endif
-integration_tests: .install $(idp_integration_deps)
+integration-tests: $(idp_integration_deps)
 	make -C src/integration_tests/
 
 # Run tests with coverage tool -- generates .coverage file
@@ -174,7 +183,7 @@ release: .release
 	twine upload "$(RELEASE)"
 
 clean: idp-down
-	rm -rf .coverage .coverage.develop .lint .mypy_cache .static .tox .wheel htmlcov .twinecheck
+	rm -rf .coverage .coverage.develop .lint .mypy_cache .static .tox .wheel htmlcov .twinecheck .install-build
 	rm -rf $(PKG)/__pycache__ $(TPKG)/__pycache__ $(TPKG)/cli/__pycache__/ $(TPKG)/config/__pycache__
 	rm -rf build dist src/*.egg-info .eggs
 	make -C docs clean
