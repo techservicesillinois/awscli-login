@@ -24,3 +24,4 @@ docs/src/
 .twinecheck
 .vscode 
 .win-tox
+.install-build
