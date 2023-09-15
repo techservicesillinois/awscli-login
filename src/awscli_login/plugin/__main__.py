@@ -14,7 +14,6 @@ from daemoniker import (
 )
 
 from ..exceptions import AlreadyLoggedIn, AlreadyLoggedOut
-from ..logger import configFileLogger
 from ..saml import authenticate, refresh
 from .._typing import Role
 from ..util import get_selection, nap
@@ -60,7 +59,6 @@ def daemonize(profile: Profile, session: Session, client: Client,
             sighandler = SignalHandler1(profile.pidfile)
             sighandler.start()
 
-            logger = configFileLogger(profile.logfile, logging.INFO)
             logger.info('Startig refresh process for role %s' % role[1])
 
             while True:

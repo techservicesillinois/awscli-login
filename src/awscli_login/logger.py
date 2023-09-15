@@ -1,6 +1,5 @@
 import logging
 
-from logging import Logger
 from typing import Tuple
 
 
@@ -43,23 +42,6 @@ def configConsoleLogger(verbosity: int) -> None:
 
     _commonLogger()
     return
-
-
-def configFileLogger(fname: str, level: int) -> Logger:
-    _commonLogger()
-
-    logger = logging.getLogger()
-    logger.setLevel(level)
-
-    logFormatter = logging.Formatter(
-        '%(asctime)s:%(levelname)s:%(message)s'
-    )
-    fileHandler = logging.FileHandler(fname)
-    fileHandler.setFormatter(logFormatter)
-    # fileHandler.setLevel(level)
-    logger.addHandler(fileHandler)
-
-    return logger
 
 
 def _commonLogger() -> None:
