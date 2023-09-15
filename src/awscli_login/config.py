@@ -29,7 +29,6 @@ from ._typing import Creds
 CONFIG_DIR = '.aws-login'
 CONFIG_FILE = path.join(CONFIG_DIR, 'config')
 JAR_DIR = path.join(CONFIG_DIR, 'cookies')
-LOG_DIR = path.join(CONFIG_DIR, 'log')
 
 ERROR_NONE = 0
 ERROR_UNKNOWN = 1
@@ -113,11 +112,9 @@ class Profile:
         self.config_file = path.join(self.home, CONFIG_FILE)
 
         makedirs(path.join(self.home, CONFIG_DIR), mode=0o700, exist_ok=True)
-        makedirs(path.join(self.home, LOG_DIR), mode=0o700, exist_ok=True)
         makedirs(path.join(self.home, JAR_DIR), mode=0o700, exist_ok=True)
 
         self.pidfile = path.join(self.home, CONFIG_DIR, self.name + '.pid')
-        self.logfile = path.join(self.home, LOG_DIR, self.name + '.log')
 
     def _set_attrs(self, validate: bool) -> None:
         """ Load login profile from configuration. """
