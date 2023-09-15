@@ -183,7 +183,7 @@ class Profile:
 
     def raise_if_logged_in(self) -> None:
         """ Throws an exception if already logged in. """
-        pass
+        raise NotImplementedError
 
     def _get_profile(self, config: ConfigParser,
                      validate: bool) -> Optional[SectionProxy]:

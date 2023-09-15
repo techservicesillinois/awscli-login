@@ -4,12 +4,13 @@ from datetime import datetime
 from botocore import client as Client
 from botocore.session import Session
 
-from ..exceptions import AlreadyLoggedIn
+from ..exceptions import AlreadyLoggedIn, AlreadyLoggedOut
 from ..saml import authenticate, refresh
 from .._typing import Role
 from ..util import get_selection
 from .config import Profile
 from .util import error_handler, remove_credentials, save_credentials
+from .util import credentials_exist
 
 logger = logging.getLogger(__package__)
 
@@ -39,7 +40,8 @@ def login(profile: Profile, session: Session, interactive: bool = True):
     client = session.create_client('sts')
 
     try:
-        profile.raise_if_logged_in()
+        if credentials_exist(session):
+            raise AlreadyLoggedIn
         if profile.force_refresh:
             logger.warn("Logged out: ignoring --force-refresh.")
     except AlreadyLoggedIn:
@@ -71,6 +73,8 @@ def login(profile: Profile, session: Session, interactive: bool = True):
 
 @error_handler()
 def logout(profile: Profile, session: Session):
+    if not credentials_exist(session):
+        raise AlreadyLoggedOut
     remove_credentials(session)
 
 
