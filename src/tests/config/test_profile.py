@@ -1,13 +1,9 @@
 from copy import copy
-from os import getpid, path
-from os.path import isfile
+from os import path
 from typing import Any, Dict
-from unittest import SkipTest
-from unittest.mock import patch
 
 from awscli_login.config import JAR_DIR
 from awscli_login.exceptions import (
-    AlreadyLoggedIn,
     ProfileNotFound,
     ProfileMissingArgs,
 )
@@ -17,7 +13,6 @@ from ..base import (
 )
 
 from .base import ProfileBase
-from .util import qremove
 
 
 class NoProfile(ProfileBase):
@@ -78,50 +73,6 @@ class AttrTestMixin(ProfileBase):
             dir(self.profile),
             "Cookies attribute not listed in dir(profile)!"
         )
-
-    def test_has_pidfile_attr(self) -> None:
-        """ Profile object should have a pidfile attr. """
-        self.assertTrue(hasattr(self.profile, 'pidfile'))
-        self.assertEqual(
-            path.split(self.profile.pidfile)[1],
-            self.profile.name + '.pid'
-        )
-
-    def test_raise_if_logged_in_no_pidfile(self) -> None:
-        """ Should not throw exception if the pidfile does not exist. """
-        if not hasattr(self.profile, 'pidfile'):
-            raise SkipTest('Profile does not have attr pidfile!')
-        if isfile(self.profile.pidfile):
-            raise SkipTest('Test assumes pidfile is nonexistent!')
-
-        self.profile.raise_if_logged_in()
-
-    def test_raise_if_logged_in_with_good_pidfile(self) -> None:
-        """ Should throw an exception if the pidfile exists. """
-        if not hasattr(self.profile, 'pidfile'):
-            raise SkipTest('Profile does not have attr pidfile!')
-        with open(self.profile.pidfile, 'x') as f:
-            f.write(str(getpid()))
-        self.addCleanup(qremove, self.profile.pidfile)
-
-        with self.assertRaises(AlreadyLoggedIn):
-            self.profile.raise_if_logged_in()
-
-    @patch('awscli_login.config.pid_exists', return_value=False)
-    def test_raise_if_logged_in_with_bad_pidfile(self, mock) -> None:
-        """ Should remove the pidfile if process does not exist. """
-        pidfile = self.profile.pidfile
-        with open(pidfile, 'x') as f:
-            f.write(str(getpid()))
-        self.addCleanup(qremove, pidfile)
-
-        try:
-            self.profile.raise_if_logged_in()
-        finally:
-            self.assertFalse(
-                isfile(pidfile),
-                "raise_if_logged_in failed to cleanup bad pidfile!"
-            )
 
 
 class ReadMinProfile(AttrTestMixin):
@@ -220,9 +171,7 @@ factor = push
 role_arn = arn:aws:iam::account-id:role/role-name
 enable_keyring = True
 passcode = secret_code
-refresh = 1500
 duration = 900
-disable_refresh = True
 http_header_factor = X_Foo
 http_header_passcode = X_Bar
     """
@@ -239,9 +188,7 @@ http_header_passcode = X_Bar
             "role_arn": "arn:aws:iam::account-id:role/role-name",
             "enable_keyring": True,
             "passcode": "secret_code",
-            "refresh": 1500,
             "duration": 900,
-            "disable_refresh": True,
             "http_header_factor": "X_Foo",
             "http_header_passcode": "X_Bar",
         }
@@ -261,9 +208,7 @@ class ReadFullProfileTestOverrides(ReadFullProfile):
             "factor": 'sms',
             "role_arn": "arn:aws:iam::account-id:role/role-name2",
             "passcode": "secret",
-            "refresh": 1000,
             "duration": 1500,
-            "disable_refresh": True,
             "http_header_factor": "X_Bar",
             "http_header_passcode": "X_Foo",
         }
@@ -283,9 +228,7 @@ class ReadFullProfileTestOverrides(ReadFullProfile):
             "factor": '',
             "role_arn": "",
             "passcode": "",
-            "refresh": 0,
             "duration": 0,
-            "disable_refresh": False,
             "http_header_factor": "",
             "http_header_passcode": "",
         }

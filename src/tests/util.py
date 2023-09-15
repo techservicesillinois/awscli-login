@@ -110,8 +110,6 @@ def login_cli_args(
     passcode=None,
     role_arn=None,
     # Advanced Properties (can NOT be set interactively)
-    disable_refresh=None,
-    refresh=None,
     duration=None,
     http_header_factor=None,
     http_header_passcode=None,

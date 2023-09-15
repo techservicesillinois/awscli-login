@@ -79,18 +79,6 @@ class Login(BasicCommand):
         },
         # Advanced Properties (can NOT be set interactively)
         {
-            'name': 'disable-refresh',
-            'default': None,
-            'cli_type_name': 'boolean',
-            'help_text': 'Disables automatic refresh of tokens'
-        },
-        {
-            'name': 'refresh',
-            'default': None,
-            'cli_type_name': 'integer',
-            'help_text': 'How often in seconds to refresh the STS credentials'
-        },
-        {
             'name': 'duration',
             'default': None,
             'cli_type_name': 'integer',
@@ -199,8 +187,6 @@ file:
 * **passcode** - A Duo passcode
 * **role_arn** - The role ARN to select
 * **enable_keyring** - If enabled retrieve password from keyring
-* **disable_refresh** - Set to True to disable credential refresh
-* **refresh** - How often in seconds to refresh credentials
 * **duration** - Time in seconds credentials are valid
 * **http_header_factor** - HTTP Header to store Duo factor
 * **http_header_passcode** - HTTP Header to store passcode

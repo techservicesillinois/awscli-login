@@ -4,14 +4,11 @@ import sys
 import traceback
 
 from argparse import Namespace
-from datetime import datetime, timezone
 from functools import wraps
 from pathlib import Path
-from time import sleep
 from typing import Dict, List, Optional, Tuple
 
 from botocore.session import Session
-from daemoniker import SIGABRT, SIGINT, SIGTERM
 
 from .config import ERROR_NONE, ERROR_UNKNOWN, Profile
 from .const import ERROR_INVALID_PROFILE_ROLE
@@ -96,20 +93,6 @@ def file2str(filename: str) -> str:
     with open(filename, 'r') as f:
         data = f.read()
     return data
-
-
-def nap(expires: datetime, percent: float, refresh: Optional[float] = None
-        ) -> None:
-    """TODO. """
-    if refresh:
-        sleep_for = refresh
-    else:
-        tz = timezone.utc
-        ttl = int((expires - datetime.now(tz)).total_seconds())
-        sleep_for = ttl * percent
-
-    logger.info('Going to sleep for %d seconds.' % sleep_for)
-    sleep(sleep_for)
 
 
 def secure_touch(path):
@@ -207,12 +190,6 @@ def _error_handler(Profile, skip_args=True, validate=False):
                 exc_info = sys.exc_info()
                 code = e.code
                 exp = e
-            except SIGINT:
-                sig = 'SIGINT'
-            except SIGABRT:
-                sig = 'SIGABRT'
-            except SIGTERM:
-                sig = 'SIGTERM'
             except Exception as e:
                 exc_info = sys.exc_info()
                 code = ERROR_UNKNOWN

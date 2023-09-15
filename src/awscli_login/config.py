@@ -5,21 +5,19 @@ from argparse import Namespace
 from collections import OrderedDict
 from configparser import ConfigParser, SectionProxy
 from getpass import getuser, getpass
-from os import environ, makedirs, path, unlink
-from os.path import expanduser, isfile
+from os import environ, makedirs, path
+from os.path import expanduser
 from typing import Any, Dict, FrozenSet, Optional
 from urllib.parse import urlparse
 
 from botocore.session import Session
 from keyring import get_password, set_password
-from psutil import pid_exists
 
 from .const import (
     DUO_HEADER_FACTOR,
     DUO_HEADER_PASSCODE,
 )
 from .exceptions import (
-    AlreadyLoggedIn,
     InvalidFactor,
     ProfileMissingArgs,
     ProfileNotFound,
@@ -56,10 +54,8 @@ class Profile:
     enable_keyring: bool = False
     factor: Optional[str]
     passcode: str
-    refresh: int = 0
     force_refresh: bool = False
     duration: int = 0
-    disable_refresh: bool = False
     http_header_factor: str
     http_header_passcode: str
     verify_ssl_certificate: bool = True
@@ -77,9 +73,7 @@ class Profile:
             'enable_keyring': False,
             'factor': None,
             'passcode': None,
-            'refresh': 0,  # in seconds
             'duration': 0,  # duration can't be less than 900, btw
-            'disable_refresh': False,
             'http_header_factor': None,
             'http_header_passcode': None,
             'verify_ssl_certificate': True,
@@ -113,8 +107,6 @@ class Profile:
 
         makedirs(path.join(self.home, CONFIG_DIR), mode=0o700, exist_ok=True)
         makedirs(path.join(self.home, JAR_DIR), mode=0o700, exist_ok=True)
-
-        self.pidfile = path.join(self.home, CONFIG_DIR, self.name + '.pid')
 
     def _set_attrs(self, validate: bool) -> None:
         """ Load login profile from configuration. """
@@ -191,14 +183,7 @@ class Profile:
 
     def raise_if_logged_in(self) -> None:
         """ Throws an exception if already logged in. """
-        if isfile(self.pidfile):
-            with open(self.pidfile, 'r') as f:
-                pid = int(f.read())
-
-            if pid_exists(pid):
-                raise AlreadyLoggedIn
-            else:
-                unlink(self.pidfile)
+        pass
 
     def _get_profile(self, config: ConfigParser,
                      validate: bool) -> Optional[SectionProxy]:

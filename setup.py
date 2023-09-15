@@ -51,10 +51,8 @@ setup(
     install_requires=[
        'awscli',
        'botocore',
-       'daemoniker',
        'keyring',
        'lxml',
-       'psutil',
        'requests',
     ],
     extras_require={

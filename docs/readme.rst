@@ -1,9 +1,6 @@
 The awscli-login plugin allows retrieving temporary Amazon credentials
 by authenticating against a SAML Identity Provider (IdP).  This
-application is fully supported under Linux, macOS, and the `Windows
-Subsystem for Linux <https://docs.microsoft.com/en-us/windows/wsl/about>`_.
-Currently, Windows PowerShell, Command Prompt, and Git Shell for
-Windows are supported with limitations (See `Windows Issues`_).
+application is fully supported under Linux, macOS, and Windows.
 
 This product is supported by the Cybersecurity Development team at the 
 University of Illinois, on a best-effort basis. The expected End-of-Life
@@ -303,17 +300,6 @@ enable_keyring
 
     The password property and command line flag are ignored when
     the keyring is enabled.
-disable_refresh:
-    On POSIX systems tokens are refreshed automatically unless this
-    property is set to True::
-
-        disable-refresh = True
-refresh
-    How often the refresh process attempts to renew the STS credentials
-    in seconds. When set to 0 the refresh process will refresh once
-    90% of the time till expiration has transpired (Default 0)::
-
-        refresh = 1800
 duration
     Set the time in seconds that the STS token will last. The token
     lasts for the duration you specify, or until the time specified
@@ -365,9 +351,7 @@ options
    Force prompt for password. This can be used to override the
    ``enable_keyring`` property.
 ``--force-refresh``
-    Forces the refresh process to retrieve new credentials for the
-    user selected role. If the refresh process is not running then
-    a normal login will proceed after a warning.
+    Forces retrieval of new credentials for the user selected role.
 ``--verbose``
     Display verbose output. The flag can be repeated up to three
     times. Each time it is repeated more detailed information is
@@ -448,15 +432,8 @@ command::
 
     $ aws configure set cli_follow_urlparam off
 
-Windows issues
---------------
-
-Auto-renewal is not supported under the Windows PowerShell, Command
-Prompt, or Git Shell for Windows. Auto-renewal is supported under
-the Windows Subsystem for Linux (WSL).
-
 GitBash bad interpreter errors
-``````````````````````````````
+------------------------------
 
 If you receive a bad interpreter error from the aws command it may
 be because you have a space in the path of your Python interpreter::
@@ -470,7 +447,7 @@ package, or more simply just define an alias in your `~/.bashrc` file::
     alias aws='python $(which aws)'
 
 Windows Subsystem for Linux bad interpreter error
-`````````````````````````````````````````````````
+-------------------------------------------------
 
 If you receive a bad interpreter error from the aws command on
 Windows Subsystem for Linux (WSL) it may be because the location
