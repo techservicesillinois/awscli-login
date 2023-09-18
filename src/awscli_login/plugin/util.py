@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Dict
 
 from awscli.customizations.configure.set import ConfigureSetCommand
+from awscli.customizations.configure.get import ConfigureGetCommand
 from botocore.utils import parse_timestamp
 from botocore.session import Session
 
@@ -30,6 +31,26 @@ def _aws_set(session: Session, varname: str, value: str) -> None:
     """
     set_command = ConfigureSetCommand(session)
     set_command._run_main(Args(varname, value), parsed_globals=None)
+
+
+def _aws_get(session: Session, varname: str) -> str:
+    """ The function is the same as running:
+
+    $ aws configure get varname value
+    """
+    get_command = ConfigureGetCommand(session)
+    return get_command._get_dotted_config_value(varname)
+
+
+def credentials_exist(session: Session) -> bool:
+    """ Return True if credentials exist. """
+    if _aws_get(session, 'aws_access_key_id'):
+        return True
+
+    if _aws_get(session, 'aws_secret_access_key'):
+        return True
+
+    return False
 
 
 def remove_credentials(session: Session) -> None:
