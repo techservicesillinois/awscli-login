@@ -178,7 +178,8 @@ ecp_endpoint_url = foo
         """Ensure return True when expiration is expired."""
         self.login_credentials = """[default]
             expiration = 1970-01-01T17:54:39Z"""
-        self.assertTrue(self.profile.are_credentials_expired())
+        creds = self.profile._profile_credentials()
+        self.assertTrue(self.profile.are_credentials_expired(creds))
 
     def test_are_credentials_expired_invalid(self):
         """Ensure return True when expiration is invalid."""
