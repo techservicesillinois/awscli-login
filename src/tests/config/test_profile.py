@@ -93,6 +93,15 @@ ecp_endpoint_url = foo
         # No credential file exists
         self.Profile()
 
+    # Do not overload the property login_credentials directly,
+    # because super() does not support setters. For some reason,
+    # Python discourages the use of properties in inheritance:
+    # https://realpython.com/python-getter-setter
+    def __setattr__(self, name, value):
+        super().__setattr__(name, value)
+        if name == "login_credentials":
+            self.profile.reload()  # Reload modified file from disk
+
     def test_simple_config(self) -> None:
         """ Simple config with just a SAML section. """
         self.assertProfileHasAttrs(ecp_endpoint_url='foo')
@@ -178,8 +187,7 @@ ecp_endpoint_url = foo
         """Ensure return True when expiration is expired."""
         self.login_credentials = """[default]
             expiration = 1970-01-01T17:54:39Z"""
-        creds = self.profile._profile_credentials()
-        self.assertTrue(self.profile.are_credentials_expired(creds))
+        self.assertTrue(self.profile.are_credentials_expired())
 
     def test_are_credentials_expired_invalid(self):
         """Ensure return True when expiration is invalid."""
@@ -391,7 +399,6 @@ class TestCredentials(ReadFullProfile):
 
     def setUp(self):
         super().setUp()
-        self.Profile(profile='default', no_args=True)
         self.login_credentials = """[wtf]
 aws_access_key_id = 123
 aws_secret_access_key = 456
@@ -399,6 +406,7 @@ aws_session_token = 789
 aws_security_token = 789
 
 """
+        self.Profile(profile='default', no_args=True)
 
     def test_save_credentials(self):
         """ Test save to ~/.aws-login/credentials """
