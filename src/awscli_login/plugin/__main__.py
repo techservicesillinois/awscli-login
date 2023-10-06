@@ -6,7 +6,7 @@ from botocore import client as Client
 from botocore.session import Session
 
 from ..config import Profile
-from ..exceptions import AlreadyLoggedIn
+from ..exceptions import AlreadyLoggedIn, AlreadyLoggedOut
 from ..saml import authenticate, refresh
 from .._typing import Role
 from ..util import get_selection
@@ -77,7 +77,8 @@ def login(profile: Profile, session: Session, interactive: bool = True):
 
 @error_handler()
 def logout(profile: Profile, session: Session, interactive: bool = True):
-    profile.remove_credentials()
+    if not profile.remove_credentials():
+        raise AlreadyLoggedOut
 
 
 @error_handler(skip_args=False, validate=True)

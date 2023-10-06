@@ -366,6 +366,8 @@ class Profile:
     def are_credentials_expired(self) -> bool:
         """ Return True if credentials are expired. """
         creds = self._profile_credentials
+        if creds is None:
+            return True
 
         try:
             expiration = datetime.fromisoformat(creds['expiration'])
@@ -378,6 +380,9 @@ class Profile:
     def load_credentials(self) -> Optional[Dict]:
         """ Returns credentials token, None if missing or incomplete."""
         profile = self._profile_credentials
+        if profile is None:
+            return None
+
         try:
             return {
                 'Credentials': {
@@ -391,16 +396,18 @@ class Profile:
         except (KeyError, TypeError, ValueError):
             return None
 
-    def remove_credentials(self):
-        """ Remove Amazon token and role in ~/.aws-login/credentials. """
-        config = self._credentials_obj
-        if not config.remove_section(self.name):
-            raise AlreadyLoggedOut
-
+    def _write_credentials_obj(self, message: str):
+        """ Write _credentials_obj to ~/.aws-login/credentials. """
         with open(self.credentials_file, 'w') as configfile:
-            config.write(configfile)
-            logger.info("Removed temporary STS credentials from profile: "
-                        + self.name)
+            self._credentials_obj.write(configfile)
+            logger.info(message)
+
+    def remove_credentials(self) -> bool:
+        """ Remove Amazon token and role in ~/.aws-login/credentials. """
+        status = self._credentials_obj.remove_section(self.name)
+        self._write_credentials_obj(
+            f"Removed temporary STS credentials from profile: {self.name}")
+        return status
 
     def save_credentials(self, token: Dict, role: Role):
         """ Caches an Amazon token and role in ~/.aws-login/credentials. """
@@ -425,10 +432,8 @@ class Profile:
         profile['aws_role_arn'] = role[1]
         profile['username'] = self.username
 
-        with open(self.credentials_file, 'w') as configfile:
-            config.write(configfile)
-            logger.info("Saved temporary STS credentials to profile: "
-                        + self.name)
+        self._write_credentials_obj(
+            "Saved temporary STS credentials to profile: {self.name}")
 
     def _set_attrs_from_credentials_file(self):
         """ Load username and role from credentials file. """
