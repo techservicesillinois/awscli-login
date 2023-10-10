@@ -5,6 +5,7 @@ from os import remove
 from typing import Any, Dict, List, Optional
 
 from awscli_login.config import Profile
+from awscli_login.util import token
 
 
 class MockSession:
@@ -34,3 +35,7 @@ def user_input(profile: Profile,
     for key in profile._config_options.keys():
         r.append(str(expected_attr_vals.get(key, '')))
     return r
+
+
+def test_token(akey: str, skey: str, stoken: str) -> Dict[str, Dict[str, Any]]:
+    return token(akey, skey, stoken, "2021-02-11T00:42:09Z")

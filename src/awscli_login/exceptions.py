@@ -131,3 +131,36 @@ class ExistingTape(ConfigError):
 
     def __init__(self, filename) -> None:
         super().__init__(f"{filename}: file or directory already exists")
+
+
+class CredentialsExpired(ConfigError):
+    code = 12
+
+    def __init__(self) -> None:
+        mesg = 'Credentials Expired!'
+        super().__init__(mesg)
+
+
+class CredentialProcessNotSet(ConfigError):
+    code = 13
+    error = 'not set'
+
+    def __init__(self, profile) -> None:
+        mesg = f'Credential process is {self.error} for current profile ' \
+               f'"{profile}".\nReconfigure using:\n\n' \
+               'aws login configure'
+        super().__init__(mesg)
+
+
+class CredentialProcessMisconfigured(CredentialProcessNotSet):
+    code = 14
+    error = 'misconfigured'
+
+
+class ConfigurationFailed(ConfigError):
+    code = 15
+
+    def __init__(self) -> None:
+        mesg = 'Failed to configure profile. Finish configuration using:' \
+               '\n\naws login configure'
+        super().__init__(mesg)

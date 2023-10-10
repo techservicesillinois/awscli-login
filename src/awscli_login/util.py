@@ -6,14 +6,22 @@ import traceback
 from argparse import Namespace
 from functools import wraps
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from botocore.session import Session
 
 from .config import ERROR_NONE, ERROR_UNKNOWN, Profile
 from .const import ERROR_INVALID_PROFILE_ROLE
-from .exceptions import SAML, AWSCLILogin, InvalidSelection, MissingTape
-from .exceptions import ExistingTape, TooManyHttpTrafficFlags, VcrFailedToLoad
+from .exceptions import (
+    AWSCLILogin,
+    ConfigError,
+    ExistingTape,
+    InvalidSelection,
+    MissingTape,
+    SAML,
+    TooManyHttpTrafficFlags,
+    VcrFailedToLoad,
+)
 from .logger import configConsoleLogger
 from ._typing import Role
 
@@ -21,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 def sort_roles(role_arns: List[Role]) \
-               -> List[Tuple[str, List[Tuple[int, str]]]]:
+        -> List[Tuple[str, List[Tuple[int, str]]]]:
     """ TODO """
     accounts: Dict[str, List[Tuple[int, str]]] = {}
     r: List[Tuple[str, List[Tuple[int, str]]]] = []
@@ -41,8 +49,8 @@ def sort_roles(role_arns: List[Role]) \
     return r
 
 
-def get_selection(role_arns: List[Role], profile_role: Optional[str] = None
-                  ) -> Role:
+def get_selection(role_arns: List[Role], profile_role: Optional[str] = None,
+                  interactive: bool = True) -> Role:
     """ Interactively prompts the user for a role selection. """
     i = 0
     n = len(role_arns)
@@ -54,6 +62,8 @@ def get_selection(role_arns: List[Role], profile_role: Optional[str] = None
         if pr:
             return pr[0]
         else:
+            if not interactive:
+                raise ConfigError(ERROR_INVALID_PROFILE_ROLE % profile_role)
             logger.error(ERROR_INVALID_PROFILE_ROLE % profile_role)
 
     if n > 1:
@@ -136,6 +146,21 @@ def config_vcr(args: Namespace) -> Tuple[Optional[str], Optional[bool]]:
     del args.load_http_traffic
 
     return filename, load
+
+
+def token(access_key_id="", secret_access_key_id="",
+          session_token="", expiration="") -> Dict[str, Dict[str, Any]]:
+    token = {
+        'Credentials': {
+            'AccessKeyId': access_key_id,
+            'SecretAccessKey': secret_access_key_id,
+            'SessionToken': session_token,
+            'Expiration': expiration,
+        }
+    }
+    if expiration is None:
+        del token['Credentials']['Expiration']
+    return token
 
 
 def _error_handler(Profile, skip_args=True, validate=False):

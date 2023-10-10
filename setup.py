@@ -68,4 +68,9 @@ setup(
             'https://github.com/techservicesillinois/awscli-login/issues',
         'Source': 'https://github.com/techservicesillinois/awscli-login',
     },
+    entry_points={
+        'console_scripts': [
+            'aws-login = awscli_login.credentials:main',
+        ],
+    }
 )
