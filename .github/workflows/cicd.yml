@@ -54,8 +54,9 @@ jobs:
             .lint
             .static
             .twinecheck
-            dist
             build
+            dist
+            docs/readme.rst
 
   unit_tests:
     runs-on: ${{ matrix.os }}
@@ -78,6 +79,11 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: build
+
+    - name: Touch build artifacts
+      run: |
+        touch build  # Must be newer than docs/readme.rst
+        touch .twinecheck  # Must be newer than build
 
     - name: Get pip cache dir
       id: pip-cache
@@ -181,6 +187,11 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: build
+
+    - name: Touch build artifacts
+      run: |
+        touch build  # Must be newer than docs/readme.rst
+        touch .twinecheck  # Must be newer than build
 
     - name: Get pip cache dir
       id: pip-cache
