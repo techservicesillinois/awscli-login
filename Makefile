@@ -26,11 +26,11 @@ deps-win: deps
 
 # Python packages needed to build a wheel
 deps-build: deps-publish
-	$(PIP) setuptools tox wheel flake8 mypy types-requests
+	$(PIP) setuptools tox wheel flake8 mypy types-requests rst_include
 
 # Python packages needed to build the documentation
 deps-doc:
-	$(PIP) Sphinx sphinx-autodoc-typehints sphinx_rtd_theme
+	$(PIP) Sphinx sphinx-autodoc-typehints sphinx_rtd_theme rst_include
 
 # Python packages needed to run tests
 deps-test:
@@ -43,6 +43,9 @@ deps-integration-test:
 # Python packages needed to publish a production or test release
 deps-publish:
 	$(PIP) twine
+
+docs/readme.rst:
+	make -C docs readme.rst
 
 # Build wheel and source tarball for upload to PyPI
 build: docs/readme.rst $(SRCS)

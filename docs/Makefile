@@ -1,6 +1,7 @@
 DOCSRCS := $(wildcard *.rst *.py readme.rst)
 SRCS := $(patsubst %.py,../%.py,$(SRCS))
 TSTS := $(patsubst %.py,../%.py,$(TSTS))
+READMESRCS := $(wildcard readme/*.rst)
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
@@ -11,6 +12,9 @@ BUILDDIR      = build
 SPHINXAPIDOC      = sphinx-apidoc
 APIDOC_BUILD_DIR  = src
 APIDOC_SOURCE_DIR = ../src
+
+# This can be set from the environment
+PYPIENV       ?= pypi
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -37,6 +41,10 @@ build/doctest/output.txt: $(APIDOC_BUILD_DIR) $(DOCSRCS) $(TSTS) $(SRCS)
 # This avoids the catch-all target below
 %.py:
 
+readme.rst: readme/readme.rst $(READMESRCS)
+	rst_include replace $< - "{{ ENV }}" $(PYPIENV) | \
+	rst_include include - $@
+
 ## Catch-all target: route all unknown targets to Sphinx using the new
 ## "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
@@ -45,4 +53,4 @@ build/doctest/output.txt: $(APIDOC_BUILD_DIR) $(DOCSRCS) $(TSTS) $(SRCS)
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 clean:
-	rm -rf $(APIDOC_BUILD_DIR) $(BUILDDIR)
+	rm -rf $(APIDOC_BUILD_DIR) $(BUILDDIR) readme.rst
