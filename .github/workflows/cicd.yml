@@ -42,6 +42,8 @@ jobs:
 
     - name: Build
       run: make build
+      env:
+        PYPIENV: "${{ startsWith(github.ref, 'refs/tags') && 'pypi' || 'test' }}"
 
     - name: Check build
       run: make check
