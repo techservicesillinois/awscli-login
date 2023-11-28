@@ -224,7 +224,7 @@ ecp_endpoint_url = foo
             aws_principal_arn = somearn
             aws_role_arn = someotherarn
             expiration = 2100-07-13T17:54:39"""
-        self.assertEquals(token, self.profile.load_credentials())
+        self.assertEqual(token, self.profile.load_credentials())
 
     def test_load_credentials_invalid_expiration(self):
         """Ensure can load credentials."""
@@ -244,11 +244,11 @@ ecp_endpoint_url = foo
             aws_principal_arn = somearn
             aws_role_arn = someotherarn
             expiration = 2100-07-13T17:54:39"""
-        self.assertEquals(token, self.profile.load_credentials())
+        self.assertEqual(token, self.profile.load_credentials())
 
     def test_load_credentials_empty_file(self):
         """Ensure None is returned if credentials file is empty."""
-        self.assertEquals(None, self.profile.load_credentials())
+        self.assertEqual(None, self.profile.load_credentials())
 
     def test_load_credentials_incomplete_credentials(self):
         """Ensure None is returned if credentials are incomplete."""
@@ -259,7 +259,7 @@ ecp_endpoint_url = foo
             aws_principal_arn = somearn
             aws_role_arn = someotherarn
             expiration = 2100-07-13T17:54:39"""
-        self.assertEquals(None, self.profile.load_credentials())
+        self.assertEqual(None, self.profile.load_credentials())
 
 
 class CookieMixin(TempDir):
