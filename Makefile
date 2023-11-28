@@ -132,7 +132,7 @@ coverage: .coverage
 develop: lint static .install develop-coverage
 
 # Install package in develop mode
-.install: setup.py
+.install: docs/readme.rst setup.py
 	pip install -e .[test]
 	@touch $@
 
