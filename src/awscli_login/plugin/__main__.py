@@ -47,7 +47,7 @@ def login(profile: Profile, session: Session, interactive: bool = True):
         try:
             profile.raise_if_logged_in()
             if profile.force_refresh:
-                logger.warn("Logged out: ignoring --force-refresh.")
+                logger.warning("Logged out: ignoring --force-refresh.")
         except AlreadyLoggedIn:
             if not profile.force_refresh:
                 raise
