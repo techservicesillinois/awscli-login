@@ -26,7 +26,7 @@ deps-win: deps
 
 # Python packages needed to build a wheel
 deps-build: deps-publish
-	$(PIP) setuptools tox wheel flake8 mypy types-requests rst_include
+	$(PIP) build tox flake8 mypy types-requests rst_include
 
 # Python packages needed to build the documentation
 deps-doc:
@@ -48,8 +48,8 @@ docs/readme.rst:
 	make -C docs readme.rst
 
 # Build wheel and source tarball for upload to PyPI
-build: docs/readme.rst $(SRCS)
-	python setup.py sdist bdist_wheel
+build: docs/readme.rst pyproject.toml $(SRCS)
+	python -m build
 	@touch $@
 
 check: .twinecheck
@@ -66,7 +66,7 @@ $(TOX_ENV): build | cache
 # Build and save dependencies for reuse
 # https://packaging.python.org/guides/index-mirrors-and-caches/#caching-with-pip
 # https://www.gnu.org/software/make/manual/make.html#Prerequisite-Types
-cache: setup.py | build
+cache: pyproject.toml | build
 	pip wheel --wheel-dir=$@ $(WHEEL)[test] coverage
 	@touch $@
 
@@ -132,7 +132,7 @@ coverage: .coverage
 develop: lint static .install develop-coverage
 
 # Install package in develop mode
-.install: docs/readme.rst setup.py
+.install: docs/readme.rst pyproject.toml
 	pip install -e .[test]
 	@touch $@
 
