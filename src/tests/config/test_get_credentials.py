@@ -387,7 +387,11 @@ username = foo
         inputs = Creds(keyring="secret")
         outputs = Creds(username="foo", password="secret")
 
-        self._test_clioverrides_profile(inputs, outputs)
+        with self.assertLogs(level='WARN') as log:
+            self._test_clioverrides_profile(inputs, outputs)
+            self.assertEqual(len(log.output), 1)
+            self.assertEqual(len(log.records), 1)
+            self.assertIn('Using keyring', log.output[0])
 
     def test_get_credentials_use_keyring_instead_of_flag(self):
         """ Use keyring even if password flag is set. """
