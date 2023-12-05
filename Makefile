@@ -171,7 +171,7 @@ doctest: $(SRCS) $(TSTS)
 	make -C docs doctest
 
 .PHONY: test-release release .release
-RELEASE = $(filter %.whl %.tar.gz, $(wildcard dist/$(PACKAGE_NAME)-*))
+RELEASE = $(filter %.whl %.tar.gz, $(wildcard dist/*))
 
 test-release: MSG := Please build a test release!
 test-release: NOT := not
@@ -183,11 +183,13 @@ release: NOT :=
 release: .release
 
 .release:
-	@echo "$(RELEASE)" | python -c \
-        "import sys; \
-        [print('$(MSG)') or exit(1) for l in sys.stdin if 'dev' $(NOT) in l or \
-        'invalid' in l];"
-	twine upload "$(RELEASE)"
+	@echo "$(RELEASE)" | python -c $$'import sys\n\
+files = sys.stdin.read().split()\n\
+if len(files) != 2:\n\
+\tprint("Too many releases or invalid release!"); exit(1);\n\
+[print("$(MSG)") or exit(1) for l in files if "dev" $(NOT) in l or \n\
+   "invalid" in l]\n'
+	twine upload $(RELEASE)
 
 clean: idp-down
 	rm -rf .coverage .coverage.develop .lint .mypy_cache .static .tox .wheel htmlcov .twinecheck .install-build
