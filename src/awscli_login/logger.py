@@ -7,11 +7,16 @@ def _cli_options(verbosity: int) -> Tuple[int, str]:
     fmt = '%(message)s'
     level = logging.WARN
 
+    # Suppress awscli syntax warnings #173
+    awscli = logging.getLogger("awscli")
+    awscli.setLevel(logging.ERROR)
+
     if verbosity == 1:
         level = logging.INFO
 
         urllib3 = logging.getLogger("urllib3")
         urllib3.setLevel(logging.DEBUG)
+        awscli.setLevel(logging.WARN)
 
     if verbosity == 2:
         level = logging.DEBUG
@@ -21,6 +26,7 @@ def _cli_options(verbosity: int) -> Tuple[int, str]:
 
         botocore = logging.getLogger("botocore.endpoint")
         botocore.setLevel(logging.DEBUG)
+        awscli.setLevel(logging.INFO)
 
     if verbosity == 3:
         fmt = '%(name)s %(message)s'
