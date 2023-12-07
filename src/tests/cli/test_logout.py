@@ -41,4 +41,5 @@ class TestNoProfile(IntegrationTests):
             call('Role ARN [None]: '),
         ]
 
-        self.assertAwsCliReturns('login', 'configure', code=0, calls=calls)
+        self.assertAwsCliReturns('login', 'configure', code=0, stderr=None,
+                                 calls=calls)
