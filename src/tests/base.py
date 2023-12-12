@@ -633,8 +633,8 @@ class IntegrationTests(CleanTestEnvironment):
         Args:
             *args (str): Arguments to be passed to the AWS command
                 line utility.
-            stdout (str): Expected output to stdout.
-            stderr (str): Expected output to stderr.
+            stdout (str): Expected output to stdout. Skip test if None.
+            stderr (str): Expected output to stderr. Skip test if None.
             code (int): Expected return code.
             calls (list(unittest.mock.call)): List of expected calls.
 
@@ -644,16 +644,19 @@ class IntegrationTests(CleanTestEnvironment):
         t_out, t_err, t_code, cmd = _assertAwsCliReturns(args, calls)
 
         mesg = "Error: ran '%s', on %s expected output: %s"
-        self.assertEqual(
-            t_out,
-            stdout,
-            mesg % (cmd, 'stdout', stdout)
-        )
-        self.assertEqual(
-            t_err,
-            stderr,
-            mesg % (cmd, 'stderr', stderr)
-        )
+
+        if stdout is not None:
+            self.assertEqual(
+                t_out,
+                stdout,
+                mesg % (cmd, 'stdout', stdout)
+            )
+        if stderr is not None:
+            self.assertEqual(
+                t_err,
+                stderr,
+                mesg % (cmd, 'stderr', stderr)
+            )
         self.assertEqual(
             t_code,
             code,
