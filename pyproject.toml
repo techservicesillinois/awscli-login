@@ -56,4 +56,4 @@ local_scheme = "dirty-tag"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["awscli_login"]
+include = ["awscli_login*"]
