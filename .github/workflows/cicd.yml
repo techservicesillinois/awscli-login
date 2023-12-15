@@ -56,9 +56,10 @@ jobs:
             .lint
             .static
             .twinecheck
-            build
             dist
             docs/readme.rst
+            src/awscli_login.egg-info
+            src/awscli_login/_version.py
 
   unit_tests:
     runs-on: ${{ matrix.os }}
@@ -82,10 +83,21 @@ jobs:
       with:
         name: build
 
+    # setuptools_scm sometimes will regenerate _version.py which causes
+    # Makefile to rebuild things. To avoid unnecessary rebuilds we set the
+    # following environment variable.
+    - name: Set setuptools_scm environment variable
+      shell: bash
+      run: |
+        echo SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN=`PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(__version__)'` >> $GITHUB_ENV
+
     - name: Touch build artifacts
       run: |
-        touch build  # Must be newer than docs/readme.rst
+        touch docs/readme.rst
+        touch src/awscli_login/_version.py
+        touch dist/*  # Must be newer than docs/readme.rst
         touch .twinecheck  # Must be newer than build
+        touch .lint .static
 
     - name: Get pip cache dir
       id: pip-cache
@@ -188,9 +200,16 @@ jobs:
       with:
         name: build
 
+    - name: Set setuptools_scm environment variable
+      shell: bash
+      run: |
+        echo SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN=`PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(__version__)'` >> $GITHUB_ENV
+
     - name: Touch build artifacts
       run: |
-        touch build  # Must be newer than docs/readme.rst
+        touch docs/readme.rst
+        touch src/awscli_login/_version.py
+        touch dist/*  # Must be newer than docs/readme.rst
         touch .twinecheck  # Must be newer than build
 
     - name: Get pip cache dir
