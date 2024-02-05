@@ -117,7 +117,6 @@ jobs:
         path: .tox
         cache_hit: ${{ steps.ghcache.outputs.cache-hit }}
         remove_invalid_paths: true
-        touch: true
 
     - name: Validate wheel cache
       uses: techservicesillinois/cache-validation@v1
@@ -126,7 +125,6 @@ jobs:
         path: cache
         cache_hit: ${{ steps.ghcache.outputs.cache-hit }}
         remove_invalid_files: true
-        touch: true
 
     - name: Install system dependencies
       if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.valid != 'true'
