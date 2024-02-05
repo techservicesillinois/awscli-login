@@ -4,7 +4,6 @@
 *.egg-info
 
 __pycache__
-build
 cache
 dist
 htmlcov

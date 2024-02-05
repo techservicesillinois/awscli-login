@@ -1,19 +1,27 @@
 PACKAGE_NAME := awscli-login
+MODULE_NAME := awscli_login
+ifndef SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN
+VERSION := $(shell python -m setuptools_scm)
+else
+VERSION := $(SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN)
+endif
 
-PKG  := src/awscli_login
+PKG  := src/$(MODULE_NAME)
 TPKG := src/tests
 MODULE_SRCS := $(wildcard $(PKG)/*.py $(PKG)/plugin/*.py)
 export TSTS := $(wildcard $(TPKG)/*.py $(TPKG)/*/*.py)
 export SRCS := $(wildcard $(MODULE_SRCS) setup.py)
-HTML = htmlcov/index.html
+HTML := htmlcov/index.html
 TOX := tox -e wheel -qq --skip-pkg-install
 TOX_ENV := .tox/wheel/pyvenv.cfg
-WHEEL = $(wildcard dist/*.whl)
-PIP = python -m pip install --upgrade --upgrade-strategy eager
+WHEEL := $(MODULE_NAME)-$(VERSION)-py3-none-any.whl
+SDIST := $(PACKAGE_NAME)-$(VERSION).tar.gz
+RELEASE := dist/$(WHEEL) dist/$(SDIST)
+PIP := python -m pip install --upgrade --upgrade-strategy eager
 
 .PHONY: all check install test lint static develop develop-coverage
 .PHONY: freeze shell clean docs coverage doctest win-tox
-.PHONY: install-build
+.PHONY: install-build build
 
 all: test coverage docs doctest
 
@@ -26,7 +34,7 @@ deps-win: deps
 
 # Python packages needed to build a wheel
 deps-build: deps-publish
-	$(PIP) build tox flake8 mypy types-requests rst_include
+	$(PIP) build tox flake8 mypy types-requests rst_include setuptools_scm
 
 # Python packages needed to build the documentation
 deps-doc:
@@ -48,31 +56,31 @@ docs/readme.rst:
 	make -C docs readme.rst
 
 # Build wheel and source tarball for upload to PyPI
-build: docs/readme.rst pyproject.toml $(SRCS)
+build: $(RELEASE)
+$(RELEASE): docs/readme.rst pyproject.toml MANIFEST.in $(SRCS)
 	python -m build
-	@touch $@
 
 check: .twinecheck
-.twinecheck: build
-	twine check --strict dist/*
+.twinecheck: $(RELEASE)
+	twine check --strict $^
 	@touch $@
 
 # Install wheel into tox virtualenv for testing
 install: $(TOX_ENV)
-$(TOX_ENV): build | cache
-	tox -e wheel --notest --installpkg $(WHEEL)
+$(TOX_ENV): $(RELEASE) | cache
+	tox -e wheel --notest --installpkg dist/$(WHEEL)
 	@touch $@
 
 # Build and save dependencies for reuse
 # https://packaging.python.org/guides/index-mirrors-and-caches/#caching-with-pip
 # https://www.gnu.org/software/make/manual/make.html#Prerequisite-Types
-cache: pyproject.toml | build
-	pip wheel --wheel-dir=$@ $(WHEEL)[test] coverage
+cache: pyproject.toml | $(RELEASE)
+	pip wheel --wheel-dir=$@ dist/$(WHEEL)[test] coverage
 	@touch $@
 
 # Run tests on multiple versions of Python (POSIX only)
-tox: .python-version build | cache
-	tox --installpkg $(WHEEL)
+tox: .python-version $(RELEASE) | cache
+	tox --installpkg dist/$(WHEEL)
 
 .python-version:
 	pyenv install -s 3.8.16
@@ -83,8 +91,8 @@ tox: .python-version build | cache
 	pyenv local 3.8.16 3.9.16 3.10.9 3.11.1 3.12.0
 
 # Run tests on multiple versions of Python (Windows only)
-win-tox: .win-tox build | cache
-	tox --installpkg $(WHEEL)
+win-tox: .win-tox $(RELEASE) | cache
+	tox --installpkg dist/$(WHEEL)
 
 .win-tox:
 	pyenv install 3.8.7 3.9.1
@@ -103,9 +111,9 @@ idp-down:
 	docker-compose down --rmi all
 	rm -f .idp.docker
 
-.install-build: build
+.install-build: $(RELEASE)
 install-build: .install-build
-	pip install dist/awscli_login-*.whl
+	pip install dist/$(WHEEL)
 
 ifeq ($(RUNNER_OS),Windows)
     idp_integration_deps=
@@ -171,8 +179,6 @@ doctest: $(SRCS) $(TSTS)
 	make -C docs doctest
 
 .PHONY: test-release release .release
-RELEASE = $(filter %.whl %.tar.gz, $(wildcard dist/*))
-
 test-release: MSG := Please build a test release!
 test-release: NOT := not
 test-release: export TWINE_REPOSITORY ?= testpypi
@@ -182,7 +188,7 @@ release: MSG := Please tag & build a production release!
 release: NOT :=
 release: .release
 
-.release:
+.release: $(RELEASE)
 	@echo "$(RELEASE)" | python -c $$'import sys\n\
 files = sys.stdin.read().split()\n\
 if len(files) != 2:\n\
