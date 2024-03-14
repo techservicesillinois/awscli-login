@@ -139,7 +139,7 @@ Here is a simple example configuration file::
 and the corresponding awscli configuration file ``~/.aws/config`` ::
 
     [plugins]
-    login = awscli_login.plugin
+    login = awscli_login
 
     [default]
     region = us-east-2

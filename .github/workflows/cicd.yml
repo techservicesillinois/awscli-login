@@ -89,7 +89,8 @@ jobs:
     - name: Set setuptools_scm environment variable
       shell: bash
       run: |
-        echo SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN=`PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(__version__)'` >> $GITHUB_ENV
+        PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN={__version__}")' > "$RUNNER_TEMP/_awscli_version"
+        cat "$RUNNER_TEMP/_awscli_version" >> "$GITHUB_ENV"
 
     - name: Touch build artifacts
       run: |

@@ -1,28 +1,37 @@
 import logging
 import os
-import sys
-import traceback
 
 from argparse import Namespace
-from functools import wraps
-from pathlib import Path
+from shutil import which
 from typing import Any, Dict, List, Optional, Tuple
 
-from botocore.session import Session
+try:
+    from awscli.customizations.configure.set import ConfigureSetCommand
+except ImportError:  # pragma: no cover
+    class ConfigureSetCommand:  # type: ignore
+        pass
 
-from .config import ERROR_NONE, ERROR_UNKNOWN, Profile
+try:
+    from awscli.customizations.configure.get import ConfigureGetCommand
+except ImportError:  # pragma: no cover
+    class ConfigureGetCommand:  # type: ignore
+        pass
+try:
+    from botocore.session import Session
+except ImportError:  # pragma: no cover
+    class Session:  # type: ignore
+        pass
+
 from .const import ERROR_INVALID_PROFILE_ROLE
 from .exceptions import (
-    AWSCLILogin,
     ConfigError,
-    ExistingTape,
+    ConfigurationFailed,
+    CredentialProcessMisconfigured,
+    CredentialProcessNotSet,
     InvalidSelection,
-    MissingTape,
     SAML,
     TooManyHttpTrafficFlags,
-    VcrFailedToLoad,
 )
-from .logger import configConsoleLogger
 from ._typing import Role
 
 logger = logging.getLogger(__name__)
@@ -163,80 +172,89 @@ def token(access_key_id="", secret_access_key_id="",
     return token
 
 
-def _error_handler(Profile, skip_args=True, validate=False):
-    """ Helper function to generate a logging & exception decorator. """
-    def decorator(f):
-        @wraps(f)
-        def wrapper(args: Namespace, session: Session):
-            exp: Optional[Exception] = None
-            exc_info = None
-            code = ERROR_NONE
-            sig = None
+class Args:
+    """ A stub class for passing arguments to ConfigureSetCommand """
 
-            try:
-                # verbosity can only be set at command line
-                configConsoleLogger(args.verbose)
-                del args.verbose
-                filename, load = config_vcr(args)
-
-                if not skip_args:
-                    profile = Profile(session, args, validate)
-                else:
-                    profile = Profile(session, None, validate)
-
-                if load is not None and filename is not None:
-                    try:
-                        from vcr import VCR
-                        vcr = VCR(record_mode='none' if load else 'all')
-
-                        path = Path(filename)
-                        if load and not path.is_file():
-                            raise MissingTape(filename)
-                        if not load and path.exists():
-                            raise ExistingTape(filename)
-
-                        # 169.254.169.254 is the AWS EC2 instance metadata
-                        # service. Botocore always attempts to connect. It
-                        # should recieve a timeout, but vcrpy cassettes can
-                        # not record timeouts so we need to add the instance
-                        # metadata service to the ignore_hosts field so the
-                        # the request timeout is allowed to happen.
-                        #
-                        # NOTA BENE: Cassettes that return an empty response
-                        # for 169.254.169.254 cause botocore to crash.
-                        vcr_args = {"ignore_hosts": ('169.254.169.254', )}
-                        with vcr.use_cassette(filename, **vcr_args):
-                            f(profile, session)
-                    except ModuleNotFoundError:
-                        raise VcrFailedToLoad
-                else:
-                    f(profile, session)
-            except AWSCLILogin as e:
-                exc_info = sys.exc_info()
-                code = e.code
-                exp = e
-            except Exception as e:
-                exc_info = sys.exc_info()
-                code = ERROR_UNKNOWN
-                exp = e
-            finally:
-                if exp:
-                    logger.error(str(exp), exc_info=False)
-
-                if exc_info:
-                    logger.debug(
-                        '\n' + ''.join(traceback.format_exception(*exc_info))
-                    )
-
-                if sig:
-                    logger.info('Received signal: %s. Shutting down...' % sig)
-
-                return code
-
-        return wrapper
-    return decorator
+    def __init__(self, varname: str, value: str) -> None:
+        self.varname = varname
+        self.value = value
 
 
-def error_handler(skip_args=True, validate=False):
-    """ A decorator for exception handling and logging. """
-    return _error_handler(Profile, skip_args, validate)
+def _aws_set(session: Session, varname: str, value: str) -> None:
+    """ The function is the same as running:
+
+    $ aws configure set varname value
+    """
+    set_command = ConfigureSetCommand(session)
+    set_command._run_main(Args(varname, value), parsed_globals=None)
+
+
+def _aws_get(session: Session, varname: str) -> str:
+    """ The function is the same as running:
+
+    $ aws configure get varname
+    """
+    get_command = ConfigureGetCommand(session)
+    return get_command._get_dotted_config_value(varname)
+
+
+def credentials_exist(session: Session) -> bool:
+    """ Return True if credentials exist. """
+    if _aws_get(session, 'aws_access_key_id'):
+        return True
+
+    if _aws_get(session, 'aws_secret_access_key'):
+        return True
+
+    return False
+
+
+def _safe_aws_set(session, **kwargs):
+    if input('Overwrite to enable login? ').lower() in ['y', 'yes']:
+        for k, v in kwargs.items():
+            _aws_set(session, k, v)
+    else:
+        raise ConfigurationFailed
+
+
+def update_credential_file(session: Session, profile: str):
+    """Adds credential_process to ~/.aws/credentials
+    file for active profile."""
+    key_id = _aws_get(session, 'aws_access_key_id')
+    access_key = _aws_get(session, 'aws_secret_access_key')
+    session_token = _aws_get(session, 'aws_session_token')
+
+    if key_id or access_key or session_token:
+        print(f'WARNING: Profile {profile} contains credentials.')
+        _safe_aws_set(session, aws_access_key_id='', aws_secret_access_key='',
+                      aws_session_token='')
+
+    cmd = f'aws-login --profile {profile}'
+    ConfigureSetCommand._WRITE_TO_CREDS_FILE.append("credential_process")
+    current_cmd = _aws_get(session, 'credential_process')
+    if not current_cmd:
+        _aws_set(session, 'credential_process', cmd)
+    elif current_cmd != cmd:
+        print(f'WARNING: credential_process set to: {current_cmd}.')
+        _safe_aws_set(session, credential_process=cmd)
+
+
+def raise_if_credential_process_not_set(
+        session: Session, profile: str) -> None:
+    """ Raises 'CredentialProcessNotSet' if 'credential_process'
+        not set for the active profile.
+    """
+    proc = _aws_get(session, 'credential_process')
+    if proc is None:
+        raise CredentialProcessNotSet(profile)
+
+    args = proc.split()
+    cmd = args[0]
+
+    if not (which(cmd) and cmd.endswith("aws-login")):
+        raise CredentialProcessMisconfigured(profile)
+    try:
+        if not (args[args.index("--profile") + 1] == profile):
+            raise CredentialProcessMisconfigured(profile)
+    except (ValueError, IndexError):
+        raise CredentialProcessMisconfigured(profile)

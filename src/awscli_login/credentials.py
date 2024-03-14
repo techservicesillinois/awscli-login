@@ -4,12 +4,11 @@ import argparse
 import json
 
 from datetime import datetime
-from awscli_login.util import error_handler
 
 from botocore.session import Session
 
-from .plugin.__main__ import login
-from .config import Profile
+from .__main__ import login
+from .config import Profile, error_handler
 
 
 def print_credentials(token):

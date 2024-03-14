@@ -1,7 +1,10 @@
-from botocore.session import Session
+try:
+    from botocore.session import Session
+except ImportError:  # pragma: no cover
+    class Session():  # type: ignore
+        pass
 
-from .util import error_handler
-from .config import Profile
+from .config import Profile, error_handler
 from .util import update_credential_file
 
 

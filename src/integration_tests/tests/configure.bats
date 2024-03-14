@@ -17,12 +17,12 @@ load 'clean'
 
 @test "Enable plugin in ~/.aws/config" {
     assert_not_exists "$AWS_CONFIG_FILE"
-    run aws configure set plugins.login awscli_login.plugin
+    run aws configure set plugins.login awscli_login
     assert_success
 
     ! read -r -d '' CONFIG_FILE <<- EOF  # NOTA BENE: <<- strips tabs
 		[plugins]$CR
-		login = awscli_login.plugin
+		login = awscli_login
 	EOF
     assert_equal "$(<$AWS_CONFIG_FILE)" "$CONFIG_FILE"
 }

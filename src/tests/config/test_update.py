@@ -4,11 +4,11 @@
 from typing import Any
 from unittest.mock import patch
 
-from .base import ProfilePluginBase
+from .base import ProfileBase
 from .util import user_input
 
 
-class UpdateProfileBase(ProfilePluginBase):
+class UpdateProfileBase(ProfileBase):
 
     def assertProfileHasAttrsAfterUpdate(self, no_change=False,
                                          **kwargs: Any) -> None:
