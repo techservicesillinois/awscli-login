@@ -4,8 +4,7 @@ import re
 try:
     import lxml.etree as ET
 except ImportError:  # pragma: no cover
-    class ET:  # type: ignore
-        pass
+    pass
 
 from base64 import b64encode
 from datetime import datetime

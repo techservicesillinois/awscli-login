@@ -18,8 +18,8 @@ from urllib.parse import urlparse
 try:
     from awscli.customizations.configure.writer import ConfigFileWriter
 except ImportError:  # pragma: no cover
-    class ConfigFileWriter():  # type: ignore
-        pass
+    pass
+
 try:
     from botocore.session import Session
 except ImportError:  # pragma: no cover
@@ -29,11 +29,7 @@ except ImportError:  # pragma: no cover
 try:
     from keyring import get_password, set_password
 except ImportError:  # pragma: no cover
-    def get_password(service_name: str, username: str) -> Optional[str]:
-        raise NotImplementedError
-
-    def set_password(service_name: str, username: str, password: str) -> None:
-        raise NotImplementedError
+    pass
 
 from .const import (
     DUO_HEADER_FACTOR,

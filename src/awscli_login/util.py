@@ -8,14 +8,13 @@ from typing import Any, Dict, List, Optional, Tuple
 try:
     from awscli.customizations.configure.set import ConfigureSetCommand
 except ImportError:  # pragma: no cover
-    class ConfigureSetCommand:  # type: ignore
-        pass
+    pass
 
 try:
     from awscli.customizations.configure.get import ConfigureGetCommand
 except ImportError:  # pragma: no cover
-    class ConfigureGetCommand:  # type: ignore
-        pass
+    pass
+
 try:
     from botocore.session import Session
 except ImportError:  # pragma: no cover
