@@ -1,30 +1,53 @@
 """ This module is used to process ~/.aws-login/config """
 import logging
+import sys
+import traceback
 
 from argparse import Namespace
 from collections import OrderedDict
 from configparser import ConfigParser, SectionProxy
 from datetime import datetime
+from functools import wraps
 from getpass import getuser, getpass
 from os import environ, makedirs, path
 from os.path import expanduser
+from pathlib import Path
 from typing import Any, Dict, FrozenSet, Optional
 from urllib.parse import urlparse
 
-from botocore.session import Session
-from keyring import get_password, set_password
+try:
+    from awscli.customizations.configure.writer import ConfigFileWriter
+except ImportError:  # pragma: no cover
+    pass
+
+try:
+    from botocore.session import Session
+except ImportError:  # pragma: no cover
+    class Session():  # type: ignore
+        pass
+
+try:
+    from keyring import get_password, set_password
+except ImportError:  # pragma: no cover
+    pass
 
 from .const import (
     DUO_HEADER_FACTOR,
     DUO_HEADER_PASSCODE,
 )
 from .exceptions import (
+    AWSCLILogin,
     AlreadyLoggedIn,
     AlreadyLoggedOut,
+    ExistingTape,
     InvalidFactor,
+    MissingTape,
     ProfileMissingArgs,
     ProfileNotFound,
+    VcrFailedToLoad,
 )
+from .logger import configConsoleLogger
+from .util import secure_touch, config_vcr
 from ._typing import Creds, Role
 
 CONFIG_DIR = '.aws-login'
@@ -348,10 +371,27 @@ class Profile:
 
         return self.username, self.password, headers
 
-    # This is implemented in plugin child class
+    # TODO Add validation...
     def update(self) -> None:
         """ Interactively update the profile. """
-        raise NotImplementedError
+        new_values = {}
+        writer = ConfigFileWriter()
+
+        for attr, string in self._config_options.items():
+            value = getattr(self, attr, self._optional.get(attr))
+
+            prompt = "%s [%s]: " % (string, value)
+            value = input(prompt)
+
+            if value:
+                new_values[attr] = value
+
+        if new_values:
+            if self.name != 'default':
+                new_values['__section__'] = self.name
+
+            secure_touch(self.config_file)
+            writer.update_config(new_values, self.config_file)
 
     def reload(self, validate: bool = True):
         """ Reloads profile from disk [~/.aws-login/config]. """
@@ -451,3 +491,82 @@ class Profile:
             profile = None
 
         self._profile_credentials = profile
+
+
+def _error_handler(Profile, skip_args=True, validate=False):
+    """ Helper function to generate a logging & exception decorator. """
+    def decorator(f):
+        @wraps(f)
+        def wrapper(args: Namespace, session: Session):
+            exp: Optional[Exception] = None
+            exc_info = None
+            code = ERROR_NONE
+            sig = None
+
+            try:
+                # verbosity can only be set at command line
+                configConsoleLogger(args.verbose)
+                del args.verbose
+                filename, load = config_vcr(args)
+
+                if not skip_args:
+                    profile = Profile(session, args, validate)
+                else:
+                    profile = Profile(session, None, validate)
+
+                if load is not None and filename is not None:
+                    try:
+                        from vcr import VCR
+                        vcr = VCR(record_mode='none' if load else 'all')
+
+                        path = Path(filename)
+                        if load and not path.is_file():
+                            raise MissingTape(filename)
+                        if not load and path.exists():
+                            raise ExistingTape(filename)
+
+                        # 169.254.169.254 is the AWS EC2 instance metadata
+                        # service. Botocore always attempts to connect. It
+                        # should recieve a timeout, but vcrpy cassettes can
+                        # not record timeouts so we need to add the instance
+                        # metadata service to the ignore_hosts field so the
+                        # the request timeout is allowed to happen.
+                        #
+                        # NOTA BENE: Cassettes that return an empty response
+                        # for 169.254.169.254 cause botocore to crash.
+                        vcr_args = {"ignore_hosts": ('169.254.169.254', )}
+                        with vcr.use_cassette(filename, **vcr_args):
+                            f(profile, session)
+                    except ModuleNotFoundError:
+                        raise VcrFailedToLoad
+                else:
+                    f(profile, session)
+            except AWSCLILogin as e:
+                exc_info = sys.exc_info()
+                code = e.code
+                exp = e
+            except Exception as e:
+                exc_info = sys.exc_info()
+                code = ERROR_UNKNOWN
+                exp = e
+            finally:
+                if exp:
+                    logger.error(str(exp), exc_info=False)
+
+                if exc_info:
+                    logger.debug(
+                        '\n' + ''.join(traceback.format_exception(*exc_info))
+                    )
+
+                if sig:
+                    logger.info('Received signal: %s. Shutting down...' % sig)
+
+                return code
+
+        return wrapper
+    return decorator
+
+
+def error_handler(skip_args=True, validate=False):
+    """ A decorator for exception handling and logging. """
+    return _error_handler(Profile, skip_args, validate)

@@ -24,7 +24,7 @@ from awscli_login.util import (
     secure_touch,
     sort_roles,
 )
-from awscli_login.plugin.util import (
+from awscli_login.util import (
     raise_if_credential_process_not_set,
     update_credential_file,
 )

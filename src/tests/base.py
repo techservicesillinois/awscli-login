@@ -611,7 +611,7 @@ class IntegrationTests(CleanTestEnvironment):
     def setUp(self):
         """Configures plugin to work with the awscli. """
         super().setUp()
-        self.aws_config = '[plugins]\nlogin = awscli_login.plugin\n'
+        self.aws_config = '[plugins]\nlogin = awscli_login\n'
 
     def assertAwsCliReturns(self, *args, stdout='',
                             stderr='', code=0, calls=None):

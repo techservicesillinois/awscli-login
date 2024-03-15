@@ -1,7 +1,10 @@
 import logging
 import re
 
-import lxml.etree as ET
+try:
+    import lxml.etree as ET
+except ImportError:  # pragma: no cover
+    pass
 
 from base64 import b64encode
 from datetime import datetime
@@ -10,10 +13,14 @@ from typing import Optional, List, Tuple
 from typing import cast
 from uuid import uuid4
 
-from lxml.etree import XMLSyntaxError
-from lxml.etree import tostring, Element, SubElement
-from requests import Session
-from requests.cookies import RequestsCookieJar
+try:
+    from lxml.etree import XMLSyntaxError
+    from lxml.etree import tostring, Element, SubElement
+    from requests import Session
+    from requests.cookies import RequestsCookieJar
+except ImportError:
+    class SubElement:  # type: ignore
+        pass
 
 from .exceptions import (
     AuthnFailed,
@@ -24,8 +31,11 @@ from .exceptions import (
 from ._typing import Role, Headers
 from .util import secure_touch
 
-from urllib3.exceptions import InsecureRequestWarning
-from urllib3 import disable_warnings
+try:
+    from urllib3.exceptions import InsecureRequestWarning
+    from urllib3 import disable_warnings
+except ImportError:
+    pass
 
 SAML_SUCCESS = "urn:oasis:names:tc:SAML:2.0:status:Success"
 

@@ -13,7 +13,7 @@ flag then reinstall the package to get the dependencies from PyPI::
 After awscli-login has been installed, run the following command
 to enable the plugin::
 
-    $ aws configure set plugins.login awscli_login.plugin
+    $ aws configure set plugins.login awscli_login
 
 If you receive a bad interpreter error or other error please see
 the `Known Issues`_ section below.

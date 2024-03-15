@@ -3,7 +3,6 @@ from typing import Any
 from unittest.mock import patch
 
 from awscli_login.config import Profile
-from awscli_login.plugin.config import Profile as ProfilePlugin
 
 from .util import MockSession
 from ..util import login_cli_args
@@ -42,13 +41,3 @@ class ProfileBase(CleanAWSLoginEnvironment):
         self.addCleanup(patcher.stop)
 
         return patcher.start()
-
-
-class ProfilePluginBase(ProfileBase):
-    def Profile(self, profile: str = 'default', no_args: bool = False,
-                **kwargs):
-        args = None if no_args else login_cli_args(**kwargs)
-        session = MockSession(profile)
-
-        self.profile = ProfilePlugin(session, args)
-        return self.profile
