@@ -278,6 +278,14 @@ jobs:
       with:
         name: build
 
+    - name: Touch build artifacts
+      run: |
+        touch docs/readme.rst
+        touch src/awscli_login/_version.py
+        touch dist/*  # Must be newer than docs/readme.rst
+        touch .twinecheck  # Must be newer than build
+        touch .lint .static
+
     - name: Publish to PyPI
       if: startsWith(github.ref, 'refs/tags')
       run: make release
