@@ -195,7 +195,7 @@ if len(files) != 2:\n\
 \tprint("Too many releases or invalid release!"); exit(1);\n\
 [print("$(MSG)") or exit(1) for l in files if "dev" $(NOT) in l or \n\
    "invalid" in l]\n'
-	twine upload $(RELEASE)
+	echo twine upload $(RELEASE)
 
 clean: idp-down
 	rm -rf .coverage .coverage.develop .lint .mypy_cache .static .tox .wheel htmlcov .twinecheck .install-build

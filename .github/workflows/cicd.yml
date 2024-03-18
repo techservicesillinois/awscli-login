@@ -295,7 +295,7 @@ jobs:
         TWINE_NON_INTERACTIVE: true
 
     - name: Publish to Test PyPI
-      if: github.ref == 'refs/heads/master'
+      #if: github.ref == 'refs/heads/master'
       run: make test-release
       env:
         TWINE_USERNAME: __token__
