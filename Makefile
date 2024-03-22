@@ -179,6 +179,7 @@ doctest: $(SRCS) $(TSTS)
 	make -C docs doctest
 
 .PHONY: test-release release .release
+ERR_TOO_MANY := "Too many releases or invalid release!"
 test-release: MSG := Please build a test release!
 test-release: NOT := not
 test-release: export TWINE_REPOSITORY ?= testpypi
@@ -189,12 +190,10 @@ release: NOT :=
 release: .release
 
 .release: $(RELEASE)
-	@echo "$(RELEASE)" | python -c $$'import sys\n\
-files = sys.stdin.read().split()\n\
-if len(files) != 2:\n\
-\tprint("Too many releases or invalid release!"); exit(1);\n\
-[print("$(MSG)") or exit(1) for l in files if "dev" $(NOT) in l or \n\
-   "invalid" in l]\n'
+	@echo "$(RELEASE)" | python -c 'import sys;\
+	files = sys.stdin.read().split();\
+	len(files) != 2 and (print($(ERR_TOO_MANY)) or exit(1));\
+	[print("$(MSG)") or exit(1) for l in files if "dev" $(NOT) in l or "invalid" in l or "dirty" in l]'
 	twine upload $(RELEASE)
 
 clean: idp-down
