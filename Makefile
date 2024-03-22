@@ -46,7 +46,7 @@ deps-test:
 
 # Python packages needed to run integration_tests tests
 deps-integration-test:
-	$(PIP) vcrpy
+	$(PIP) awscli vcrpy
 
 # Python packages needed to publish a production or test release
 deps-publish:
@@ -121,17 +121,36 @@ install-build: .install-build
 # https://github.com/actions/runner-images/issues/2216
 ifeq ($(RUNNER_OS),Windows)
     idp_integration_deps=
-integration-tests: export AWSCLI_LOGIN_SKIP_DOCKER_TESTS=1
-integration-tests: export AWSCLI_LOGIN_WINDOWS_TEST=1
+integration-tests integration-tests-v2: export AWSCLI_LOGIN_SKIP_DOCKER_TESTS=1
+integration-tests integration-tests-v2: export AWSCLI_LOGIN_WINDOWS_TEST=1
 # As of 9/13/2024, macos-latest does not support docker. This may
 # change by the end of the year. See issue #208.
 else ifeq ($(RUNNER_OS),macOS)
     idp_integration_deps=
-integration-tests: export AWSCLI_LOGIN_SKIP_DOCKER_TESTS=1
+integration-tests integration-tests-v2: export AWSCLI_LOGIN_SKIP_DOCKER_TESTS=1
 else
     idp_integration_deps=.idp.docker
 endif
 integration-tests: $(idp_integration_deps)
+	make -C src/integration_tests/
+
+ifeq ($(RUNNER_OS),Windows)
+    VBIN := Scripts
+    VPKG := lib/site-packages*
+else
+    VBIN := bin
+    VPKG := lib/python*/site-packages
+endif
+venv.v2: $(RELEASE)
+	rm -rf $@
+	python -m venv $@
+	$@/$(VBIN)/python -m pip install vcrpy $<
+
+integration-tests-v2: export AWSCLI_TEST_V2:=1
+integration-tests-v2: export AWSCLI_TEST_PLUGIN_PATH=$(wildcard $(PWD)/venv.v2/$(VPKG))
+integration-tests-v2: export PATH:=$(PWD)/venv.v2/$(VBIN):$(PATH)
+integration-tests-v2: $(idp_integration_deps) venv.v2
+	aws --version 2>/dev/null | grep '^aws-cli/2.' || (echo "Not running awscli V2!"; exit 1)
 	make -C src/integration_tests/
 
 test_fast: export AWSCLI_LOGIN_FAST_TEST_ONLY=1
