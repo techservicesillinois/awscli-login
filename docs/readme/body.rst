@@ -1,3 +1,136 @@
+Configuration
+=============
+
+After awscli-login has been installed, run the following command
+to enable the plugin::
+
+    $ aws configure set plugins.login awscli_login
+
+If you receive a bad interpreter error or other error please see
+the `Known Issues`_ section below. If it succeeds the AWS CLI
+configuration file ``~/.aws/config`` should be updated with the
+following section::
+
+    [plugins]
+    login = awscli_login
+
+AWS CLI V2 Configuration
+------------------------
+
+If you are configuring `AWS CLI`_ V2, The path to the site
+packages directory where ``awscli-login`` resides must be supplied
+as well. This can be looked up using the following command::
+
+    $ pip show awscli-login
+    Name: awscli-login
+    Version: 1.0
+    Summary: Plugin for the AWS CLI that retrieves and rotates credentials using SAML ECP and STS.
+    Home-page:
+    Author:
+    Author-email: "David D. Riddle" <ddriddle@illinois.edu>
+    License: MIT License
+    Location: /usr/lib/python3.12/site-packages
+    Requires: botocore, keyring, lxml, requests
+    Required-by:
+
+The ``Location`` field has the required path information, and must be passed to ``aws configure``::
+
+    $ aws configure set plugins.cli_legacy_plugin_path <<PASTE ``Location`` HERE>>
+
+Note: If your output matched the example above, you would paste in
+``/usr/lib/python3.12/site-packages``.
+
+On POSIX systems such as macOS and Linux the preceding can be set
+more easily using the following one-liner::
+
+    $ aws configure set plugins.cli_legacy_plugin_path $(pip show awscli-login | sed -nr 's/^Location: (.*)/\1/p')
+
+If it succeeds the AWS CLI configuration file ``~/.aws/config``
+should be updated with the following section::
+
+    [plugins]
+    login = awscli_login
+    cli_legacy_plugin_path = /usr/lib/python3.12/site-packages
+
+Note that ``cli_legacy_plugin_path`` should point to the same value
+as given in the ``Location`` field given by ``pip show awscli-login``
+above.
+
+System Configuration
+--------------------
+
+The command or script ``aws-login`` must be on your ``$PATH``. If it
+is not on your path you can use the following command to determine
+its location::
+
+    $ pip show awscli-login --files
+
+On Windows look for the file ``aws-login.exe``, on POSIX systems
+look for ``bin/aws-login``. Then add the path to the environment variable
+``PATH``. If the path is a relative path, note that it is relative
+to the ``Location`` field. You may set your PATH using the following
+examples:
+
+* Linux/Mac::
+
+    $ export PATH="$PATH:/usr/local/bin"
+
+* Windows::
+
+    $ $env:PATH+=';C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts'
+
+Verify that ``aws-login`` appears on your PATH:
+
+* Linux/Mac::
+
+    $ which aws-login
+    /usr/local/bin/aws-login
+
+* Windows::
+
+    $ Get-Command aws-login
+
+    CommandType     Name                                               Version    Source
+    -----------     ----                                               -------    ------
+    Application     aws-login.exe                                      0.0.0.0    C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts\aws-login.exe
+
+Upgrade
+=======
+
+If you are upgrading from ``awscli-login`` version ``0.2b1`` or
+earlier, please follow the `Installation`_ instructions above, then
+proceed to the `Getting Started`_ section below to reconfigure your
+profiles which is required.
+
+Reconfiguration is required because in previous versions of
+``awscli-login`` credentials were directly stored in AWS CLI's
+credentials file ``~/.aws/credentials``. This is no longer the case.
+Now each profile contains a reference to the ``aws-login`` script.
+
+Previously ``~/.aws/credentials`` would have looked looked like this
+after a log out::
+
+    [default]
+    aws_access_key_id = abc
+    aws_secret_access_key = def
+    aws_session_token = ghi
+    aws_security_token = ghi
+
+After a reconfiguration, the example ``~/.aws/credentials`` file
+above should look like this::
+
+    [default]
+    credential_process = aws-login --profile default
+
+If you attempt to log into a profile that has not been reconfigured
+you will receive the following error message::
+
+    $ aws login
+    Credential process is not set for current profile "foo".
+    Reconfigure using:
+
+    aws login configure
+
 Getting Started
 ===============
 

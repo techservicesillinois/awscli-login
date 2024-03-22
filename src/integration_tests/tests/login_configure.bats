@@ -8,10 +8,10 @@ load 'base'
 
     run aws login
     ! read -r -d '' ERROR_MESG <<- EOF  # NOTA BENE: <<- strips tabs
-		The login profile default could not be found!$CR
-		Configure the profile with the following command:$CR
+		Credential process is not set for current profile "default".$CR
+		Reconfigure using:$CR
 		$CR
-		aws login configure --profile default
+		aws login configure
 	EOF
     assert_output "$ERROR_MESG"
 }

@@ -8,6 +8,7 @@ cache
 dist
 htmlcov
 venv
+venv.v2
 docs/src/
 
 .*.docker
