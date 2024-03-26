@@ -2,7 +2,7 @@ from unittest.mock import call, patch
 
 from botocore.session import Session
 
-from awscli_login.plugin.configure import configure
+from awscli_login.configure import configure
 from .base import CleanTestEnvironment
 from .util import login_cli_args
 

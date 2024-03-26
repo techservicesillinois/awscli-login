@@ -2,16 +2,27 @@ import logging
 
 from datetime import datetime
 
-from botocore import client as Client
-from botocore.session import Session
+try:
+    from botocore import client as Client
+except ImportError:  # pragma: no cover
+    class Client():  # type: ignore
+        pass
 
-from ..config import Profile
-from ..exceptions import AlreadyLoggedIn, AlreadyLoggedOut
-from ..saml import authenticate, refresh
-from .._typing import Role
-from ..util import get_selection
-from .util import error_handler
-from .util import raise_if_credential_process_not_set
+try:
+    from botocore.session import Session
+except ImportError:  # pragma: no cover
+    class Session():  # type: ignore
+        pass
+
+
+from .config import Profile, error_handler
+from .exceptions import AlreadyLoggedIn, AlreadyLoggedOut
+from .saml import authenticate, refresh
+from ._typing import Role
+from .util import (
+    get_selection,
+    raise_if_credential_process_not_set,
+)
 
 logger = logging.getLogger(__package__)
 

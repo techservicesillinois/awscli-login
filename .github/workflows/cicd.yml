@@ -89,7 +89,8 @@ jobs:
     - name: Set setuptools_scm environment variable
       shell: bash
       run: |
-        echo SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN=`PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(__version__)'` >> $GITHUB_ENV
+        PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN={__version__}")' > "$RUNNER_TEMP/_awscli_version"
+        cat "$RUNNER_TEMP/_awscli_version" >> "$GITHUB_ENV"
 
     - name: Touch build artifacts
       run: |
@@ -200,10 +201,14 @@ jobs:
       with:
         name: build
 
+    # setuptools_scm sometimes will regenerate _version.py which causes
+    # Makefile to rebuild things. To avoid unnecessary rebuilds we set the
+    # following environment variable.
     - name: Set setuptools_scm environment variable
       shell: bash
       run: |
-        echo SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN=`PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(__version__)'` >> $GITHUB_ENV
+        PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN={__version__}")' > "$RUNNER_TEMP/_awscli_version"
+        cat "$RUNNER_TEMP/_awscli_version" >> "$GITHUB_ENV"
 
     - name: Touch build artifacts
       run: |
@@ -276,6 +281,23 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: build
+
+    # setuptools_scm sometimes will regenerate _version.py which causes
+    # Makefile to rebuild things. To avoid unnecessary rebuilds we set the
+    # following environment variable.
+    - name: Set setuptools_scm environment variable
+      shell: bash
+      run: |
+        PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN={__version__}")' > "$RUNNER_TEMP/_awscli_version"
+        cat "$RUNNER_TEMP/_awscli_version" >> "$GITHUB_ENV"
+
+    - name: Touch build artifacts
+      run: |
+        touch docs/readme.rst
+        touch src/awscli_login/_version.py
+        touch dist/*  # Must be newer than docs/readme.rst
+        touch .twinecheck  # Must be newer than build
+        touch .lint .static
 
     - name: Publish to PyPI
       if: startsWith(github.ref, 'refs/tags')
