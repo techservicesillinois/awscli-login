@@ -46,7 +46,7 @@ deps-test:
 
 # Python packages needed to run integration_tests tests
 deps-integration-test:
-	$(PIP) vcrpy
+	$(PIP) awscli vcrpy
 
 # Python packages needed to publish a production or test release
 deps-publish:

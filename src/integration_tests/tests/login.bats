@@ -7,14 +7,18 @@ load 'common'
 		[default]$CR
 		credential_process = aws-login --profile default
 	EOF
-
+    if [ -v AWSCLI_TEST_V2 ]; then
+	    export ZONE="+00:00"
+	else
+		export ZONE="Z"
+	fi
     ! read -r -d '' CREDS <<- EOF
 		[default]$CR
 		aws_access_key_id = ABCDEFGHIJKLMNOPQRST$CR
 		aws_secret_access_key = SUPER DUPER SECRET KEY$CR
 		aws_session_token = BOGUS TOKEN$CR
 		aws_security_token = BOGUS TOKEN$CR
-		expiration = 2222-09-06T22:28:39Z$CR
+		expiration = 2222-09-06T22:28:39$ZONE$CR
 		aws_principal_arn = arn:aws:iam::123456789010:saml-provider/shibboleth.illinois.edu$CR
 		aws_role_arn = arn:aws:iam::123456789010:role/Team$CR
 		username = netid

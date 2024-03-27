@@ -252,6 +252,79 @@ jobs:
       env:
         AWSCLI_LOGIN_WINDOWS_TEST: 1
 
+  awscliv2_test:
+    runs-on: ${{ matrix.os }}
+    needs: build
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11"]
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: build
+
+    - name: Get pip cache dir
+      id: pip-cache
+      run: echo "::set-output name=dir::$(python -m pip cache dir)"
+
+    - name: Save pip cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
+
+    - name: Get date
+      id: date
+      run: echo "::set-output name=week::$(date '+%U')"
+
+    - name: Install awscli-login package
+      shell: bash
+      run: |
+        python -m venv $RUNNER_TEMP/venv
+        # Why is this symlink NOT created by venv?
+        # /home/runner/work/_temp/venv/lib/python3
+        ln -s $RUNNER_TEMP/venv/lib/python3.* $RUNNER_TEMP/venv/lib/python3
+        $RUNNER_TEMP/venv/bin/python -m pip install dist/awscli_login*.whl
+
+    - name: Install AWS CLI v2
+      shell: bash
+      run: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "$RUNNER_TEMP/awscliv2.zip"
+        unzip -qd $RUNNER_TEMP "$RUNNER_TEMP/awscliv2.zip"
+        $RUNNER_TEMP/aws/install -i $RUNNER_TEMP -b $RUNNER_TEMP/bin
+
+    - name: Integration Tests (POSIX)
+      if: matrix.os != 'windows-latest'
+      shell: bash
+      run: |
+        export PATH=$RUNNER_TEMP/bin:$PATH
+        make integration-tests
+      env:
+        AWSCLI_TEST_V2: 1
+        AWSCLI_TEST_PLUGIN_PATH: ${{ runner.temp }}/venv/lib/python${{ matrix.python-version }}/site-packages
+
+    - name: Integration Tests (Windows)
+      if: matrix.os == 'windows-latest'
+      run: make integration-tests
+      env:
+        AWSCLI_LOGIN_WINDOWS_TEST: 1
+
+    - name: AWS Version
+      run: aws --version
+
   publish:
     needs: [unit_tests, integration_tests]
     runs-on: ubuntu-latest
