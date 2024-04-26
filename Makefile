@@ -15,7 +15,7 @@ HTML := htmlcov/index.html
 TOX := tox -e wheel -qq --skip-pkg-install
 TOX_ENV := .tox/wheel/pyvenv.cfg
 WHEEL := $(MODULE_NAME)-$(VERSION)-py3-none-any.whl
-SDIST := $(PACKAGE_NAME)-$(VERSION).tar.gz
+SDIST := $(MODULE_NAME)-$(VERSION).tar.gz
 RELEASE := dist/$(WHEEL) dist/$(SDIST)
 PIP := python -m pip install --upgrade --upgrade-strategy eager
 
