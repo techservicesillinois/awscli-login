@@ -405,3 +405,16 @@ the location of a Windows install of awscli::
 To remedy this issue please ensure that the location where the
 awscli is installed in the WSL comes before the location of the
 Windows install in the WSL PATH environment variable.
+
+
+lxml import errors on macOS
+---------------------------
+
+On M1 and M2 Apple MacBooks you may receive the following error at runtime::
+
+    ImportError: dlopen(/Users/ddriddle/.pyenv/versions/3.8.16/lib/python3.8/site-packages/lxml/etree.cpython-38-darwin.so, 0x0002): symbol not found in flat namespace '_exsltDateXpathCtxtRegister'
+
+This can be fixed by removing and compiling lxml::
+
+    pip uninstall lxml
+    PIP_NO_BINARY=lxml pip install lxml

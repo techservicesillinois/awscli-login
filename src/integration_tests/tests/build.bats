@@ -11,6 +11,6 @@ setup() {
 }
 
 @test "Install from source distribution" {
-    run pip install --no-deps ../../dist/awscli-login*.tar.gz
+    run pip install --no-deps ../../dist/awscli_login*.tar.gz
     assert_success
 }

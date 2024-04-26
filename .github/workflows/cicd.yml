@@ -153,8 +153,16 @@ jobs:
         python -m pip install --upgrade --upgrade-strategy eager tox wheel
 
     - name: Update Python wheel cache
-      if: steps.cache.outputs.valid != 'true'
+      if: steps.cache.outputs.valid != 'true' && matrix.os != 'macos-latest'
       run: make cache
+
+    # Compile lxml on ARM macOS systems to avoid bad wheels on PyPI.
+    # See issue #189.
+    - name: Update Python wheel cache (macOS)
+      if: steps.cache.outputs.valid != 'true' && matrix.os == 'macos-latest'
+      run: make cache
+      env:
+        PIP_NO_BINARY: 'lxml'
 
     - name: Install
       if: steps.tox.outputs.valid != 'true'
