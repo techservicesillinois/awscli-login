@@ -2,3 +2,5 @@
 branch=True
 source=src/awscli_login
 # concurrency=multiprocessing
+omit =
+    src/awscli_login/_version.py
