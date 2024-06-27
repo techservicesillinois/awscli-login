@@ -197,17 +197,6 @@ def _aws_get(session: Session, varname: str) -> str:
     return get_command._get_dotted_config_value(varname)
 
 
-def credentials_exist(session: Session) -> bool:
-    """ Return True if credentials exist. """
-    if _aws_get(session, 'aws_access_key_id'):
-        return True
-
-    if _aws_get(session, 'aws_secret_access_key'):
-        return True
-
-    return False
-
-
 def _safe_aws_set(session, **kwargs):
     if input('Overwrite to enable login? ').lower() in ['y', 'yes']:
         for k, v in kwargs.items():
