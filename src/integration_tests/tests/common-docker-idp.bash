@@ -14,6 +14,11 @@ setup() {
     if [ $RUNNER_OS == "Windows" ]; then
         skip "Windows runners do not support Docker IdP integration tests."
     fi
+
+    if [ $RUNNER_OS == "macOS" ]; then
+        skip "macOS runners do not support Docker IdP integration tests."
+    fi
+
     
     aws login configure <<- EOF  # NOTA BENE: <<- strips tabs
 		https://localhost:8443/idp/profile/SAML2/SOAP/ECP

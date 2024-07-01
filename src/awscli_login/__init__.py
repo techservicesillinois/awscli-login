@@ -1,8 +1,12 @@
 # Rudimentary documentation for the aws-cli plugin API can be found
 # here: https://github.com/aws/aws-cli/issues/1261
+import copy
+import json
 import logging
+import subprocess
 
 from argparse import Namespace
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 try:
     from awscli.customizations.commands import BasicCommand
@@ -16,8 +20,7 @@ except ImportError:  # pragma: no cover
     class Session():  # type: ignore
         pass
 
-from .__main__ import main, logout
-from .configure import configure
+from .configure import configure, exit_if_credential_process_not_set
 
 logger = logging.getLogger(__package__)
 
@@ -43,7 +46,26 @@ def inject_subcommands(command_table, session: Session, **kwargs):
     command_table['configure'] = Configure(session)
 
 
-class Login(BasicCommand):
+class ExternalCommand(BasicCommand):
+    """
+    Used to run subcommands in the external aws-login script.
+    """
+
+    def _run_main(self, args: Namespace, parsed_globals):
+        with TemporaryDirectory() as tmpdir:
+            tmp = NamedTemporaryFile(dir=tmpdir, delete=False)
+            tmp.write(bytes(json.dumps(vars(args)), 'utf-8'))
+            tmp.close()
+
+            cmd = ["aws-login", self.flag, tmp.name]
+            if self._session.profile:
+                cmd += ["--profile", self._session.profile]
+
+            return subprocess.run(cmd).returncode
+
+
+class Login(ExternalCommand):
+    flag = "--login"
     NAME = 'login'
     DESCRIPTION = ('is a plugin that manages retrieving and rotating'
                    ' Amazon STS keys using the Shibboleth IdP and Duo'
@@ -144,10 +166,15 @@ class Login(BasicCommand):
     UPDATE = False
 
     def _run_main(self, args: Namespace, parsed_globals):
-        return main(args, self._session)
+        r = exit_if_credential_process_not_set(copy.copy(args), self._session)
+        if r:
+            return r
+        else:
+            return super()._run_main(args, self._session)
 
 
-class Logout(BasicCommand):
+class Logout(ExternalCommand):
+    flag = "--logout"
     NAME = 'logout'
     DESCRIPTION = ("Kills the process that renews the user's"
                    " credentials.")
@@ -164,9 +191,6 @@ class Logout(BasicCommand):
     ]
 
     UPDATE = False
-
-    def _run_main(self, args: Namespace, parsed_globals):
-        return logout(args, self._session)
 
 
 class Configure(BasicCommand):
