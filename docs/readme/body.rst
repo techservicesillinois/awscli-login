@@ -1,3 +1,40 @@
+
+After awscli-login has been installed, run the following command
+to enable the plugin::
+
+    $ aws configure set plugins.login awscli_login
+
+The path to the site packages directory where `awscli-login` resides
+must be supplied as well. This can be looked up using the following
+command::
+
+    $ pip show awscli-login
+    Name: awscli-login
+    Version: 0.2b2.dev64
+    Summary: Plugin for the AWS CLI that retrieves and rotates credentials using SAML ECP and STS.
+    Home-page:
+    Author:
+    Author-email: "David D. Riddle" <ddriddle@illinois.edu>
+    License: MIT License
+    Location: /usr/lib/python3.12/site-packages
+    Requires: botocore, keyring, lxml, requests
+    Required-by:
+
+The `Location` field has the required path information. In the
+example above the required path is `/usr/lib/python3.12/site-packages`.
+This will likely be different on your system. To set the example
+path run the following command::
+
+    $ aws configure set plugins.cli_legacy_plugin_path /usr/lib/python3.12/site-packages
+
+On POSIX systems such as macOS and Linux the preceding can be set
+more easily using the following one-liner::
+
+    $ aws configure set plugins.cli_legacy_plugin_path $(pip show awscli-login | sed -nr 's/^Location: (.*)/\1/p')
+
+If you receive a bad interpreter error or other error please see
+the `Known Issues`_ section below.
+
 Getting Started
 ===============
 
