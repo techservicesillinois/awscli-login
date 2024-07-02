@@ -47,7 +47,23 @@ Linux/Mac::
 
 Windows::
 
-    $ $env:PATH+='C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts'
+    $ $env:PATH+=';C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts'
+
+Verify that ``aws-login`` appears on your PATH:
+
+Linux/Mac::
+
+    $ which aws-login
+
+    ...TODO example which output...
+
+Windows::
+
+    $ Get-Command aws-login
+
+    CommandType     Name                                               Version    Source
+    -----------     ----                                               -------    ------
+    Application     aws-login.exe                                      0.0.0.0    C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts\aws-login.exe
 
 Getting Started
 ===============
