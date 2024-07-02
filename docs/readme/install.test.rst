@@ -1,5 +1,3 @@
-The simplest way to install the awscli-login plugin is to use pip.
-
 There can be issues installing with older versions of `setuptools`,
 so we recommend ensuring setuptools is up to date before installing.
 To ensure that the dependencies installed are not test versions you
