@@ -43,11 +43,11 @@ The path will likely look something like ``<<your package directory>>\Python\Pyt
 
 Linux/Mac::
 
-    $ export PATH='<<your package directory>>\Python\Python312\bin' (TODO: Tweak this to be closer)
+    $ export PATH="$PATH:<<your package directory>>/Python/Python312/bin" (TODO: Tweak this to be closer)
 
 Windows::
 
-    $ $env:PATH='C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts'
+    $ $env:PATH+='C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts'
 
 Getting Started
 ===============
