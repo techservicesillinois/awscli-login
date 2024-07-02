@@ -1,3 +1,5 @@
+Configuration
+=============
 
 After awscli-login has been installed, run the following command
 to enable the plugin::
