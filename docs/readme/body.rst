@@ -22,12 +22,11 @@ command::
     Requires: botocore, keyring, lxml, requests
     Required-by:
 
-The `Location` field has the required path information. In the
-example above the required path is `/usr/lib/python3.12/site-packages`.
-This will likely be different on your system. To set the example
-path run the following command::
+The `Location` field has the required path information, and must be passed to ``aws configure``::
 
-    $ aws configure set plugins.cli_legacy_plugin_path /usr/lib/python3.12/site-packages
+    $ aws configure set plugins.cli_legacy_plugin_path <<PASTE ``Location`` HERE>>
+
+Tip: If your output matched the example above, you would paste in ``/usr/lib/python3.12/site-packages``
 
 On POSIX systems such as macOS and Linux the preceding can be set
 more easily using the following one-liner::
