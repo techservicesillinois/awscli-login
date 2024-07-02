@@ -36,6 +36,19 @@ more easily using the following one-liner::
 If you receive a bad interpreter error or other error please see
 the `Known Issues`_ section below.
 
+The command or script ``aws-login`` must be on your `PATH`.
+
+``pip show awscli-login --files`` should show the location of ``aws-login`` or ``aws-login.exe``.
+The path will likely look something like ``<<your package directory>>\Python\Python312\Scripts``.
+
+Linux/Mac::
+
+    $ export PATH='<<your package directory>>\Python\Python312\bin' (TODO: Tweak this to be closer)
+
+Windows::
+
+    $ $env:PATH='C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts'
+
 Getting Started
 ===============
 
