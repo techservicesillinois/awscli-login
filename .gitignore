@@ -6,8 +6,10 @@
 __pycache__
 cache
 dist
+build
 htmlcov
 venv
+venv.v2
 docs/src/
 
 .*.docker

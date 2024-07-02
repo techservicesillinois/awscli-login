@@ -6,7 +6,6 @@ build-backend = "setuptools.build_meta"
 name = "awscli-login"
 dynamic = ["version"]
 dependencies = [
-       "awscli",
        "botocore",
        "keyring",
        "lxml",
@@ -42,6 +41,7 @@ Changelog = "https://github.com/techservicesillinois/awscli-login/blob/master/CH
 
 [project.optional-dependencies]
 test = [
+    "awscli",
     "tblib",
     "wurlitzer",
     "vcrpy",

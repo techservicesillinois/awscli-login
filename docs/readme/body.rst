@@ -1,3 +1,70 @@
+Configuration
+=============
+
+After awscli-login has been installed, run the following command
+to enable the plugin::
+
+    $ aws configure set plugins.login awscli_login
+
+The path to the site packages directory where `awscli-login` resides
+must be supplied as well. This can be looked up using the following
+command::
+
+    $ pip show awscli-login
+    Name: awscli-login
+    Version: 0.2b2.dev64
+    Summary: Plugin for the AWS CLI that retrieves and rotates credentials using SAML ECP and STS.
+    Home-page:
+    Author:
+    Author-email: "David D. Riddle" <ddriddle@illinois.edu>
+    License: MIT License
+    Location: /usr/lib/python3.12/site-packages
+    Requires: botocore, keyring, lxml, requests
+    Required-by:
+
+The `Location` field has the required path information, and must be passed to ``aws configure``::
+
+    $ aws configure set plugins.cli_legacy_plugin_path <<PASTE ``Location`` HERE>>
+
+Tip: If your output matched the example above, you would paste in ``/usr/lib/python3.12/site-packages``
+
+On POSIX systems such as macOS and Linux the preceding can be set
+more easily using the following one-liner::
+
+    $ aws configure set plugins.cli_legacy_plugin_path $(pip show awscli-login | sed -nr 's/^Location: (.*)/\1/p')
+
+If you receive a bad interpreter error or other error please see
+the `Known Issues`_ section below.
+
+The command or script ``aws-login`` must be on your `PATH`.
+
+``pip show awscli-login --files`` should show the location of ``aws-login`` or ``aws-login.exe``.
+The path will likely look something like ``<<your package directory>>\Python\Python312\Scripts``.
+
+Linux/Mac::
+
+    $ export PATH="$PATH:<<your package directory>>/Python/Python312/bin" (TODO: Tweak this to be closer)
+
+Windows::
+
+    $ $env:PATH+=';C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts'
+
+Verify that ``aws-login`` appears on your PATH:
+
+Linux/Mac::
+
+    $ which aws-login
+
+    ...TODO example which output...
+
+Windows::
+
+    $ Get-Command aws-login
+
+    CommandType     Name                                               Version    Source
+    -----------     ----                                               -------    ------
+    Application     aws-login.exe                                      0.0.0.0    C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts\aws-login.exe
+
 Getting Started
 ===============
 
