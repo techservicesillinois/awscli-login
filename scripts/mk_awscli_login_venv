@@ -1,0 +1,120 @@
+#!/bin/bash
+read -r -d '' HELP <<'EOF'
+usage: mk_awscli_login_venv [-c] ENV_DIR
+
+Creates a virtual Python environments in ENV_DIR for testing awscli-login.
+
+positional arguments:
+  ENV_DIR               A directory to create the environment in.
+
+options:
+  -h                    Show this help message and exit
+  -c                    Copy contents of ~/.aws and ~/.aws-login to ENV_DIR
+
+Once an environment has been created, you may wish to activate it, e.g. by
+sourcing the activate script in its bin directory:
+
+    source ENV_DIR/bin/activate
+EOF
+
+usage() {
+    echo "$HELP" 1>&2
+}
+
+OPTSTRING=":ch"
+while getopts ${OPTSTRING} opt; do
+  case ${opt} in
+    c)
+      COPY=1
+      ;;
+    h)
+      usage
+      exit 0
+      ;;
+    ?)
+      usage
+      echo "$0: Invalid option: -${OPTARG}."
+      exit 1
+      ;;
+  esac
+done
+shift $((OPTIND-1))
+
+if [ $# -ne 1 ] ; then
+    usage
+    echo "$0: Illegal number of arguments"
+    exit 2
+fi
+
+set -e  # Exit on error
+python -m venv $1
+
+cat << ADDENDUM >> $1/bin/activate
+# Addendum added by mk_awscli_login_venv
+eval "_\$(declare -f deactivate)"  # Rename deactivate to _deactivate
+
+deactivate () {
+    if [ -n "\${_OLD_AWSCLI_LOGIN_ROOT:-}" ] ; then
+        AWSCLI_LOGIN_ROOT="\${_OLD_AWSCLI_LOGIN_ROOT:-}"
+        export AWSCLI_LOGIN_ROOT
+        unset _OLD_AWSCLI_LOGIN_ROOT
+    else
+        unset AWSCLI_LOGIN_ROOT
+    fi
+
+    if [ -n "\${_OLD_AWS_CONFIG_FILE:-}" ] ; then
+        AWS_CONFIG_FILE="\${_OLD_AWS_CONFIG_FILE:-}"
+        export AWS_CONFIG_FILE
+        unset _OLD_AWS_CONFIG_FILE
+    else
+        unset AWS_CONFIG_FILE
+    fi
+
+
+    if [ -n "\${_OLD_AWS_SHARED_CREDENTIALS_FILE:-}" ] ; then
+        AWS_SHARED_CREDENTIALS_FILE="\${_OLD_AWS_SHARED_CREDENTIALS_FILE:-}"
+        export AWS_SHARED_CREDENTIALS_FILE
+        unset _OLD_AWS_SHARED_CREDENTIALS_FILE
+    else
+        unset AWS_SHARED_CREDENTIALS_FILE
+    fi
+
+    # These two lines must come last!
+    _deactivate
+    unset -f _deactivate
+}
+
+if [ -n "\${_OLD_VIRTUAL_PS1:-}" ] ; then
+    _OLD_VIRTUAL_ENV_PROMPT="\${VIRTUAL_ENV_PROMPT:-}"
+    VIRTUAL_ENV_PROMPT="(awscli-login) "
+    export VIRTUAL_ENV_PROMPT
+
+    PS1="\${VIRTUAL_ENV_PROMPT:-}\${_OLD_VIRTUAL_PS1:-}"
+    export PS1
+fi
+
+if [ -n "\${AWSCLI_LOGIN_ROOT:-}" ] ; then
+    _OLD_AWSCLI_LOGIN_ROOT="\${AWSCLI_LOGIN_ROOT:-}"
+fi
+AWSCLI_LOGIN_ROOT="\$VIRTUAL_ENV"
+export AWSCLI_LOGIN_ROOT
+
+if [ -n "\${AWS_CONFIG_FILE:-}" ] ; then
+    _OLD_AWS_CONFIG_FILE="\${AWS_CONFIG_FILE:-}"
+fi
+export AWS_CONFIG_FILE="\$VIRTUAL_ENV/.aws/config"
+export AWS_CONFIG_FILE
+
+if [ -n "\${AWS_SHARED_CREDENTIALS_FILE:-}" ] ; then
+    _OLD_AWS_SHARED_CREDENTIALS_FILE="\${AWS_SHARED_CREDENTIALS_FILE:-}"
+fi
+export AWS_SHARED_CREDENTIALS_FILE="\$VIRTUAL_ENV/.aws/credentials"
+export AWS_SHARED_CREDENTIALS_FILE
+# End of addendum
+ADDENDUM
+
+set +e  # Don't exit on error
+if [ -n "$COPY" ]; then
+    cp -r ~/.aws $1
+    cp -r ~/.aws-login $1
+fi
