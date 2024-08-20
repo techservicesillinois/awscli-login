@@ -314,7 +314,44 @@ credential_process = aws-login --profile foo
 """
 
         session = Session()
-        update_credential_file(session, self.profile)
+        self.assertTrue(update_credential_file(session, self.profile))
+        self.assertAwsCredentialsEquals(credentials)
+
+    @patch('builtins.input', return_value='n')
+    def test_update_credential_no_change(self, mock_input):
+        """ Ensure credentials are not updated if user answers no """
+        self.profile = 'wtf'
+        credentials = self.aws_credentials
+
+        session = Session()
+        self.assertFalse(update_credential_file(session, self.profile))
+        self.assertAwsCredentialsEquals(credentials)
+        mock_input.assert_called_once()
+
+    @patch('builtins.input', return_value='y')
+    def test_update_credential_file_keys_are_removed(self, *args):
+        """ Ensure old keys are removed  ~/.aws/credentials """
+        credentials = """
+# This is an example credentials files with comments
+# and old entries
+
+[default]
+aws_access_key_id = abc
+aws_secret_access_key = def
+aws_session_token = ghi
+aws_security_token = ghi
+
+# Test
+
+[wtf]
+credential_process = aws-login --profile wtf
+
+# Test
+"""
+
+        self.profile = 'wtf'
+        session = Session()
+        self.assertTrue(update_credential_file(session, self.profile))
         self.assertAwsCredentialsEquals(credentials)
 
 

@@ -2,13 +2,20 @@ import logging
 import os
 
 from argparse import Namespace
+from configparser import ConfigParser, NoSectionError
 from shutil import which
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
-    from awscli.customizations.configure.set import ConfigureSetCommand
+    from awscli.customizations.configure import SectionNotFoundError
 except ImportError:  # pragma: no cover
     pass
+
+try:
+    from awscli.customizations.configure.writer import ConfigFileWriter
+except ImportError:  # pragma: no cover
+    class ConfigFileWriter:  # type: ignore
+        pass
 
 try:
     from awscli.customizations.configure.get import ConfigureGetCommand
@@ -21,10 +28,14 @@ except ImportError:  # pragma: no cover
     class Session:  # type: ignore
         pass
 
-from .const import ERROR_INVALID_PROFILE_ROLE
+from .const import (
+    ERROR_INVALID_PROFILE_ROLE,
+    OVERWRITE_PROFILE,
+    WARNING_PROFILE_CONTAINS_CREDS,
+    YES,
+)
 from .exceptions import (
     ConfigError,
-    ConfigurationFailed,
     CredentialProcessMisconfigured,
     CredentialProcessNotSet,
     InvalidSelection,
@@ -171,23 +182,6 @@ def token(access_key_id="", secret_access_key_id="",
     return token
 
 
-class Args:
-    """ A stub class for passing arguments to ConfigureSetCommand """
-
-    def __init__(self, varname: str, value: str) -> None:
-        self.varname = varname
-        self.value = value
-
-
-def _aws_set(session: Session, varname: str, value: str) -> None:
-    """ The function is the same as running:
-
-    $ aws configure set varname value
-    """
-    set_command = ConfigureSetCommand(session)
-    set_command._run_main(Args(varname, value), parsed_globals=None)
-
-
 def _aws_get(session: Session, varname: str) -> str:
     """ The function is the same as running:
 
@@ -197,34 +191,93 @@ def _aws_get(session: Session, varname: str) -> str:
     return get_command._get_dotted_config_value(varname)
 
 
-def _safe_aws_set(session, **kwargs):
-    if input('Overwrite to enable login? ').lower() in ['y', 'yes']:
-        for k, v in kwargs.items():
-            _aws_set(session, k, v)
-    else:
-        raise ConfigurationFailed
+def aws_credentials_file_path(session):
+    path = session.get_config_variable("credentials_file")
+    return os.path.expanduser(path)
+
+
+def get_aws_credentials(session, profile):
+    config = ConfigParser()
+    config.read(aws_credentials_file_path(session))
+    try:
+        return dict(config.items(profile))
+    except NoSectionError:
+        return None
+
+
+class ClearConfigFileWriter(ConfigFileWriter):
+
+    def issection(self, line):
+        """Return True if line is a valid INI section header.
+
+            >>> writer.isSection("[default]")
+            True
+        """
+        return self.SECTION_REGEX.search(line) is not None
+
+    def isoption(self, line):
+        """Return true if line is a valid INI property.
+
+            >>> writer.isOption("foo = bar")
+            True
+        """
+        return self.OPTION_REGEX.search(line)
+
+    def clear_section(self, filename, section, new_values):
+        """ Clear section and append new_values. Create file & section
+        if they do not exit. """
+        try:
+            with open(filename, 'r') as f:
+                lines = f.readlines()
+
+            # clear section if it exists
+            j = self._find_section_start(lines, section) + 1
+            i = j
+            for line in lines[j:]:
+                if self.issection(line):
+                    break
+
+                if self.isoption(line):
+                    lines.pop(i)
+                else:
+                    i += 1
+
+            # append data to start of section
+            for key, value in new_values.items():
+                lines.insert(j, f"{key} = {value}\n")
+
+            with open(filename, 'w') as f:
+                f.write(''.join(lines))
+        except (FileNotFoundError, SectionNotFoundError):
+            # create file or section as needed then append data to section
+            if section != 'default':
+                new_values['__section__'] = section
+
+            self.update_config(new_values, filename)
 
 
 def update_credential_file(session: Session, profile: str):
     """Adds credential_process to ~/.aws/credentials
     file for active profile."""
-    key_id = _aws_get(session, 'aws_access_key_id')
-    access_key = _aws_get(session, 'aws_secret_access_key')
-    session_token = _aws_get(session, 'aws_session_token')
+    writer = ClearConfigFileWriter()
+    creds = get_aws_credentials(session, profile)
+    new_values = {"credential_process": f'aws-login --profile {profile}'}
 
-    if key_id or access_key or session_token:
-        print(f'WARNING: Profile {profile} contains credentials.')
-        _safe_aws_set(session, aws_access_key_id='', aws_secret_access_key='',
-                      aws_session_token='')
+    if creds is not None:
+        keys = ["aws_access_key_id", "aws_secret_access_key",
+                "aws_session_token", "aws_security_token"]
+        if set(creds.keys()).intersection(keys):
+            logger.warn(WARNING_PROFILE_CONTAINS_CREDS % profile)
 
-    cmd = f'aws-login --profile {profile}'
-    ConfigureSetCommand._WRITE_TO_CREDS_FILE.append("credential_process")
-    current_cmd = _aws_get(session, 'credential_process')
-    if not current_cmd:
-        _aws_set(session, 'credential_process', cmd)
-    elif current_cmd != cmd:
-        print(f'WARNING: credential_process set to: {current_cmd}.')
-        _safe_aws_set(session, credential_process=cmd)
+        cproc = "credential_process"
+        if len(creds) > 1 or cproc not in creds or \
+           not creds[cproc].endswith(new_values[cproc]):
+            if input(OVERWRITE_PROFILE % profile).lower() not in YES:
+                return False
+
+    path = aws_credentials_file_path(session)
+    writer.clear_section(path, profile, new_values)
+    return True
 
 
 def raise_if_credential_process_not_set(
