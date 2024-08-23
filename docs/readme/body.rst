@@ -119,8 +119,8 @@ like this in your shell's start-up script:
 
     $ awsprofile () { [ "$1" ] && export AWS_PROFILE=$1 || unset AWS_PROFILE; }
 
-Using this alias, you can set the profile for the aws login and other aws
-commands to use:
+This function should work on any Bourne compatible shell (bash, zsh, ksh, dash, etc). 
+Using this function, you can set the profile for the aws login and other aws commands to use:
 
     $ awsprofile prod
     $ aws login
