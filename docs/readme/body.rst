@@ -114,7 +114,7 @@ prompted for a password because it is stored in the keyring. The
 user will receive either a phone call or a push to the default
 Duo device.
 
-For an easier way to switch between multiple profiles, consider an alias
+For an easier way to switch between multiple profiles, consider adding a shell function
 like this in your shell's start-up script:
 
     $ awsprofile () { [ "$1" ] && export AWS_PROFILE=$1 || unset AWS_PROFILE; }
