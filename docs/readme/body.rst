@@ -114,6 +114,27 @@ prompted for a password because it is stored in the keyring. The
 user will receive either a phone call or a push to the default
 Duo device.
 
+For an easier way to switch between multiple profiles, consider adding a shell function
+like this in your shell's start-up script:
+
+    $ awsprofile () { [ "$1" ] && export AWS_PROFILE=$1 || unset AWS_PROFILE; }
+
+This function should work on any Bourne compatible shell (bash, zsh, ksh, dash, etc). 
+Using this function, you can set the profile for the aws login and other aws commands to use:
+
+    $ awsprofile prod
+    $ aws login
+    $ aws s3 ls
+    $ awsprofile test
+    $ aws login
+    $ aws s3 ls
+
+The above would log into the prod profile and do an s3 ls then switch to
+the test profile and do an s3 ls in that profile. You're now logged into
+both profiles simultaneously and can switch between them by issuing
+awsprofile commands. Additionally, you can run awsprofile without any
+profile name to clear $AWS_PROFILE.
+
 Advanced Configuration
 ======================
 
