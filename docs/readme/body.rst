@@ -133,8 +133,7 @@ The above would log into the prod profile and do an s3 ls then switch to
 the test profile and do an s3 ls in that profile. You're now logged into
 both profiles simultaneously and can switch between them by issuing
 awsprofile commands. Additionally, you can run awsprofile without any
-profile name to clear $AWS_PROFILE if you want to make sure no active
-profile is selected.
+profile name to clear $AWS_PROFILE.
 
 Advanced Configuration
 ======================
