@@ -104,11 +104,11 @@ test: lint static check .coverage
 
 idp: .idp.docker
 .idp.docker:
-	docker-compose up -d
+	docker compose up -d
 	@touch $@
 
 idp-down:
-	docker-compose down --rmi all
+	docker compose down --rmi all
 	rm -f .idp.docker
 
 .install-build: $(RELEASE)
