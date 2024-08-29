@@ -115,8 +115,19 @@ idp-down:
 install-build: .install-build
 	pip install dist/$(WHEEL)
 
+# Some integration tests require Linux containers for the
+# IdP. HyperV is required by Docker but NOT supported by
+# Github Action's Windows VMs.
+# https://github.com/actions/runner-images/issues/2216
 ifeq ($(RUNNER_OS),Windows)
     idp_integration_deps=
+integration-tests: export AWSCLI_LOGIN_SKIP_DOCKER_TESTS=1
+integration-tests: export AWSCLI_LOGIN_WINDOWS_TEST=1
+# As of 9/13/2024, macos-latest does not support docker. This may
+# change by the end of the year. See issue #208.
+else ifeq ($(RUNNER_OS),macOS)
+    idp_integration_deps=
+integration-tests: export AWSCLI_LOGIN_SKIP_DOCKER_TESTS=1
 else
     idp_integration_deps=.idp.docker
 endif
