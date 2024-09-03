@@ -79,7 +79,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Download build artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4.1.7
       with:
         name: build
 
@@ -205,7 +205,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Download build artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4.1.7
       with:
         name: build
 
@@ -286,7 +286,7 @@ jobs:
         make deps-publish
 
     - name: Download build artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4.1.7
       with:
         name: build
 
