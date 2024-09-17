@@ -504,14 +504,15 @@ def _error_handler(Profile, skip_args=True, validate=False):
             sig = None
 
             try:
-                # verbosity can only be set at command line
-                configConsoleLogger(args.verbose)
-                del args.verbose
-                filename, load = config_vcr(args)
-
                 if not skip_args:
+                    # verbosity can only be set at command line
+                    configConsoleLogger(args.verbose)
+                    del args.verbose
+
+                    filename, load = config_vcr(args)
                     profile = Profile(session, args, validate)
                 else:
+                    filename, load = (None, None)
                     profile = Profile(session, None, validate)
 
                 if load is not None and filename is not None:
