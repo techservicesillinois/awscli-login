@@ -132,6 +132,7 @@ else
     idp_integration_deps=.idp.docker
 endif
 integration-tests: $(idp_integration_deps)
+	aws --version 2>/dev/null | grep '^aws-cli/1.' || (echo "Not running awscli V1!"; exit 1)
 	make -C src/integration_tests/
 
 ifeq ($(RUNNER_OS),Windows)
