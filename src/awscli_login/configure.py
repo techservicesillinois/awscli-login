@@ -5,7 +5,7 @@ except ImportError:  # pragma: no cover
         pass
 
 from .config import Profile, error_handler
-from .util import update_credential_file, raise_if_credential_process_not_set
+from .util import update_credential_file
 
 
 @error_handler()
@@ -15,10 +15,3 @@ def configure(profile: Profile, session: Session, interactive: bool = True):
         return
 
     profile.update()
-
-
-@error_handler()
-def exit_if_credential_process_not_set(profile: Profile, session: Session):
-    """ Interactive login profile configuration. """
-    session.set_credentials(None, None)  # Disable credential lookup
-    raise_if_credential_process_not_set(session, profile.name)

@@ -89,8 +89,10 @@ class Login(unittest.TestCase):
     @patch("awscli_login.__main__.get_selection",
            return_value=["PrincipalArn2", "RoleArn2"])
     @patch("awscli_login.__main__.refresh", side_effect=Exception("W00T!"))
+    @patch("awscli_login.__main__.raise_if_credential_process_not_set")
     def test_interactive_login(
-            self, refresh, get_selection, save_sts_token, authenticate):
+            self, raise_if_cp_not_set, refresh,
+            get_selection, save_sts_token, authenticate):
         """ Interactive login wo/refreshable creds should prompt user. """
         login(self.profile, self.session, interactive=True)
         self.session.set_credentials.assert_called_with(None, None)
@@ -124,8 +126,10 @@ class Login(unittest.TestCase):
            return_value=["PrincipalArn2", "RoleArn2"])
     @patch("awscli_login.__main__.refresh",
            return_value=("SAML", ["PrincipalArn", "RoleArn"]))
+    @patch("awscli_login.__main__.raise_if_credential_process_not_set")
     def test_interactive_refresh_login(
-            self, refresh, get_selection, save_sts_token, authenticate):
+            self, raise_if_cp_not_set, refresh,
+            get_selection, save_sts_token, authenticate):
         """ Interactive login w/refreshable creds should not prompt user. """
         login(self.profile, self.session, interactive=True)
         self.session.set_credentials.assert_called_with(None, None)
@@ -155,8 +159,10 @@ class Login(unittest.TestCase):
            return_value=["PrincipalArn2", "RoleArn2"])
     @patch("awscli_login.__main__.refresh",
            return_value=("SAML", ["PrincipalArn", "RoleArn"]))
+    @patch("awscli_login.__main__.raise_if_credential_process_not_set")
     def test_noninteractive_login(
-            self, refresh, get_selection, save_sts_token, authenticate):
+            self, raise_if_cp_not_set, refresh,
+            get_selection, save_sts_token, authenticate):
         """ A non interactive login should not prompt the user. """
         login(self.profile, self.session, interactive=False)
         self.session.set_credentials.assert_called_with(None, None)

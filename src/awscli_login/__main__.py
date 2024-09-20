@@ -21,6 +21,7 @@ from .saml import authenticate, refresh
 from ._typing import Role
 from .util import (
     get_selection,
+    raise_if_credential_process_not_set,
 )
 
 logger = logging.getLogger(__package__)
@@ -52,6 +53,8 @@ def login(profile: Profile, session: Session, interactive: bool = True):
 
     # Exit if already logged in
     if interactive:
+        raise_if_credential_process_not_set(session, profile.name)
+
         try:
             profile.raise_if_logged_in()
             if profile.force_refresh:
