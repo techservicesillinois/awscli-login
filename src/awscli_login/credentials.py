@@ -16,7 +16,8 @@ def print_credentials(token):
     if token is not None:
         creds = token['Credentials']
         creds['Version'] = 1
-        creds['Expiration'] = creds['Expiration'].isoformat()
+        creds['Expiration'] = creds['Expiration'].isoformat().replace(
+            "+00:00", "Z")
     else:
         creds = {
             "Version": 1,
