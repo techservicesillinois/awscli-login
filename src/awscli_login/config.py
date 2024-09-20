@@ -465,9 +465,11 @@ class Profile:
         profile['aws_session_token'] = creds['SessionToken']
         profile['aws_security_token'] = creds['SessionToken']
         try:
+            print(f"Expiration: {creds['Expiration']}")
             profile['expiration'] = creds['Expiration'].isoformat()
         except AttributeError:
             profile['expiration'] = creds['Expiration']
+        print(f"Expiration saved to disk: {profile['expiration']}")
         profile['aws_principal_arn'] = role[0]
         profile['aws_role_arn'] = role[1]
         profile['username'] = self.username
