@@ -3,11 +3,12 @@
 import argparse
 import json
 
+from argparse import Namespace
 from datetime import datetime
 
 from botocore.session import Session
 
-from .__main__ import login
+from .__main__ import main as login, logout
 from .config import Profile, error_handler
 
 
@@ -35,6 +36,7 @@ def init_parser():
     parser.add_argument(
         "-p",
         "--profile",
+        default=None,
         type=str,
         help="AWS profile name")
     parser.add_argument(
@@ -43,6 +45,11 @@ def init_parser():
         action="count",
         default=0,
         help="Display verbose information")
+
+    hidden = parser.add_mutually_exclusive_group()
+    for flag in ["--login", "--logout"]:
+        hidden.add_argument(flag, type=argparse.FileType('r'),
+                            help=argparse.SUPPRESS)
     return parser
 
 
@@ -60,7 +67,13 @@ def main():
     # https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html
     args = init_parser().parse_args()
     session = Session(profile=args.profile)
-    _main(args, session)
+
+    if args.login:
+        return login(Namespace(**json.load(args.login)), session)
+    elif args.logout:
+        return logout(Namespace(**json.load(args.logout)), session)
+    else:
+        return _main(args, session)
 
 
 if __name__ == "__main__":
