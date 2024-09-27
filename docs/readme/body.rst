@@ -1,7 +1,7 @@
 Getting Started
 ===============
 
-Before using awscli-login to retrieve temporary credentials,
+Before using ``awscli-login`` to retrieve temporary credentials,
 optionally configure one or more `named profiles
 <https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html>`__
 for use with the plugin. To configure this plugin, you must know
@@ -119,8 +119,9 @@ like this in your shell's start-up script:
 
     $ awsprofile () { [ "$1" ] && export AWS_PROFILE=$1 || unset AWS_PROFILE; }
 
-This function should work on any Bourne compatible shell (bash, zsh, ksh, dash, etc). 
-Using this function, you can set the profile for the aws login and other aws commands to use:
+This function should work on any Bourne compatible shell (bash, zsh, ksh, dash, etc).
+Using this function, you can set the profile for ``login`` and other ``aws``
+commands to use::
 
     $ awsprofile prod
     $ aws login
@@ -132,8 +133,8 @@ Using this function, you can set the profile for the aws login and other aws com
 The above would log into the prod profile and do an s3 ls then switch to
 the test profile and do an s3 ls in that profile. You're now logged into
 both profiles simultaneously and can switch between them by issuing
-awsprofile commands. Additionally, you can run awsprofile without any
-profile name to clear $AWS_PROFILE.
+``awsprofile`` commands. Additionally, you can run ``awsprofile`` without any
+profile name to clear ``$AWS_PROFILE``.
 
 Advanced Configuration
 ======================
@@ -143,7 +144,7 @@ file that supports more configuration options than is exposed via
 the basic interactive configuration as seen in the `Getting Started`_
 section. Each section corresponds to an `AWS named profile
 <https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html>`__
-just like the awscli's credentials file ``~/.aws/credentials``.
+just like the AWS CLI's credentials file ``~/.aws/credentials``.
 
 Here is a simple example configuration file::
 
@@ -157,7 +158,7 @@ Here is a simple example configuration file::
     username = netid
     ecp_endpoint_url = https://shib.uiuc.edu/idp/profile/SAML2/SOAP/ECP
 
-and the corresponding awscli configuration file ``~/.aws/config`` ::
+and the corresponding AWS CLI configuration file ``~/.aws/config`` ::
 
     [plugins]
     login = awscli_login
@@ -387,7 +388,7 @@ system, depending on how your key store is configured.
 Command line flag ``--ecp-endpoint-url`` error parsing parameter
 ----------------------------------------------------------------
 
-If you encounter the following error it is because the awscli expects
+If you encounter the following error it is because the AWS CLI expects
 URLs passed as arguments to return a 200 on an HTTP GET (See
 `aws-cli#4473 <https://github.com/aws/aws-cli/issues/4473>`_)::
 
@@ -402,13 +403,13 @@ command::
 GitBash bad interpreter errors
 ------------------------------
 
-If you receive a bad interpreter error from the aws command it may
+If you receive a bad interpreter error from the ``aws`` command it may
 be because you have a space in the path of your Python interpreter::
 
     bash: /c/Users/me/AppData/Roaming/Python/Python38/Scripts/aws: c:\program: bad interpreter: No such file or directory
 
 To fix this issue either reinstall your Python interpreter to a
-path that does not contain a space and then reinstall the awscli
+path that does not contain a space and then reinstall the AWS CLI
 package, or more simply just define an alias in your `~/.bashrc` file::
 
     alias aws='python $(which aws)'
@@ -416,15 +417,15 @@ package, or more simply just define an alias in your `~/.bashrc` file::
 Windows Subsystem for Linux bad interpreter error
 -------------------------------------------------
 
-If you receive a bad interpreter error from the aws command on
+If you receive a bad interpreter error from the ``aws`` command on
 Windows Subsystem for Linux (WSL) it may be because the location
-where the awscli is installed is not listed in the WSL's PATH before
-the location of a Windows install of awscli::
+where the AWS CLI is installed is not listed in the WSL's PATH before
+the location of a Windows install of AWS CLI::
 
     -bash: /mnt/c/Python39/Scripts/aws: c:\python39\python.exe^M: bad interpreter: No such file or directory
 
 To remedy this issue please ensure that the location where the
-awscli is installed in the WSL comes before the location of the
+AWS CLI is installed in the WSL comes before the location of the
 Windows install in the WSL PATH environment variable.
 
 
