@@ -1,4 +1,4 @@
-The awscli-login plugin allows retrieving temporary Amazon credentials
+The ``awscli-login`` plugin allows retrieving temporary Amazon credentials
 by authenticating against a SAML Identity Provider (IdP).  This
 application is fully supported under Linux, macOS, and Windows.
 
