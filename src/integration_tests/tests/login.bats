@@ -7,14 +7,17 @@ load 'common'
 		[default]$CR
 		credential_process = aws-login --profile default
 	EOF
-
+    # The expiration used to end in Z now in +00:00. They each
+    # indicate the same UTC time. When login is run as a plugin you
+    # get Z, when you run it from the credentials script as a
+    # standalone you get +00:00. I don't know why.
     ! read -r -d '' CREDS <<- EOF
 		[default]$CR
 		aws_access_key_id = ABCDEFGHIJKLMNOPQRST$CR
 		aws_secret_access_key = SUPER DUPER SECRET KEY$CR
 		aws_session_token = BOGUS TOKEN$CR
 		aws_security_token = BOGUS TOKEN$CR
-		expiration = 2222-09-06T22:28:39Z$CR
+		expiration = 2222-09-06T22:28:39+00:00$CR
 		aws_principal_arn = arn:aws:iam::123456789010:saml-provider/shibboleth.illinois.edu$CR
 		aws_role_arn = arn:aws:iam::123456789010:role/Team$CR
 		username = netid
