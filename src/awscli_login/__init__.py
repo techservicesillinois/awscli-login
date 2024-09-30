@@ -174,8 +174,10 @@ class Login(ExternalCommand):
 
 class Logout(ExternalCommand):
     NAME = 'logout'
-    DESCRIPTION = ("Kills the process that renews the user's"
-                   " credentials.")
+    DESCRIPTION = ('''
+Log out of selected profile by clearing the profile's credentials
+stored in ~/.aws-login/credentials.
+''')
     SYNOPSIS = ('aws logout')
 
     ARG_TABLE = [
