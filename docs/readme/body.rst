@@ -419,6 +419,13 @@ http_header_passcode
 
         http_header_passcode = X-Shibboleth-Duo-Passcode
 
+sts_endpoint_url
+    The endpoint URL to use to communicate with the AWS Security
+    Token Service (STS). Generally, only needed for testing and
+    debugging::
+
+        sts_endpoint_url = http://localhost:5000
+
 verify_ssl_certificate
     Whether to verify the SSL certificate from the IdP. Defaults to true.
 

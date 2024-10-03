@@ -107,8 +107,13 @@ idp: .idp.docker
 	docker compose up -d
 	@touch $@
 
+# TODO: Is this right?
 idp-down:
 	docker compose down --rmi all
+	rm -f .idp.docker
+
+idp-clean:
+	docker-compose down --rmi=all
 	rm -f .idp.docker
 
 .install-build: $(RELEASE)
@@ -233,5 +238,5 @@ clean: idp-down
 	rm -rf build dist src/*.egg-info .eggs
 	make -C docs clean
 
-clean-all: clean
+clean-all: clean idp-clean
 	rm -rf cache
