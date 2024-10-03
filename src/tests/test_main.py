@@ -19,6 +19,7 @@ class MockProfile():
     force_refresh = False
     name = 'default'
     verify_ssl_certificate = True
+    sts_endpoint_url = None
 
     def raise_if_logged_in(self):
         return
@@ -94,7 +95,7 @@ class Login(unittest.TestCase):
         """ Interactive login wo/refreshable creds should prompt user. """
         login(self.profile, self.session, interactive=True)
         self.session.set_credentials.assert_called_with(None, None)
-        self.session.create_client.assert_called_with("sts")
+        self.session.create_client.assert_called_with("sts", endpoint_url=None)
 
         self.profile.get_username.assert_called()
         refresh.assert_called_with(
@@ -129,7 +130,7 @@ class Login(unittest.TestCase):
         """ Interactive login w/refreshable creds should not prompt user. """
         login(self.profile, self.session, interactive=True)
         self.session.set_credentials.assert_called_with(None, None)
-        self.session.create_client.assert_called_with("sts")
+        self.session.create_client.assert_called_with("sts", endpoint_url=None)
 
         self.profile.get_username.assert_called()
         refresh.assert_called_with(
@@ -160,7 +161,7 @@ class Login(unittest.TestCase):
         """ A non interactive login should not prompt the user. """
         login(self.profile, self.session, interactive=False)
         self.session.set_credentials.assert_called_with(None, None)
-        self.session.create_client.assert_called_with("sts")
+        self.session.create_client.assert_called_with("sts", endpoint_url=None)
 
         self.profile.get_username.assert_not_called()
         refresh.assert_called_with(
