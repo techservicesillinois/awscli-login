@@ -48,7 +48,10 @@ def save_sts_token(profile: Profile, client: Client, saml: str,
 
 def login(profile: Profile, session: Session, interactive: bool = True):
     session.set_credentials(None, None)  # Disable credential lookup
-    client = session.create_client('sts')
+    client = session.create_client(
+        'sts',
+        endpoint_url=profile.sts_endpoint_url
+    )
 
     # Exit if already logged in
     if interactive:
