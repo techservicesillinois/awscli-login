@@ -33,7 +33,8 @@ as well. This can be looked up using the following command::
     Requires: botocore, keyring, lxml, requests
     Required-by:
 
-The ``Location`` field has the required path information, and must be passed to ``aws configure``::
+The ``Location`` field has the required path information, and must be passed
+to``aws configure``::
 
     $ aws configure set plugins.cli_legacy_plugin_path <<PASTE ``Location`` HERE>>
 
@@ -56,39 +57,74 @@ Note that ``cli_legacy_plugin_path`` should point to the same value
 as given in the ``Location`` field given by ``pip show awscli-login``
 above.
 
-System Configuration
---------------------
+POSIX System Configuration
+--------------------------
 
-The command or script ``aws-login`` must be on your ``$PATH``. If it
-is not on your path you can use the following command to determine
+The command or script ``aws-login`` must be on your ``$PATH``::
+
+    $ which aws-login
+
+If it is not on your path you can use the following command to determine
 its location::
 
     $ pip show awscli-login --files
+    ...
+    Location: /Users/USERNAME/Library/Python/3.9/lib/python/site-packages
+    ...
+    Files:
+      ../../../bin/aws-login
 
-On Windows look for the file ``aws-login.exe``, on POSIX systems
-look for ``bin/aws-login``. Then add the path to the environment variable
-``PATH``. If the path is a relative path, note that it is relative
-to the ``Location`` field. You may set your PATH using the following
-examples:
+Look for the path to the file ``aws-login`` under the ``Files`` field.
+Note that the path is relative to the ``site-packages``
+path which can be found in the ``Location`` field. In the example above,
+the desired path is::
 
-* Linux/Mac::
+    /Users/USERNAME/Library/Python/3.9/bin
 
-    $ export PATH="$PATH:/usr/local/bin"
-
-* Windows::
-
-    $ $env:PATH+=';C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts'
-
-Verify that ``aws-login`` appears on your PATH:
-
-* Linux/Mac::
+Add this path to your system path in your shell's config file. After updating
+your path, verify that ``aws-login`` appears on your PATH:
 
     $ which aws-login
-    /usr/local/bin/aws-login
+    /Users/USERNAME/Library/Python/3.9/bin/aws-login
 
-* Windows::
+Windows System Configuration
+----------------------------
 
-    $ Get-Command aws-login
+The command or script ``aws-login`` must be on your ``$PATH``::
+
+    PS> Get-Command aws-login
+    Get-Command : The term 'aws-login' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or
+    if a path was included, verify that the path is correct and try again.
+    At line:1 char:1
+    + Get-Command foo
+    + ~~~~~~~~~~~~~~~
+        + CategoryInfo          : ObjectNotFound: (foo:String) [Get-Command], CommandNotFoundException
+        + FullyQualifiedErrorId : CommandNotFoundException,Microsoft.PowerShell.Commands.GetCommandCommand
+
+If it is not on your path you can use the following command to determine
+its location::
+
+    PS> pip show awscli-login --files
+    ...
+    Location: C:\Users\USERNAME\AppData\Roaming\Python\Python312\site-packages
+    ...
+    Files:
+    ..\Scripts\aws-login.exe
+    ...
+
+Look for the path to the file ``aws-login.exe`` under the ``Files`` field.
+Note that the path is relative to the ``site-packages``
+path which can be found in the ``Location`` field. In the example above,
+the desired path is::
+
+    C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts
+
+Detailed instructions on how to make changes to your
+path on Windows can be found
+`here <https://www.wikihow.com/Change-the-PATH-Environment-Variable-on-Windows>`__.
+After setting your PATH, verify that ``aws-login`` appears on it::
+
+    PS> Get-Command aws-login
 
     CommandType     Name                                               Version    Source
     -----------     ----                                               -------    ------
@@ -247,12 +283,13 @@ prompted for a password because it is stored in the keyring. The
 user will receive either a phone call or a push to the default
 Duo device.
 
-For an easier way to switch between multiple profiles, consider adding a shell function
-like this in your shell's start-up script:
+For an easier way to switch between multiple profiles, consider adding a
+shell function like this in your shell's start-up script:
 
     $ awsprofile () { [ "$1" ] && export AWS_PROFILE=$1 || unset AWS_PROFILE; }
 
-This function should work on any Bourne compatible shell (bash, zsh, ksh, dash, etc).
+This function should work on any Bourne compatible
+shell (bash, zsh, ksh, dash, etc).
 Using this function, you can set the profile for ``login`` and other ``aws``
 commands to use::
 
