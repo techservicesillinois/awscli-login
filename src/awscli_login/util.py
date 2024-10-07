@@ -264,14 +264,17 @@ def update_credential_file(session: Session, profile: str):
     new_values = {"credential_process": f'aws-login --profile {profile}'}
 
     if creds is not None:
+        necreds = {k: v for (k, v) in creds.items() if v.strip() != ""}
         keys = ["aws_access_key_id", "aws_secret_access_key",
                 "aws_session_token", "aws_security_token"]
-        if set(creds.keys()).intersection(keys):
+        if set(necreds.keys()).intersection(keys):
             logger.warn(WARNING_PROFILE_CONTAINS_CREDS % profile)
 
         cproc = "credential_process"
-        if len(creds) > 1 or cproc not in creds or \
-           not creds[cproc].endswith(new_values[cproc]):
+        if cproc in necreds and necreds[cproc] == new_values[cproc]:
+            del necreds[cproc]  # Ignore correctly set credential_process
+
+        if len(necreds) > 0:  # Prompt usr if nonempty unexpected values exist
             if input(OVERWRITE_PROFILE % profile).lower() not in YES:
                 return False
 
