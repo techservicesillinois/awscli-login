@@ -29,6 +29,9 @@ except ImportError:  # pragma: no cover
         pass
 
 from .const import (
+    ERROR_INVALID_CRED_PROC_MISSING_PROFILE_ARG,
+    ERROR_INVALID_CRED_PROC_PATH,
+    ERROR_INVALID_CRED_PROC_WRONG_PROFILE_ARG,
     ERROR_INVALID_PROFILE_ROLE,
     OVERWRITE_PROFILE,
     WARNING_PROFILE_CONTAINS_CREDS,
@@ -134,7 +137,9 @@ def secure_touch(path):
         path - A path to a file.
     """
     fd = os.open(path, os.O_CREAT | os.O_RDONLY, mode=0o600)
-    if hasattr(os, "fchmod"):
+    # Python 3.13 on Windows supports fchmod. It is kind of broken
+    # and not useful here (See issue #234).
+    if hasattr(os, "fchmod") and os.name == 'posix':
         os.fchmod(fd, 0o600)
     os.close(fd)
 
@@ -295,10 +300,18 @@ def raise_if_credential_process_not_set(
     args = proc.split()
     cmd = args[0]
 
-    if not (which(cmd) and cmd.endswith("aws-login")):
+    # On Windows Python 3.12 and 3.13, which() returns None if
+    # cmd is not in the system path even if it is a full path to
+    # an executable file. Adding an additional os.access check
+    # resolves the issue (See issue #233).
+    if which(cmd) is None and not os.access(cmd, os.F_OK | os.X_OK):
+        logger.error(ERROR_INVALID_CRED_PROC_PATH % proc)
         raise CredentialProcessMisconfigured(profile)
     try:
         if not (args[args.index("--profile") + 1] == profile):
+            logger.error(ERROR_INVALID_CRED_PROC_WRONG_PROFILE_ARG %
+                         (proc, profile))
             raise CredentialProcessMisconfigured(profile)
     except (ValueError, IndexError):
+        logger.error(ERROR_INVALID_CRED_PROC_MISSING_PROFILE_ARG % proc)
         raise CredentialProcessMisconfigured(profile)
