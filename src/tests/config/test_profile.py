@@ -324,7 +324,6 @@ class ReadFullProfile(ProfileBase, CookieMixin):
             "factor": 'push',
             "role_arn": "arn:aws:iam::account-id:role/role-name",
             "enable_keyring": True,
-            "passcode": "secret_code",
             "duration": 900,
             "http_header_factor": "X_Foo",
             "http_header_passcode": "X_Bar",
@@ -333,6 +332,8 @@ class ReadFullProfile(ProfileBase, CookieMixin):
         self.login_config = "[default]\n" + "\n".join(
             [f"{k} = {v}" for k, v in self.args.items()]
         ) + "\n"
+
+        self.args['passcode'] = None
 
     def test_full_config(self) -> None:
         """ Full config with User and SAML section """
