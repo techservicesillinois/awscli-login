@@ -268,7 +268,7 @@ def update_credential_file(session: Session, profile: str):
         keys = ["aws_access_key_id", "aws_secret_access_key",
                 "aws_session_token", "aws_security_token"]
         if set(necreds.keys()).intersection(keys):
-            logger.warn(WARNING_PROFILE_CONTAINS_CREDS % profile)
+            logger.warning(WARNING_PROFILE_CONTAINS_CREDS % profile)
 
         cproc = "credential_process"
         if cproc in necreds and necreds[cproc] == new_values[cproc]:
