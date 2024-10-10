@@ -24,7 +24,7 @@ load 'common'
 	EOF
 
     assert_equal "$(<$AWS_SHARED_CREDENTIALS_FILE)" "$CREDS_AWS_FILE"
-    run aws login --load-http-traffic cassettes/login.yaml --password foo <<< 0
+    run aws login --load-http-traffic cassettes/login.yaml --password foo --verbose --verbose --verbose <<< 0
     assert_success
     assert_output <<- EOF
 		Please choose the role you would like to assume:$CR
