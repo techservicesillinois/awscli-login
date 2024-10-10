@@ -7,259 +7,260 @@ on:
   pull_request:
 
 jobs:
-#  build:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#    - uses: actions/checkout@v3
-#      with:
-#        fetch-depth: 0  # setuptools_scm needs this to calculate the version
-#
-#    - name: Set up Python 3.9
-#      uses: actions/setup-python@v4
-#      with:
-#        python-version: "3.9"
-#
-#    - name: Save pip cache
-#      uses: actions/cache@v3
-#      with:
-#        path: ~/.cache/pip
-#        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
-#
-#    - name: Upgrade pip
-#      run: |
-#        python -m pip install --upgrade --upgrade-strategy eager pip
-#
-#    - name: Install build dependencies
-#      run: |
-#        make deps-build
-#
-#    - name: Lint
-#      run: make lint
-#
-#    - name: Static Analysis
-#      run: make static
-#
-#    - name: Build
-#      run: make build
-#      env:
-#        PYPIENV: "${{ startsWith(github.ref, 'refs/tags') && 'pypi' || 'test' }}"
-#
-#    - name: Check build
-#      run: make check
-#
-#    - name: Archive build artifacts
-#      uses: actions/upload-artifact@v4
-#      with:
-#        name: build
-#        path: |
-#            .lint
-#            .static
-#            .twinecheck
-#            dist
-#            docs/readme.rst
-#            src/awscli_login.egg-info
-#            src/awscli_login/_version.py
-#
-#  unit_tests:
-#    runs-on: ${{ matrix.os }}
-#    needs: build
-#
-#    strategy:
-#      matrix:
-#        os: [ubuntu-latest, macos-latest, windows-latest]
-#        python-version: ["3.8","3.9","3.10","3.11","3.12"]
-#
-#    steps:
-#    - uses: actions/checkout@v3
-#
-#    - name: Set up Python ${{ matrix.python-version }}
-#      uses: actions/setup-python@v4
-#      with:
-#        python-version: ${{ matrix.python-version }}
-#
-#    - name: Download build artifacts
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: build
-#
-#    # setuptools_scm sometimes will regenerate _version.py which causes
-#    # Makefile to rebuild things. To avoid unnecessary rebuilds we set the
-#    # following environment variable.
-#    - name: Set setuptools_scm environment variable
-#      shell: bash
-#      run: |
-#        PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN={__version__}")' > "$RUNNER_TEMP/_awscli_version"
-#        cat "$RUNNER_TEMP/_awscli_version" >> "$GITHUB_ENV"
-#
-#    - name: Touch build artifacts
-#      run: |
-#        touch docs/readme.rst
-#        touch src/awscli_login/_version.py
-#        touch dist/*  # Must be newer than docs/readme.rst
-#        touch .twinecheck  # Must be newer than build
-#        touch .lint .static
-#
-#    - name: Get pip cache dir
-#      id: pip-cache
-#      run: echo "::set-output name=dir::$(python -m pip cache dir)"
-#
-#    - name: Save pip cache
-#      uses: actions/cache@v3
-#      with:
-#        path: ${{ steps.pip-cache.outputs.dir }}
-#        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
-#
-#    - name: Get date
-#      id: date
-#      run: echo "::set-output name=week::$(date '+%U')"
-#
-#    - name: Cache tox virtualenv & wheel cache
-#      id: ghcache
-#      uses: actions/cache@v3
-#      with:
-#        path: |
-#            **/.tox
-#            **/cache
-#        key: ${{ runner.os }}-${{ matrix.python-version }}-tox-${{ hashFiles('**/setup.py', '**/tox.ini') }}-${{ steps.date.outputs.week }}-${{ secrets.CACHE_VERSION }}
-#
-#    - name: Validate tox virtualenv
-#      uses: techservicesillinois/cache-validation@v1
-#      id: tox
-#      with:
-#        path: .tox
-#        cache_hit: ${{ steps.ghcache.outputs.cache-hit }}
-#        remove_invalid_paths: true
-#
-#    - name: Validate wheel cache
-#      uses: techservicesillinois/cache-validation@v1
-#      id: cache
-#      with:
-#        path: cache
-#        cache_hit: ${{ steps.ghcache.outputs.cache-hit }}
-#        remove_invalid_files: true
-#
-#    - name: Install system dependencies
-#      if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.valid != 'true'
-#      run: |
-#        sudo apt-get install -y libxml2-dev libxslt-dev
-#
-#    - name: Upgrade pip
-#      run: |
-#        python -m pip install --upgrade --upgrade-strategy eager pip
-#
-#    - name: Install tox
-#      run: |
-#        python -m pip install --upgrade --upgrade-strategy eager tox wheel
-#
-#    - name: Update Python wheel cache
-#      if: steps.cache.outputs.valid != 'true' && matrix.os != 'macos-latest'
-#      run: make cache
-#
-#    # Compile lxml on ARM macOS systems to avoid bad wheels on PyPI.
-#    # See issue #189.
-#    - name: Update Python wheel cache (macOS)
-#      if: steps.cache.outputs.valid != 'true' && matrix.os == 'macos-latest'
-#      run: make cache
-#      env:
-#        PIP_NO_BINARY: 'lxml'
-#
-#    - name: Install
-#      if: steps.tox.outputs.valid != 'true'
-#      run: make install
-#
-#    - name: Installed dependencies
-#      run: make freeze
-#
-#    - name: Tests
-#      run: make test
-#
-#    - name: Coverage report
-#      run: make coverage report
-#
-#    - name: Archive coverage report
-#      uses: actions/upload-artifact@v4
-#      with:
-#        name: coverage-${{ runner.os }}-py${{ matrix.python-version }}
-#        path: htmlcov
-#
-#  integration_tests:
-#    runs-on: ${{ matrix.os }}
-#
-#
-#    needs: build
-#
-#    strategy:
-#      matrix:
-#        os: [ubuntu-latest, macos-latest, windows-latest]
-#        python-version: ["3.8","3.9","3.10","3.11","3.12"]
-#
-#    steps:
-#    - uses: actions/checkout@v3
-#      with:
-#        submodules: recursive  # Needed by BATS a bash testing framework
-#
-#    - name: Set up Python ${{ matrix.python-version }}
-#      uses: actions/setup-python@v4
-#      with:
-#        python-version: ${{ matrix.python-version }}
-#
-#    - name: Download build artifacts
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: build
-#
-#    # setuptools_scm sometimes will regenerate _version.py which causes
-#    # Makefile to rebuild things. To avoid unnecessary rebuilds we set the
-#    # following environment variable.
-#    - name: Set setuptools_scm environment variable
-#      shell: bash
-#      run: |
-#        PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN={__version__}")' > "$RUNNER_TEMP/_awscli_version"
-#        cat "$RUNNER_TEMP/_awscli_version" >> "$GITHUB_ENV"
-#
-#    - name: Touch build artifacts
-#      run: |
-#        touch docs/readme.rst
-#        touch src/awscli_login/_version.py
-#        touch dist/*  # Must be newer than docs/readme.rst
-#        touch .twinecheck  # Must be newer than build
-#
-#    - name: Get pip cache dir
-#      id: pip-cache
-#      run: echo "::set-output name=dir::$(python -m pip cache dir)"
-#
-#    - name: Save pip cache
-#      uses: actions/cache@v3
-#      with:
-#        path: ${{ steps.pip-cache.outputs.dir }}
-#        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
-#
-#    - name: Install system dependencies
-#      if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.valid != 'true'
-#      run: |
-#        sudo apt-get install -y libxml2-dev libxslt-dev
-#
-#    - name: Upgrade pip
-#      run: |
-#        python -m pip install --upgrade --upgrade-strategy eager pip
-#
-#    - name: Install build
-#      run: make install-build
-#
-#    - name: Install integration test deps
-#      run: make deps-integration-test
-#
-#    - name: Integration Tests
-#      run: make integration-tests
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # setuptools_scm needs this to calculate the version
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+
+    - name: Save pip cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
+
+    - name: Upgrade pip
+      run: |
+        python -m pip install --upgrade --upgrade-strategy eager pip
+
+    - name: Install build dependencies
+      run: |
+        make deps-build
+
+    - name: Lint
+      run: make lint
+
+    - name: Static Analysis
+      run: make static
+
+    - name: Build
+      run: make build
+      env:
+        PYPIENV: "${{ startsWith(github.ref, 'refs/tags') && 'pypi' || 'test' }}"
+
+    - name: Check build
+      run: make check
+
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build
+        path: |
+            .lint
+            .static
+            .twinecheck
+            dist
+            docs/readme.rst
+            src/awscli_login.egg-info
+            src/awscli_login/_version.py
+
+  unit_tests:
+    runs-on: ${{ matrix.os }}
+    needs: build
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.8","3.9","3.10","3.11","3.12"]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build
+
+    # setuptools_scm sometimes will regenerate _version.py which causes
+    # Makefile to rebuild things. To avoid unnecessary rebuilds we set the
+    # following environment variable.
+    - name: Set setuptools_scm environment variable
+      shell: bash
+      run: |
+        PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN={__version__}")' > "$RUNNER_TEMP/_awscli_version"
+        cat "$RUNNER_TEMP/_awscli_version" >> "$GITHUB_ENV"
+
+    - name: Touch build artifacts
+      run: |
+        touch docs/readme.rst
+        touch src/awscli_login/_version.py
+        touch dist/*  # Must be newer than docs/readme.rst
+        touch .twinecheck  # Must be newer than build
+        touch .lint .static
+
+    - name: Get pip cache dir
+      id: pip-cache
+      run: echo "::set-output name=dir::$(python -m pip cache dir)"
+
+    - name: Save pip cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
+
+    - name: Get date
+      id: date
+      run: echo "::set-output name=week::$(date '+%U')"
+
+    - name: Cache tox virtualenv & wheel cache
+      id: ghcache
+      uses: actions/cache@v3
+      with:
+        path: |
+            **/.tox
+            **/cache
+        key: ${{ runner.os }}-${{ matrix.python-version }}-tox-${{ hashFiles('**/setup.py', '**/tox.ini') }}-${{ steps.date.outputs.week }}-${{ secrets.CACHE_VERSION }}
+
+    - name: Validate tox virtualenv
+      uses: techservicesillinois/cache-validation@v1
+      id: tox
+      with:
+        path: .tox
+        cache_hit: ${{ steps.ghcache.outputs.cache-hit }}
+        remove_invalid_paths: true
+
+    - name: Validate wheel cache
+      uses: techservicesillinois/cache-validation@v1
+      id: cache
+      with:
+        path: cache
+        cache_hit: ${{ steps.ghcache.outputs.cache-hit }}
+        remove_invalid_files: true
+
+    - name: Install system dependencies
+      if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.valid != 'true'
+      run: |
+        sudo apt-get install -y libxml2-dev libxslt-dev
+
+    - name: Upgrade pip
+      run: |
+        python -m pip install --upgrade --upgrade-strategy eager pip
+
+    - name: Install tox
+      run: |
+        python -m pip install --upgrade --upgrade-strategy eager tox wheel
+
+    - name: Update Python wheel cache
+      if: steps.cache.outputs.valid != 'true' && matrix.os != 'macos-latest'
+      run: make cache
+
+    # Compile lxml on ARM macOS systems to avoid bad wheels on PyPI.
+    # See issue #189.
+    - name: Update Python wheel cache (macOS)
+      if: steps.cache.outputs.valid != 'true' && matrix.os == 'macos-latest'
+      run: make cache
+      env:
+        PIP_NO_BINARY: 'lxml'
+
+    - name: Install
+      if: steps.tox.outputs.valid != 'true'
+      run: make install
+
+    - name: Installed dependencies
+      run: make freeze
+
+    - name: Tests
+      run: make test
+
+    - name: Coverage report
+      run: make coverage report
+
+    - name: Archive coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-${{ runner.os }}-py${{ matrix.python-version }}
+        path: htmlcov
+
+  integration_tests:
+    runs-on: ${{ matrix.os }}
+
+
+    needs: build
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.8","3.9","3.10","3.11","3.12"]
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive  # Needed by BATS a bash testing framework
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build
+
+    # setuptools_scm sometimes will regenerate _version.py which causes
+    # Makefile to rebuild things. To avoid unnecessary rebuilds we set the
+    # following environment variable.
+    - name: Set setuptools_scm environment variable
+      shell: bash
+      run: |
+        PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN={__version__}")' > "$RUNNER_TEMP/_awscli_version"
+        cat "$RUNNER_TEMP/_awscli_version" >> "$GITHUB_ENV"
+
+    - name: Touch build artifacts
+      run: |
+        touch docs/readme.rst
+        touch src/awscli_login/_version.py
+        touch dist/*  # Must be newer than docs/readme.rst
+        touch .twinecheck  # Must be newer than build
+
+    - name: Get pip cache dir
+      id: pip-cache
+      run: echo "::set-output name=dir::$(python -m pip cache dir)"
+
+    - name: Save pip cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
+
+    - name: Install system dependencies
+      if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.valid != 'true'
+      run: |
+        sudo apt-get install -y libxml2-dev libxslt-dev
+
+    - name: Upgrade pip
+      run: |
+        python -m pip install --upgrade --upgrade-strategy eager pip
+
+    - name: Install build
+      run: make install-build
+
+    - name: Install integration test deps
+      run: make deps-integration-test
+
+    - name: Integration Tests
+      run: make integration-tests
 
   awscliv2_test:
     runs-on: ${{ matrix.os }}
+    needs: build
 
     strategy:
-      fail-fast: false
+      fails-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.8","3.9","3.10","3.11","3.12.6","3.12.7"]
 
     steps:
@@ -272,128 +273,117 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: DEBUG
-      run: |
-        python -m pip install vcrpy
-        python -c 'from vcr import VCR'
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build
 
-#    - name: Download build artifacts
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: build
-#
-#    # setuptools_scm sometimes will regenerate _version.py which causes
-#    # Makefile to rebuild things. To avoid unnecessary rebuilds we set the
-#    # following environment variable.
-#    - name: Set setuptools_scm environment variable
-#      shell: bash
-#      run: |
-#        PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN={__version__}")' > "$RUNNER_TEMP/_awscli_version"
-#        cat "$RUNNER_TEMP/_awscli_version" >> "$GITHUB_ENV"
-#
-#    - name: Touch build artifacts
-#      run: |
-#        touch docs/readme.rst
-#        touch src/awscli_login/_version.py
-#        touch dist/*  # Must be newer than docs/readme.rst
-#        touch .twinecheck  # Must be newer than build
-#
-#    - name: Get pip cache dir
-#      id: pip-cache
-#      run: echo "::set-output name=dir::$(python -m pip cache dir)"
-#
-#    - name: Save pip cache
-#      uses: actions/cache@v3
-#      with:
-#        path: ${{ steps.pip-cache.outputs.dir }}
-#        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
-#
-#    - name: Get date
-#      id: date
-#      run: echo "::set-output name=week::$(date '+%U')"
-#
-#    - name: Upgrade bash (macOS)
-#      if: matrix.os == 'macOS-latest'
-#      run: brew install bash
-#
-#    - name: Install awscli-login package
-#      shell: bash
-#      run: |
-#        make venv.v2
-#
-#    - name: DEBUG
-#      run: |
-#        aws --version
-#        python --version
-#        python -m pip freeze
-#
-#    - name: Integration Tests
-#      shell: bash
-#      run: |
-#        make integration-tests-v2
-#      env:
-#        PYTHONWARNINGS: "ignore"  # Disable Python warnings
-#
-#  publish:
-#    needs: [unit_tests, integration_tests]
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#    - uses: actions/checkout@v3
-#    - name: Set up Python 3.9
-#      uses: actions/setup-python@v4
-#      with:
-#        python-version: "3.9"
-#
-#    - name: Save pip cache
-#      uses: actions/cache@v3
-#      with:
-#        path: ~/.cache/pip
-#        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
-#
-#    - name: Upgrade pip
-#      run: |
-#        python -m pip install --upgrade --upgrade-strategy eager pip
-#
-#    - name: Install publish dependencies
-#      run: |
-#        make deps-publish
-#
-#    - name: Download build artifacts
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: build
-#
-#    # setuptools_scm sometimes will regenerate _version.py which causes
-#    # Makefile to rebuild things. To avoid unnecessary rebuilds we set the
-#    # following environment variable.
-#    - name: Set setuptools_scm environment variable
-#      shell: bash
-#      run: |
-#        PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN={__version__}")' > "$RUNNER_TEMP/_awscli_version"
-#        cat "$RUNNER_TEMP/_awscli_version" >> "$GITHUB_ENV"
-#
-#    - name: Touch build artifacts
-#      run: |
-#        touch docs/readme.rst
-#        touch src/awscli_login/_version.py
-#        touch dist/*  # Must be newer than docs/readme.rst
-#        touch .twinecheck  # Must be newer than build
-#        touch .lint .static
-#
-#    - name: Publish to PyPI
-#      if: startsWith(github.ref, 'refs/tags')
-#      run: make release
-#      env:
-#        TWINE_USERNAME: __token__
-#        TWINE_PASSWORD: ${{ secrets.PROD_PYPI_TOKEN }}
-#        TWINE_NON_INTERACTIVE: true
-#
-#    - name: Publish to Test PyPI
-#      if: github.ref == 'refs/heads/master'
-#      run: make test-release
-#      env:
-#        TWINE_USERNAME: __token__
-#        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
-#        TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
-#        TWINE_NON_INTERACTIVE: true
+    # setuptools_scm sometimes will regenerate _version.py which causes
+    # Makefile to rebuild things. To avoid unnecessary rebuilds we set the
+    # following environment variable.
+    - name: Set setuptools_scm environment variable
+      shell: bash
+      run: |
+        PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN={__version__}")' > "$RUNNER_TEMP/_awscli_version"
+        cat "$RUNNER_TEMP/_awscli_version" >> "$GITHUB_ENV"
+
+    - name: Touch build artifacts
+      run: |
+        touch docs/readme.rst
+        touch src/awscli_login/_version.py
+        touch dist/*  # Must be newer than docs/readme.rst
+        touch .twinecheck  # Must be newer than build
+
+    - name: Get pip cache dir
+      id: pip-cache
+      run: echo "::set-output name=dir::$(python -m pip cache dir)"
+
+    - name: Save pip cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
+
+    - name: Get date
+      id: date
+      run: echo "::set-output name=week::$(date '+%U')"
+
+    - name: Upgrade bash (macOS)
+      if: matrix.os == 'macOS-latest'
+      run: brew install bash
+
+    - name: Install awscli-login package
+      shell: bash
+      run: |
+        make venv.v2
+
+    - name: Integration Tests
+      shell: bash
+      run: |
+        make integration-tests-v2
+      env:
+        PYTHONWARNINGS: "ignore"  # Disable Python warnings
+
+  publish:
+    needs: [unit_tests, integration_tests]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+
+    - name: Save pip cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
+
+    - name: Upgrade pip
+      run: |
+        python -m pip install --upgrade --upgrade-strategy eager pip
+
+    - name: Install publish dependencies
+      run: |
+        make deps-publish
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build
+
+    # setuptools_scm sometimes will regenerate _version.py which causes
+    # Makefile to rebuild things. To avoid unnecessary rebuilds we set the
+    # following environment variable.
+    - name: Set setuptools_scm environment variable
+      shell: bash
+      run: |
+        PYTHONPATH=src python -c 'from awscli_login._version import __version__; print(f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_AWSCLI_LOGIN={__version__}")' > "$RUNNER_TEMP/_awscli_version"
+        cat "$RUNNER_TEMP/_awscli_version" >> "$GITHUB_ENV"
+
+    - name: Touch build artifacts
+      run: |
+        touch docs/readme.rst
+        touch src/awscli_login/_version.py
+        touch dist/*  # Must be newer than docs/readme.rst
+        touch .twinecheck  # Must be newer than build
+        touch .lint .static
+
+    - name: Publish to PyPI
+      if: startsWith(github.ref, 'refs/tags')
+      run: make release
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PROD_PYPI_TOKEN }}
+        TWINE_NON_INTERACTIVE: true
+
+    - name: Publish to Test PyPI
+      if: github.ref == 'refs/heads/master'
+      run: make test-release
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+        TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
+        TWINE_NON_INTERACTIVE: true
