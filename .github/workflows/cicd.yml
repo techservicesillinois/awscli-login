@@ -316,6 +316,11 @@ jobs:
       run: |
         make venv.v2
 
+    - name: DEBUG
+      run: |
+        aws --version
+        python --version
+
     - name: Integration Tests
       shell: bash
       run: |
