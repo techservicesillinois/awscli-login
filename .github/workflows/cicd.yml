@@ -320,7 +320,7 @@ jobs:
       run: |
         aws --version
         python --version
-        pip freeze
+        python -m pip freeze
 
     - name: Integration Tests
       shell: bash
