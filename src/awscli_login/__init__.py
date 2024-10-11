@@ -3,7 +3,7 @@
 import copy
 import json
 import logging
-import subprocess
+import os
 
 from argparse import Namespace
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -61,7 +61,7 @@ class ExternalCommand(BasicCommand):
             if self._session.profile:
                 cmd += ["--profile", self._session.profile]
 
-            return subprocess.run(cmd).returncode
+            os.execvp(cmd[0], cmd)
 
 
 class Login(ExternalCommand):
