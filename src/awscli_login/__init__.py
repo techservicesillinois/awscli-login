@@ -3,6 +3,7 @@
 import copy
 import json
 import logging
+import os
 import subprocess
 
 from argparse import Namespace
@@ -61,7 +62,13 @@ class ExternalCommand(BasicCommand):
             if self._session.profile:
                 cmd += ["--profile", self._session.profile]
 
-            return subprocess.run(cmd).returncode
+            environ = os.environ.copy()
+            # Restore LD_LIBRARY_PATH to avoid C library conflicts #222 #230
+            if "LD_LIBRARY_PATH_ORIG" in environ:
+                orig = environ["LD_LIBRARY_PATH_ORIG"]
+                environ["LD_LIBRARY_PATH"] = orig
+                del environ["LD_LIBRARY_PATH_ORIG"]
+            return subprocess.run(cmd, env=environ).returncode
 
 
 class Login(ExternalCommand):
@@ -149,6 +156,12 @@ class Login(ExternalCommand):
             'default': 0,
             'cli_type_name': 'integer',
             'help_text': 'Display verbose output'
+        },
+        {
+            'name': 'debug-info',
+            'action': 'store_true',
+            'default': False,
+            'help_text': 'Display debug information'
         },
         {
             'name': 'save-http-traffic',

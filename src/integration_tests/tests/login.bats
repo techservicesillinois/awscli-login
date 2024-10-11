@@ -44,3 +44,12 @@ load 'common'
     assert_failure
     assert_output "Already logged out!"
 }
+
+# Regression test for #222 and #230
+@test "Ensure environment of plugin is the same as the standalone script" {
+    run aws login --debug-info
+    # USEFUL HACK: diff output is much shorter than assert_equal!
+    echo "$output$CR" > $BATS_TEST_TMPDIR/output.txt
+    run bash -c 'aws-login --debug-info | diff - $BATS_TEST_TMPDIR/output.txt'
+    assert_success
+}
