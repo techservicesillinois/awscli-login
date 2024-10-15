@@ -151,6 +151,12 @@ class Login(ExternalCommand):
             'help_text': 'Display verbose output'
         },
         {
+            'name': 'version-info',
+            'action': 'store_true',
+            'default': False,
+            'help_text': 'Display version information'
+        },
+        {
             'name': 'save-http-traffic',
             'default': None,
             'help_text': 'Save http traffic to a file for debugging'
