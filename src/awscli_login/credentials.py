@@ -79,10 +79,10 @@ def main():
         print(f"{version}\t{sys.executable}\t{sys.version}")
     elif args.login:
         ns = Namespace(**json.load(args.login))
-        if ns.version_info:  #  TODO: implement in login?
+        if ns.version_info:  # TODO: implement in login?
             print(f"{version}\t{sys.executable}\t{sys.version}")
             return
-        return login(ns,session)
+        return login(ns, session)
     elif args.logout:
         return logout(Namespace(**json.load(args.logout)), session)
     else:
