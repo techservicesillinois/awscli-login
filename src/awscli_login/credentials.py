@@ -76,11 +76,11 @@ def main():
     args = init_parser().parse_args()
     session = Session(profile=args.profile)
     if args.version_info:
-        print(f"{version}\t{sys.executable}\t{sys.version}")
+        print(f"{version}\t{sys.executable}\t{sys.version}\t{sys.path}")
     elif args.login:
         ns = Namespace(**json.load(args.login))
         if ns.version_info:  # TODO: implement in login?
-            print(f"{version}\t{sys.executable}\t{sys.version}")
+            print(f"{version}\t{sys.executable}\t{sys.version}\t{sys.path}")
             return
         return login(ns, session)
     elif args.logout:
