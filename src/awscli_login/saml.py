@@ -144,7 +144,7 @@ def authenticate(url: str, cookies: str,
 
     secure_touch(cookies)
     jar.save(ignore_discard=True)
-    logger.info("Saved cookies to jar: " + jar.filename)
+    logger.info(f"Saved cookies to jar: {jar.filename}")
 
     return parse_soap_response(soap)
 
