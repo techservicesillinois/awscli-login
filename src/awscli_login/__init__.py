@@ -4,9 +4,12 @@ import copy
 import json
 import logging
 import subprocess
+import sys
 
 from argparse import Namespace
 from tempfile import NamedTemporaryFile, TemporaryDirectory
+
+from ._version import version
 
 try:
     from awscli.customizations.commands import BasicCommand
@@ -61,6 +64,7 @@ class ExternalCommand(BasicCommand):
             if self._session.profile:
                 cmd += ["--profile", self._session.profile]
 
+            print(f"{version}\t{sys.executable}\t{sys.version}\t{sys.path}")
             return subprocess.run(cmd).returncode
 
 
