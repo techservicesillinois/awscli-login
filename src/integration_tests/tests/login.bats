@@ -44,3 +44,8 @@ load 'common'
     assert_failure
     assert_output "Already logged out!"
 }
+
+@test "Version Info" {
+	run aws login --version-info
+	aws-login --version-info | assert_output -
+}

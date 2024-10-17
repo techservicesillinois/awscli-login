@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import sys
 
 from argparse import Namespace
 from datetime import datetime
@@ -10,6 +11,7 @@ from botocore.session import Session
 
 from .__main__ import main as login, logout
 from .config import Profile, error_handler
+from ._version import version
 
 
 def print_credentials(token):
@@ -45,6 +47,12 @@ def init_parser():
         action="count",
         default=0,
         help="Display verbose information")
+    parser.add_argument(
+        "-V",
+        "--version-info",
+        action="count",
+        default=0,
+        help="Display version information")
 
     hidden = parser.add_mutually_exclusive_group()
     for flag in ["--login", "--logout"]:
@@ -67,9 +75,14 @@ def main():
     # https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html
     args = init_parser().parse_args()
     session = Session(profile=args.profile)
-
-    if args.login:
-        return login(Namespace(**json.load(args.login)), session)
+    if args.version_info:
+        print(f"{version}\t{sys.executable}\t{sys.version}\t{sys.path}")
+    elif args.login:
+        ns = Namespace(**json.load(args.login))
+        if ns.version_info:  # TODO: implement in login?
+            print(f"{version}\t{sys.executable}\t{sys.version}\t{sys.path}")
+            return
+        return login(ns, session)
     elif args.logout:
         return logout(Namespace(**json.load(args.logout)), session)
     else:

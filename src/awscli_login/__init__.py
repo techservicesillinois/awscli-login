@@ -4,9 +4,12 @@ import copy
 import json
 import logging
 import subprocess
+import sys
 
 from argparse import Namespace
 from tempfile import NamedTemporaryFile, TemporaryDirectory
+
+from ._version import version
 
 try:
     from awscli.customizations.commands import BasicCommand
@@ -61,6 +64,7 @@ class ExternalCommand(BasicCommand):
             if self._session.profile:
                 cmd += ["--profile", self._session.profile]
 
+            print(f"{version}\t{sys.executable}\t{sys.version}\t{sys.path}")
             return subprocess.run(cmd).returncode
 
 
@@ -149,6 +153,12 @@ class Login(ExternalCommand):
             'default': 0,
             'cli_type_name': 'integer',
             'help_text': 'Display verbose output'
+        },
+        {
+            'name': 'version-info',
+            'action': 'store_true',
+            'default': False,
+            'help_text': 'Display version information'
         },
         {
             'name': 'save-http-traffic',
