@@ -317,42 +317,48 @@ class ReadFullProfile(ProfileBase, CookieMixin):
 
     def setUp(self) -> None:
         super().setUp()
-        self.login_config = """
-[default]
-ecp_endpoint_url = url
-username = netid1
-password = secret1
-factor = push
-role_arn = arn:aws:iam::account-id:role/role-name
-enable_keyring = True
-passcode = secret_code
-duration = 900
-http_header_factor = X_Foo
-http_header_passcode = X_Bar
-    """
-
-    def test_full_config(self) -> None:
-        """ Full config with User and SAML section """
-        self.Profile()
-
-        expected_attr_vals = {
+        self.args = {
             "ecp_endpoint_url": 'url',
             "username": 'netid1',
             "password": 'secret1',
             "factor": 'push',
             "role_arn": "arn:aws:iam::account-id:role/role-name",
             "enable_keyring": True,
-            "passcode": "secret_code",
             "duration": 900,
             "http_header_factor": "X_Foo",
             "http_header_passcode": "X_Bar",
         }
 
+        self.login_config = "[default]\n" + "\n".join(
+            [f"{k} = {v}" for k, v in self.args.items()]
+        ) + "\n"
+
+        self.args['passcode'] = None
+
+    def test_full_config(self) -> None:
+        """ Full config with User and SAML section """
+        self.Profile()
+
+        expected_attr_vals = self.args
         self.assertProfileHasAttrs(**expected_attr_vals)
 
 
 class ReadFullProfileTestOverrides(ReadFullProfile):
     """ Override profile with cli args """
+
+    # Regression test for issue #117
+    def test_passcode_factor_override(self) -> None:
+        """ Passcode set at the command line overrides factor. """
+        args: Dict[str, Any] = {
+            "passcode": "secret",
+        }
+        expected_attr_vals = copy(self.args)
+        expected_attr_vals.update(args)
+        expected_attr_vals["factor"] = "passcode"
+
+        self.assertNotEqual(self.args["factor"], "passcode")
+        self.Profile(profile='default', no_args=False, **args)
+        self.assertProfileHasAttrs(**expected_attr_vals)
 
     def test_full_config(self) -> None:
         """ Testing command line args are processed. """
@@ -362,7 +368,6 @@ class ReadFullProfileTestOverrides(ReadFullProfile):
             "password": 'secret2',
             "factor": 'sms',
             "role_arn": "arn:aws:iam::account-id:role/role-name2",
-            "passcode": "secret",
             "duration": 1500,
             "http_header_factor": "X_Bar",
             "http_header_passcode": "X_Foo",
@@ -382,7 +387,6 @@ class ReadFullProfileTestOverrides(ReadFullProfile):
             "password": '',
             "factor": '',
             "role_arn": "",
-            "passcode": "",
             "duration": 0,
             "http_header_factor": "",
             "http_header_passcode": "",

@@ -168,6 +168,10 @@ class Profile:
             if value is not None:
                 setattr(self, option, value)
 
+                # Set factor to passcode if a passcode is given #117
+                if option == 'passcode':
+                    self.factor = 'passcode'
+
     def _set_override_attrs(self) -> None:
         """ Disable attrs if overriden on command line. """
         for attr, option in self._override.items():
