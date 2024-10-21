@@ -61,7 +61,7 @@ class ExternalCommand(BasicCommand):
             if self._session.profile:
                 cmd += ["--profile", self._session.profile]
 
-            return subprocess.run(cmd).returncode
+            return subprocess.run(' '.join(cmd), shell=True).returncode
 
 
 class Login(ExternalCommand):
