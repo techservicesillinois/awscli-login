@@ -5,19 +5,17 @@ We are happy to accept your contributions.
 
 ## Table of Contents
 
-1. Code of Conduct
-2. How to Contribute
-   - Reporting Bugs
-   - Suggesting Enhancements
-   - Submitting Pull Requests
-3. Development Setup
-   - Prerequisites
-   - Installation
-   - Running Tests
-4. Style Guides
-   - Git Commit Messages
-   - Python Code Style
-5. Additional Resources
+1. [Code of Conduct](#code-of-conduct)
+2. [How to Contribute](#how-to-contribute)
+   - [Reporting Bugs](#reporting-bugs)
+   - [Suggesting Enhancements](#suggesting-enhancements)
+3. [Development Setup](#development-setup)
+   - [Prerequisites](#prerequisites)
+   - [Installation](#installation)
+   - [Running Tests](#running-tests)
+4. [Style Guides](#style-guides)
+   - [Git Commit Messages](#git-commit-messages)
+   - [Python Code Style](#python-code-style)
 
 ## Code of Conduct
 
@@ -99,23 +97,24 @@ The test across multiple supported versions of python install [pyenv](https://gi
 `$ make .python-version`
 `$ make tox`
 
-#### Integration Tests
-
-
-
 ## Style Guides
 
 ### Git Commit Messages
 
-[Guidelines for writing good commit messages]
+Because we create our 'CHANGELOG.md' from our git logs, we have a standard for our git logs. This standard applies to commits that make it into the \`master\` branch, so please apply it, in particular, when closing a pull request.
+ 
+*   First line of the commit should be short and sweet, and customer focused.
+*   Commit details should be formatted as a bulleted list, and developer focused.
+*   Commit details should include GitHub keywords such as 'Closes #123' to maintain CHANGELOG links to GitHub issue numbers on a separate final un-bulleted line.
 
 ### Python Code Style
 
-[Guidelines for writing Python code, e.g., PEP 8]
+The project uses PEP-8 as enforced by flake8.
 
-## Additional Resources
+[PEP-08 Style Guidelines](https://www.python.org/dev/peps/pep-0008/)
 
-[Links to additional resources, documentation, etc.]
+[Flake8 lint tool](https://flake8.pycqa.org/en/latest/)
+
 
 
 
