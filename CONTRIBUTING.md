@@ -40,9 +40,6 @@ Submit a [GitHub Issue](https://github.com/techservicesillinois/awscli-login/iss
 
 ### Installation
 
-[Instructions on how to install the project]
-
-
 1. Fork and clone the project with `git`
 2. (Recommended) Create a Python Virtual Env
 
