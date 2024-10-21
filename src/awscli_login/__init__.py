@@ -3,7 +3,7 @@
 import copy
 import json
 import logging
-import os
+import subprocess
 
 from argparse import Namespace
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -61,11 +61,7 @@ class ExternalCommand(BasicCommand):
             if self._session.profile:
                 cmd += ["--profile", self._session.profile]
 
-            r = os.system(' '.join(cmd))
-            if os.name == 'posix':
-                return os.waitstatus_to_exitcode(r)
-            else:  # Windows
-                return r
+            return subprocess.run(cmd).returncode
 
 
 class Login(ExternalCommand):
