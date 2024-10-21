@@ -1,6 +1,6 @@
 # Contributing to `awscli-login`
 
-Thank you for considering contributing to [Project Name]! 
+Thank you for considering contributing to awscli-login!
 We are happy to accept your contributions.
 
 ## Table of Contents
@@ -45,8 +45,7 @@ Submit a [GitHub Issue](https://github.com/techservicesillinois/awscli-login/iss
 [Instructions on how to install the project]
 
 
-
-1. Clone the project with `git`
+1. Fork and clone the project with `git`
 2. (Recommended) Create a Python Virtual Env
 
 	```sh
@@ -90,12 +89,15 @@ Submit a [GitHub Issue](https://github.com/techservicesillinois/awscli-login/iss
 ### Running Tests
 
 #### Unit Tests
+To run the unit and static tests against your current python run:
 
-`make test`
+`$ make test`
 
 #### Testing across supported versions of Python:
+The test across multiple supported versions of python install [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation). Then run the following commands:
 
-`make tox`
+`$ make .python-version`
+`$ make tox`
 
 #### Integration Tests
 
