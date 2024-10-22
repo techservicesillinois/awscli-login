@@ -316,6 +316,7 @@ jobs:
       shell: bash
       run: |
         make venv.v2
+        make python-exec-path >> "$GITHUB_ENV"
 
     - name: Integration Tests
       shell: bash

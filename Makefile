@@ -138,14 +138,18 @@ integration-tests: $(idp_integration_deps)
 ifeq ($(RUNNER_OS),Windows)
     VBIN := Scripts
     VPKG := lib/site-packages*
+    PYTHON_EXEC_PATH := $(PWD)\venv.v2\$(VBIN)\python.exe
 else
     VBIN := bin
     VPKG := lib/python*/site-packages
+    PYTHON_EXEC_PATH := $(PWD)/venv.v2/$(VBIN)/python
 endif
 venv.v2: $(RELEASE)
 	rm -rf $@
 	python -m venv $@
 	$@/$(VBIN)/python -m pip install vcrpy $<
+python-exec-path:
+	@echo "PYTHON_EXEC_PATH=$(PYTHON_EXEC_PATH)"
 
 integration-tests-v2: export AWSCLI_TEST_V2:=1
 integration-tests-v2: export AWSCLI_TEST_PLUGIN_PATH=$(wildcard $(PWD)/venv.v2/$(VPKG))

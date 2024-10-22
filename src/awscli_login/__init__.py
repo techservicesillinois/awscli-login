@@ -3,6 +3,8 @@
 import copy
 import json
 import logging
+import os
+import shutil
 import subprocess
 
 from argparse import Namespace
@@ -60,6 +62,12 @@ class ExternalCommand(BasicCommand):
             cmd = ["aws-login", f"--{self.NAME}", tmp.name]
             if self._session.profile:
                 cmd += ["--profile", self._session.profile]
+
+            python_exec_path = os.environ.get("PYTHON_EXEC_PATH", None)
+            aws_login_exec_path = shutil.which(cmd[0])
+            if python_exec_path and aws_login_exec_path:
+                cmd[0] = aws_login_exec_path
+                cmd.insert(0, python_exec_path)
 
             return subprocess.run(cmd).returncode
 
