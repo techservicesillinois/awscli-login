@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import shutil
-import subprocess
 
 from argparse import Namespace
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -69,7 +68,7 @@ class ExternalCommand(BasicCommand):
                 cmd[0] = aws_login_exec_path
                 cmd.insert(0, python_exec_path)
 
-            return subprocess.run(cmd).returncode
+            os.execvp(cmd[0], cmd)
 
 
 class Login(ExternalCommand):
