@@ -1,11 +1,11 @@
 # Rudimentary documentation for the aws-cli plugin API can be found
 # here: https://github.com/aws/aws-cli/issues/1261
 import copy
+import ctypes
 import json
 import logging
 import os
 import shutil
-import subprocess
 
 from argparse import Namespace
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -53,6 +53,12 @@ class ExternalCommand(BasicCommand):
     Used to run subcommands in the external aws-login script.
     """
 
+    @staticmethod
+    def execlp(file: str, *args):
+        """C implementation of os.execlp()."""
+        libc = ctypes.CDLL(None)
+        libc.execlp(file.encode(), *[a.encode() for a in args], None)
+
     def _run_main(self, args: Namespace, parsed_globals):
         with TemporaryDirectory() as tmpdir:
             tmp = NamedTemporaryFile(dir=tmpdir, delete=False)
@@ -69,7 +75,7 @@ class ExternalCommand(BasicCommand):
                 cmd[0] = aws_login_exec_path
                 cmd.insert(0, python_exec_path)
 
-            return subprocess.run(' '.join(cmd), shell=True).returncode
+            self.execlp(cmd[0], *cmd)
 
 
 class Login(ExternalCommand):
