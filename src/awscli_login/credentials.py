@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 import sys
 
 from argparse import Namespace
@@ -71,16 +72,28 @@ def _main(profile: Profile, session: Session, interactive: bool = True):
     print_credentials(token)
 
 
+# TODO: Refactor this as --debug-info
+def version_info():
+    ignore_env = ["_", "SHLVL"]
+
+    print(f"Version: {version}", f"Python executable: {sys.executable}",
+          f"Python Version: {sys.version}\n", "System path:",
+          '\n'.join(sys.path), "Environment:",
+          '\n'.join(sorted([
+            f"{k}: {v}" for k, v in os.environ.items() if k not in ignore_env
+          ])), sep='\n')
+
+
 def main():
     # https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html
     args = init_parser().parse_args()
     session = Session(profile=args.profile)
     if args.version_info:
-        print(f"{version}\t{sys.executable}\t{sys.version}\t{sys.path}")
+        version_info()
     elif args.login:
         ns = Namespace(**json.load(args.login))
         if ns.version_info:  # TODO: implement in login?
-            print(f"{version}\t{sys.executable}\t{sys.version}\t{sys.path}")
+            version_info()
             return
         return login(ns, session)
     elif args.logout:
