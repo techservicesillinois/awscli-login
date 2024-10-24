@@ -80,7 +80,7 @@ class ExternalCommand(BasicCommand):
                 del os.environ["LD_LIBRARY_PATH_ORIG"]
             if "AWS_DATA_PATH" in os.environ:
                 del os.environ["AWS_DATA_PATH"]
-            self.execlp(cmd[0], *cmd)
+            os.execlp(cmd[0], *cmd)
 
 
 class Login(ExternalCommand):
