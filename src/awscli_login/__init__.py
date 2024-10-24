@@ -75,6 +75,11 @@ class ExternalCommand(BasicCommand):
                 cmd[0] = aws_login_exec_path
                 cmd.insert(0, python_exec_path)
 
+            if "LD_LIBRARY_PATH_ORIG" in os.environ:
+                os.environ["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH_ORIG"]
+                del os.environ["LD_LIBRARY_PATH_ORIG"]
+            if "AWS_DATA_PATH" in os.environ:
+                del os.environ["AWS_DATA_PATH"]
             self.execlp(cmd[0], *cmd)
 
 
