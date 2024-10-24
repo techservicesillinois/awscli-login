@@ -44,3 +44,13 @@ load 'common'
     assert_failure
     assert_output "Already logged out!"
 }
+
+@test "Version Info" {
+	run aws login --version-info
+    echo "$output" > my.little.lazy.hack.txt
+	run bash -c 'aws-login --version-info | diff - my.little.lazy.hack.txt'
+    echo "status = ${status}"
+    echo "output = ${output}"
+    [ "$status" -eq 0 ]
+	# aws-login --version-info | assert_output -
+}

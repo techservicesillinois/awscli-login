@@ -1,9 +1,11 @@
 # Rudimentary documentation for the aws-cli plugin API can be found
 # here: https://github.com/aws/aws-cli/issues/1261
 import copy
+import ctypes
 import json
 import logging
-import subprocess
+import os
+import shutil
 
 from argparse import Namespace
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -51,6 +53,12 @@ class ExternalCommand(BasicCommand):
     Used to run subcommands in the external aws-login script.
     """
 
+    @staticmethod
+    def execlp(file: str, *args):
+        """C implementation of os.execlp()."""
+        libc = ctypes.CDLL(None)
+        libc.execlp(file.encode(), *[a.encode() for a in args], None)
+
     def _run_main(self, args: Namespace, parsed_globals):
         with TemporaryDirectory() as tmpdir:
             tmp = NamedTemporaryFile(dir=tmpdir, delete=False)
@@ -61,7 +69,18 @@ class ExternalCommand(BasicCommand):
             if self._session.profile:
                 cmd += ["--profile", self._session.profile]
 
-            return subprocess.run(cmd).returncode
+            python_exec_path = os.environ.get("PYTHON_EXEC_PATH", None)
+            aws_login_exec_path = shutil.which(cmd[0])
+            if python_exec_path and aws_login_exec_path:
+                cmd[0] = aws_login_exec_path
+                cmd.insert(0, python_exec_path)
+
+            if "LD_LIBRARY_PATH_ORIG" in os.environ:
+                os.environ["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH_ORIG"]
+                del os.environ["LD_LIBRARY_PATH_ORIG"]
+            if "AWS_DATA_PATH" in os.environ:
+                del os.environ["AWS_DATA_PATH"]
+            os.execlp(cmd[0], *cmd)
 
 
 class Login(ExternalCommand):
@@ -149,6 +168,12 @@ class Login(ExternalCommand):
             'default': 0,
             'cli_type_name': 'integer',
             'help_text': 'Display verbose output'
+        },
+        {
+            'name': 'version-info',
+            'action': 'store_true',
+            'default': False,
+            'help_text': 'Display version information'
         },
         {
             'name': 'save-http-traffic',
