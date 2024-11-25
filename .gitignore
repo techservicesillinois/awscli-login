@@ -5,6 +5,7 @@
 
 __pycache__
 cache
+build
 dist
 htmlcov
 venv
