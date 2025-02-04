@@ -1,7 +1,7 @@
 Configuration
 =============
 
-After awscli-login has been installed, run the following command
+After ``awscli-login`` has been installed, run the following command
 to enable the plugin::
 
     $ aws configure set plugins.login awscli_login
@@ -14,10 +14,15 @@ following section::
     [plugins]
     login = awscli_login
 
+If you are using ``awscli-login`` with AWS CLI V2, proceed to the
+next section. If you are still using AWS CLI V1, continue to the
+`POSIX System Configuration`_ or `Windows System Configuration`_
+section below.
+
 AWS CLI V2 Configuration
 ------------------------
 
-If you are configuring `AWS CLI`_ V2, The path to the site
+If you are configuring AWS CLI V2, the path to the site
 packages directory where ``awscli-login`` resides must be supplied
 as well. This can be looked up using the following command::
 
@@ -33,8 +38,8 @@ as well. This can be looked up using the following command::
     Requires: botocore, keyring, lxml, requests
     Required-by:
 
-The ``Location`` field has the required path information, and must be passed
-to``aws configure``::
+The ``Location`` field has the required path information, and must
+be passed to ``aws configure``::
 
     $ aws configure set plugins.cli_legacy_plugin_path <<PASTE ``Location`` HERE>>
 
@@ -82,10 +87,14 @@ the desired path is::
     /Users/USERNAME/Library/Python/3.9/bin
 
 Add this path to your system path in your shell's config file. After updating
-your path, verify that ``aws-login`` appears on your PATH:
+your path, verify that ``aws-login`` appears on your PATH::
 
     $ which aws-login
     /Users/USERNAME/Library/Python/3.9/bin/aws-login
+
+Once your system path is configured, skip to the `Upgrade`_ section
+if you are upgrading from version ``0.2b1``,  or straight to the
+`Getting Started`_ section otherwise.
 
 Windows System Configuration
 ----------------------------
@@ -129,6 +138,10 @@ After setting your PATH, verify that ``aws-login`` appears on it::
     CommandType     Name                                               Version    Source
     -----------     ----                                               -------    ------
     Application     aws-login.exe                                      0.0.0.0    C:\Users\USERNAME\AppData\Roaming\Python\Python312\Scripts\aws-login.exe
+
+Once your system path is configured, skip to the `Upgrade`_ section
+if you are upgrading from version ``0.2b1``,  or straight to the
+`Getting Started`_ section otherwise.
 
 Upgrade
 =======
@@ -284,7 +297,7 @@ user will receive either a phone call or a push to the default
 Duo device.
 
 For an easier way to switch between multiple profiles, consider adding a
-shell function like this in your shell's start-up script:
+shell function like this in your shell's start-up script::
 
     $ awsprofile () { [ "$1" ] && export AWS_PROFILE=$1 || unset AWS_PROFILE; }
 
@@ -457,7 +470,7 @@ http_header_passcode
         http_header_passcode = X-Shibboleth-Duo-Passcode
 
 verify_ssl_certificate
-    Whether to verify the SSL certificate from the IdP. Defaults to true.
+    Whether to verify the SSL certificate from the IdP. Defaults to true::
 
         verify_ssl_certificate = True
 
@@ -544,11 +557,54 @@ Environment Variables
 Known Issues
 ============
 
+Module not found error
+----------------------
+
+When trying to run an ``aws`` or ``aws-login`` command if you receive
+``ModuleNotFoundError``::
+
+    # aws login configure
+    Traceback (most recent call last):
+      File "/usr/local/bin/aws", line 27, in <module>
+        sys.exit(main())
+                 ^^^^^^
+      File "/usr/local/bin/aws", line 23, in main
+        return awscli.clidriver.main()
+               ^^^^^^^^^^^^^^^^^^^^^^^
+      File "/usr/local/lib/python3.12/site-packages/awscli/clidriver.py", line 73, in main
+        driver = create_clidriver()
+                 ^^^^^^^^^^^^^^^^^^
+      File "/usr/local/lib/python3.12/site-packages/awscli/clidriver.py", line 82, in create_clidriver
+        load_plugins(
+      File "/usr/local/lib/python3.12/site-packages/awscli/plugin.py", line 44, in load_plugins
+        modules = _import_plugins(plugin_mapping)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/usr/local/lib/python3.12/site-packages/awscli/plugin.py", line 61, in _import_plugins
+        module = __import__(path, fromlist=[module])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ModuleNotFoundError: No module named '/usr/local/lib/python3'
+
+You may be running AWS CLI V1 while the ``awscli-plugin`` is
+configured for AWS CLI V2. This can be confirmed by running::
+
+    $ AWS_CONFIG_FILE='/dev/null' aws --version
+    aws-cli/1.37.13
+
+If you wish to continue to use AWS CLI V1, you will need to
+remove or hash out the key-value pair ``cli_legacy_plugin_path``::
+
+    [plugins]:
+    login = awscli_login
+    # cli_legacy_plugin_path = /usr/local/lib/python3.12/site-packages
+
+When you upgrade to AWS CLI V2, it will be necessary to add the
+key-value pair ``cli_legacy_plugin_path`` back.
+
 Unable to authenticate after changing password
 ----------------------------------------------
 
 After the user changes his IdP password, subsequent logins fail.
-To remedy the situation, change the data stored in the keyring as follows:
+To remedy the situation, change the data stored in the keyring as follows::
 
     $ keyring set awscli_login username@hostname_of_your_IdP
 
