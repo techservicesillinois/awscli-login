@@ -134,7 +134,9 @@ def secure_touch(path):
         path - A path to a file.
     """
     fd = os.open(path, os.O_CREAT | os.O_RDONLY, mode=0o600)
-    if hasattr(os, "fchmod"):
+    # Python 3.13 on Windows supports fchmod. It is kind of broken
+    # and not useful here (See issue #234).
+    if hasattr(os, "fchmod") and os.name == 'posix':
         os.fchmod(fd, 0o600)
     os.close(fd)
 
