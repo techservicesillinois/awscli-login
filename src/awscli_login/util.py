@@ -297,7 +297,12 @@ def raise_if_credential_process_not_set(
     args = proc.split()
     cmd = args[0]
 
-    if not (which(cmd) and cmd.endswith("aws-login")):
+    # On Windows Python 3.12 and 3.13, which() returns None if
+    # cmd is not in the system path even if it is a full path to
+    # an executable file. Adding an additional os.access check
+    # resolves the issue (See issue #234).
+    if not ((which(cmd) or os.access(cmd, os.F_OK | os.X_OK)) and
+            cmd.endswith("aws-login")):
         raise CredentialProcessMisconfigured(profile)
     try:
         if not (args[args.index("--profile") + 1] == profile):
