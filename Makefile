@@ -83,12 +83,12 @@ tox: .python-version $(RELEASE) | cache
 	tox --installpkg dist/$(WHEEL)
 
 .python-version:
-	pyenv install -s 3.9.20
-	pyenv install -s 3.10.15
-	pyenv install -s 3.11.10
-	pyenv install -s 3.12.7
-	pyenv install -s 3.13.0rc3
-	pyenv local 3.9.20 3.10.15 3.11.10 3.12.7 3.13.0rc3
+	pyenv install -s 3.9.21
+	pyenv install -s 3.10.16
+	pyenv install -s 3.11.11
+	pyenv install -s 3.12.9
+	pyenv install -s 3.13.2
+	pyenv local 3.9.21 3.10.16 3.11.11 3.12.9 3.13.2
 
 # Run tests on multiple versions of Python (Windows only)
 win-tox: .win-tox $(RELEASE) | cache
