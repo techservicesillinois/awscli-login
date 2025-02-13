@@ -286,6 +286,12 @@ class SaveDefaultCreds(CleanAWSEnvironment):
             f"{path[0:-4] if os.name == 'nt' else path}" \
             " --profile default"
         session = Session()
+        print(
+            "\n\n--------------------------------------------------\n"
+            f"PATH: {path}\n"
+            f"~/.aws/credentials: {self.aws_credentials}\n"
+            "--------------------------------------------------\n\n"
+        )
         raise_if_credential_process_not_set(session, self.profile)
 
 

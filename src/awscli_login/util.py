@@ -297,6 +297,13 @@ def raise_if_credential_process_not_set(
     args = proc.split()
     cmd = args[0]
 
+    print(
+        "\n\n--------------------------------------------------\n"
+        f"cmd: {cmd}\n"
+        f"which(cmd): {which(cmd)}\n"
+        "--------------------------------------------------\n\n"
+    )
+
     if not (which(cmd) and cmd.endswith("aws-login")):
         raise CredentialProcessMisconfigured(profile)
     try:
