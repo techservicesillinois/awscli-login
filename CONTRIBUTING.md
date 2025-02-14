@@ -35,7 +35,7 @@ Submit a [GitHub Issue](https://github.com/techservicesillinois/awscli-login/iss
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.9 or higher
 - [GNU Make](https://www.gnu.org/software/make/)
 
 ### Installation

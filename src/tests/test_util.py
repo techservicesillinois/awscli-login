@@ -267,15 +267,31 @@ class SaveDefaultCreds(CleanAWSEnvironment):
     def test_credential_process_valid(self):
         """Ensure does not raise exception"""
         self.profile = 'default'
-        path = self.write("aws-login", "")
+        # On Windows Python 3.12 and 3.13, which() returns None if
+        # cmd does not end in executable extension: *.EXE or *.BAT.
+        # (See issue #233).
+        if os.name == 'nt':
+            path = self.write("aws-login.bat", "")
+        else:
+            path = self.write("aws-login", "")
         # Windows Python versions 3.6, 3.7, and 3.8 require
         # that files created in a temporary directory are
         # writable otherwise cleanup will fail on deletion (#133)
         os.chmod(path, stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC)
-        self.aws_credentials = f"""[default]
-        credential_process = {path} --profile default
-        """
+        # On Windows, Python 3.11 fails if the extension *.bat
+        # is included here... This is normally what happens in
+        # real life, but if a user sets it by hand and includes
+        # the extension they are SOL.
+        self.aws_credentials = "[default]\ncredential_process = " \
+            f"{path}" \
+            " --profile default"
         session = Session()
+        print(
+            "\n\n--------------------------------------------------\n"
+            f"PATH: {path}\n"
+            f"~/.aws/credentials: {self.aws_credentials}\n"
+            "--------------------------------------------------\n\n"
+        )
         raise_if_credential_process_not_set(session, self.profile)
 
 

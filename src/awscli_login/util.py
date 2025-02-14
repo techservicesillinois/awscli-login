@@ -134,7 +134,9 @@ def secure_touch(path):
         path - A path to a file.
     """
     fd = os.open(path, os.O_CREAT | os.O_RDONLY, mode=0o600)
-    if hasattr(os, "fchmod"):
+    # Python 3.13 on Windows supports fchmod. It is kind of broken
+    # and not useful here (See issue #234).
+    if hasattr(os, "fchmod") and os.name == 'posix':
         os.fchmod(fd, 0o600)
     os.close(fd)
 
@@ -295,7 +297,18 @@ def raise_if_credential_process_not_set(
     args = proc.split()
     cmd = args[0]
 
-    if not (which(cmd) and cmd.endswith("aws-login")):
+    print(
+        "\n\n--------------------------------------------------\n"
+        f"cmd: {cmd}\n"
+        f"which(cmd): {which(cmd)}\n"
+        "--------------------------------------------------\n\n"
+    )
+
+    filename = "aws-login"
+    if os.name == 'nt':
+        filename += '.bat'
+        cmd = cmd.lower()
+    if not (which(cmd) and cmd.endswith(filename)):
         raise CredentialProcessMisconfigured(profile)
     try:
         if not (args[args.index("--profile") + 1] == profile):
