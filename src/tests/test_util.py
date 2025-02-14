@@ -283,7 +283,7 @@ class SaveDefaultCreds(CleanAWSEnvironment):
         # real life, but if a user sets it by hand and includes
         # the extension they are SOL.
         self.aws_credentials = "[default]\ncredential_process = " \
-            f"{path[0:-4] if os.name == 'nt' else path}" \
+            f"{path}" \
             " --profile default"
         session = Session()
         print(
