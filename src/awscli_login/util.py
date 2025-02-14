@@ -304,7 +304,11 @@ def raise_if_credential_process_not_set(
         "--------------------------------------------------\n\n"
     )
 
-    if not (which(cmd) and cmd.endswith("aws-login")):
+    filename = "aws-login"
+    if os.name == 'nt':
+        filename += '.bat'
+        cmd = cmd.lower()
+    if not (which(cmd) and cmd.endswith(filename)):
         raise CredentialProcessMisconfigured(profile)
     try:
         if not (args[args.index("--profile") + 1] == profile):
