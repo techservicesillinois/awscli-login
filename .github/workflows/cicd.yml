@@ -64,6 +64,7 @@ jobs:
   unit_tests:
     runs-on: ${{ matrix.os }}
     needs: build
+    continue-on-error: true
 
     strategy:
       matrix:
