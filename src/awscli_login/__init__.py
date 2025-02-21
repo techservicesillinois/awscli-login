@@ -195,11 +195,17 @@ stored in ~/.aws-login/credentials.
 
     ARG_TABLE = [
         {
+            'name': 'all',
+            'action': 'store_true',
+            'default': False,
+            'help_text': 'Log out of all profiles',
+        },
+        {
             'name': 'verbose',
             'action': 'count',
             'default': 0,
             'cli_type_name': 'integer',
-            'help_text': 'Display verbose output'
+            'help_text': 'Display verbose output',
         },
     ]
 
