@@ -40,6 +40,8 @@ load 'common'
 
     run aws logout
     assert_success
+    assert_equal "$(<$AWSCLI_LOGIN_ROOT/.aws-login/credentials)" ""
+
     run aws logout
     assert_failure
     assert_output "Already logged out!"

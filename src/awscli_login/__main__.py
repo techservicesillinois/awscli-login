@@ -1,5 +1,6 @@
 import logging
 
+from argparse import Namespace
 from datetime import datetime
 
 try:
@@ -83,10 +84,23 @@ def login(profile: Profile, session: Session, interactive: bool = True):
     return save_sts_token(profile, client, saml, role, duration)
 
 
-@error_handler()
-def logout(profile: Profile, session: Session, interactive: bool = True):
-    if not profile.remove_credentials():
-        raise AlreadyLoggedOut
+def logout_args(args: Namespace):
+    nargs = Namespace()
+
+    nargs.all = args.all
+    del args.all
+
+    return nargs
+
+
+@error_handler(extra_args_handler=logout_args)
+def logout(profile: Profile, session: Session, xargs: Namespace,
+           interactive: bool = True):
+    if xargs.all:
+        profile.remove_all_credentials()
+    else:
+        if not profile.remove_credentials():
+            raise AlreadyLoggedOut
 
 
 @error_handler(skip_args=False, validate=True)

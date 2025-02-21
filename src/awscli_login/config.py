@@ -446,6 +446,12 @@ class Profile:
             self._credentials_obj.write(configfile)
             logger.info(message)
 
+    def remove_all_credentials(self) -> None:
+        """ Remove all Amazon tokens & roles in ~/.aws-login/credentials. """
+        self._credentials_obj = ConfigParser()
+        self._write_credentials_obj(
+           "Removed temporary STS credentials for all profiles.")
+
     def remove_credentials(self) -> bool:
         """ Remove Amazon token and role in ~/.aws-login/credentials. """
         status = self._credentials_obj.remove_section(self.name)
@@ -497,7 +503,8 @@ class Profile:
         self._profile_credentials = profile
 
 
-def _error_handler(Profile, skip_args=True, validate=False):
+def _error_handler(Profile, skip_args=True, validate=False,
+                   extra_args_handler=None):
     """ Helper function to generate a logging & exception decorator. """
     def decorator(f):
         @wraps(f)
@@ -506,6 +513,7 @@ def _error_handler(Profile, skip_args=True, validate=False):
             exc_info = None
             code = ERROR_NONE
             sig = None
+            fargs = (extra_args_handler(args), ) if extra_args_handler else ()
 
             try:
                 if not skip_args:
@@ -518,6 +526,7 @@ def _error_handler(Profile, skip_args=True, validate=False):
                 else:
                     filename, load = (None, None)
                     profile = Profile(session, None, validate)
+                fargs = (profile, session) + fargs
 
                 if load is not None and filename is not None:
                     try:
@@ -541,11 +550,11 @@ def _error_handler(Profile, skip_args=True, validate=False):
                         # for 169.254.169.254 cause botocore to crash.
                         vcr_args = {"ignore_hosts": ('169.254.169.254', )}
                         with vcr.use_cassette(filename, **vcr_args):
-                            f(profile, session)
+                            f(*fargs)
                     except ModuleNotFoundError:
                         raise VcrFailedToLoad
                 else:
-                    f(profile, session)
+                    f(*fargs)
             except AWSCLILogin as e:
                 exc_info = sys.exc_info()
                 code = e.code
@@ -572,6 +581,6 @@ def _error_handler(Profile, skip_args=True, validate=False):
     return decorator
 
 
-def error_handler(skip_args=True, validate=False):
+def error_handler(skip_args=True, validate=False, extra_args_handler=None):
     """ A decorator for exception handling and logging. """
-    return _error_handler(Profile, skip_args, validate)
+    return _error_handler(Profile, skip_args, validate, extra_args_handler)
