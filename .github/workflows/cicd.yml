@@ -125,7 +125,7 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.python-version }}-tox-${{ hashFiles('**/setup.py', '**/tox.ini') }}-${{ steps.date.outputs.week }}-${{ secrets.CACHE_VERSION }}
 
     - name: Validate tox virtualenv
-      uses: techservicesillinois/cache-validation@v1
+      uses: ddriddle/cache-validation@feature/replace-set-output-28
       id: tox
       with:
         path: .tox
@@ -133,7 +133,7 @@ jobs:
         remove_invalid_paths: true
 
     - name: Validate wheel cache
-      uses: techservicesillinois/cache-validation@v1
+      uses: ddriddle/cache-validation@feature/replace-set-output-28
       id: cache
       with:
         path: cache
