@@ -24,7 +24,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
+        key: ${{ runner.os }}-pip-build-${{ secrets.CACHE_VERSION }}
 
     - name: Upgrade pip
       run: |
@@ -102,17 +102,18 @@ jobs:
 
     - name: Get pip cache dir
       id: pip-cache
-      run: echo "::set-output name=dir::$(python -m pip cache dir)"
+      shell: bash
+      run: echo "dir=$(python -m pip cache dir)" >> $GITHUB_OUTPUT
 
     - name: Save pip cache
       uses: actions/cache@v3
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
-        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
+        key: ${{ runner.os }}-pip-unit-tests-${{ secrets.CACHE_VERSION }}
 
     - name: Get date
       id: date
-      run: echo "::set-output name=week::$(date '+%U')"
+      run: echo "week=$(date '+%U')" >> $GITHUB_OUTPUT
 
     - name: Cache tox virtualenv & wheel cache
       id: ghcache
@@ -227,13 +228,14 @@ jobs:
 
     - name: Get pip cache dir
       id: pip-cache
-      run: echo "::set-output name=dir::$(python -m pip cache dir)"
+      shell: bash
+      run: echo "dir=$(python -m pip cache dir)" >> $GITHUB_OUTPUT
 
     - name: Save pip cache
       uses: actions/cache@v3
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
-        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
+        key: ${{ runner.os }}-pip-integration-tests-${{ secrets.CACHE_VERSION }}
 
     - name: Install system dependencies
       if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.valid != 'true'
@@ -295,17 +297,18 @@ jobs:
 
     - name: Get pip cache dir
       id: pip-cache
-      run: echo "::set-output name=dir::$(python -m pip cache dir)"
+      shell: bash
+      run: echo "dir=$(python -m pip cache dir)" >> $GITHUB_OUTPUT
 
     - name: Save pip cache
       uses: actions/cache@v3
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
-        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
+        key: ${{ runner.os }}-pip-awscliv2-test-${{ secrets.CACHE_VERSION }}
 
     - name: Get date
       id: date
-      run: echo "::set-output name=week::$(date '+%U')"
+      run: echo "week=$(date '+%U')" >> $GITHUB_OUTPUT
 
     - name: Upgrade bash (macOS)
       if: matrix.os == 'macOS-latest'
@@ -338,7 +341,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}
+        key: ${{ runner.os }}-pip-publish-${{ secrets.CACHE_VERSION }}
 
     - name: Upgrade pip
       run: |
