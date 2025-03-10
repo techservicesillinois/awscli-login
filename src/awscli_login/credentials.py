@@ -84,7 +84,13 @@ def debug_info():
            f"System Path:\n{nl.join(sys.path)}\n"
 
     def env(func):
-        ignore = ["AWS_DATA_PATH", "SHLVL", "_"]
+        ignore = [
+            "AWS_DATA_PATH",
+            "SHLVL",
+            "_",
+            "_PYI_ARCHIVE_FILE",
+            "_PYI_PARENT_PROCESS_LEVEL",
+        ]
 
         return "Environment:\n" + '\n'.join(sorted([
             f"{k}: {func(v)}" for k, v in os.environ.items()
