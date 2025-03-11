@@ -1,19 +1,38 @@
 Release History
 ===============
 
-`Unreleased`_
--------------
+`1.0`_ 2025-03-07
+-----------------
+
+Added
+`````
+* --all flag to logout `#235`_
+* support for Python 3.13 `#219`_
+* support for awscli V2 `#106`_
+* support for Python 3.12 `#180`_
+* support for awscli credential_process `#132`_
+* verify_ssl_certificate option `#102`_
+* --save-http-traffic and --load-http-traffic `#119`_
+* environment variable AWSCLI_LOGIN_ROOT `#121`_
 
 Changed
 ```````
-
-* add support for environment variable AWSCLI_LOGIN_ROOT `#121`_
+* override factor if --passcode is set at the cli `#220`_
+* update ProfileNotFound error message `#109`_
 * rename awscli_login plugin to awscli_login.plugin `#115`_
 * invalid selection now issues a fatal error message `#71`_
 
 Fixed
 `````
 * drop boto3 dependency that conflicts with awscliv2 `#73`_
+
+Removed
+```````
+* refresh process `#156`_
+* support for log directory `#155`_
+* support for Python 3.8 `#219`_
+* support for Python 3.7 `#169`_
+* support for Python 3.6 `#110`_
 
 `0.2b1`_ 2021-02-04
 ---------------------
@@ -75,6 +94,7 @@ Fixed
 .. _0.1.0a5: https://pypi.org/project/awscli-login/0.1.0a5/
 .. _0.1.0a6: https://pypi.org/project/awscli-login/0.1.0a6/
 .. _0.2b1: https://pypi.org/project/awscli-login/0.2b1/
+.. _1.0: https://pypi.org/project/awscli-login/1.0/
 
 .. _#1: https://github.com/techservicesillinois/awscli-login/issues/1
 .. _#9: https://github.com/techservicesillinois/awscli-login/issues/9
@@ -96,3 +116,16 @@ Fixed
 .. _#73: https://github.com/techservicesillinois/awscli-login/pull/73
 .. _#115: https://github.com/techservicesillinois/awscli-login/pull/115
 .. _#121: https://github.com/techservicesillinois/awscli-login/pull/121
+.. _#235: https://github.com/techservicesillinois/awscli-login/pull/235
+.. _#219: https://github.com/techservicesillinois/awscli-login/pull/219
+.. _#106: https://github.com/techservicesillinois/awscli-login/pull/106
+.. _#180: https://github.com/techservicesillinois/awscli-login/pull/180
+.. _#132: https://github.com/techservicesillinois/awscli-login/pull/132
+.. _#102: https://github.com/techservicesillinois/awscli-login/pull/102
+.. _#119: https://github.com/techservicesillinois/awscli-login/pull/119
+.. _#220: https://github.com/techservicesillinois/awscli-login/pull/220
+.. _#109: https://github.com/techservicesillinois/awscli-login/pull/109
+.. _#156: https://github.com/techservicesillinois/awscli-login/pull/156
+.. _#155: https://github.com/techservicesillinois/awscli-login/pull/155
+.. _#169: https://github.com/techservicesillinois/awscli-login/pull/169
+.. _#110: https://github.com/techservicesillinois/awscli-login/pull/110
