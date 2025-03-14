@@ -12,8 +12,9 @@ from datetime import datetime
 from botocore.session import Session
 
 from .__main__ import main as login, logout
-from .config import Profile, error_handler
 from ._version import version
+from .account_names import print_account_names, save_account_names
+from .config import Profile, error_handler
 
 
 def print_credentials(token):
@@ -56,7 +57,7 @@ def init_parser():
         help="Display debug information")
 
     hidden = parser.add_mutually_exclusive_group()
-    for flag in ["--login", "--logout"]:
+    for flag in ["--login", "--logout", "--account_names"]:
         hidden.add_argument(flag, type=argparse.FileType('r'),
                             help=argparse.SUPPRESS)
     return parser
@@ -118,6 +119,13 @@ def main():
         return login(ns, session)
     elif args.logout:
         return logout(Namespace(**json.load(args.logout)), session)
+    elif args.account_names:
+        ns = Namespace(**json.load(args.account_names))
+
+        if ns.save:
+            save_account_names(ns, session)
+        else:
+            print_account_names(ns, session)
     else:
         return _main(args, session)
 

@@ -80,7 +80,8 @@ def login(profile: Profile, session: Session, interactive: bool = True):
             raise
 
     duration = profile.duration
-    role = get_selection(roles, profile.role_arn, interactive)
+    role = get_selection(roles, profile.role_arn, interactive,
+                         profile.account_names)
     return save_sts_token(profile, client, saml, role, duration)
 
 
