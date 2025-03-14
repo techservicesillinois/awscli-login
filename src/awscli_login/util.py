@@ -72,7 +72,8 @@ def sort_roles(role_arns: List[Role]) \
 
 
 def get_selection(role_arns: List[Role], profile_role: Optional[str] = None,
-                  interactive: bool = True) -> Role:
+                  interactive: bool = True, aliases: Dict[str, str] = {}
+                  ) -> Role:
     """ Interactively prompts the user for a role selection. """
     i = 0
     n = len(role_arns)
@@ -93,7 +94,8 @@ def get_selection(role_arns: List[Role], profile_role: Optional[str] = None,
 
         accounts = sort_roles(role_arns)
         for acct, roles in accounts:
-            print(' ' * 4, "Account:", acct)
+            name = f"{aliases[acct]} ({acct})" if acct in aliases else acct
+            print(' ' * 4, "Account:", name)
 
             for index, role in roles:
                 print(' ' * 8, "[ %d ]:" % i, role)

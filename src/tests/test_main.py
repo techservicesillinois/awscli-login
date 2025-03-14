@@ -1,7 +1,4 @@
-import unittest
-
 from unittest.mock import (
-    MagicMock,
     patch,
 )
 
@@ -10,36 +7,10 @@ from awscli_login.__main__ import (
     save_sts_token,
 )
 
-
-class MockProfile():
-    role_arn = "RoleArn"
-    cookies = "MockCookies"
-    duration = 0
-    ecp_endpoint_url = "http://127.0.0.1"
-    force_refresh = False
-    name = 'default'
-    verify_ssl_certificate = True
-
-    def raise_if_logged_in(self):
-        return
+from .login import saveStsToken, Login
 
 
-class MockBotocoreClient():
-    pass
-
-
-class saveStsToken(unittest.TestCase):
-
-    def setUp(self):
-        self.profile = MockProfile()
-        self.client = MockBotocoreClient()
-
-        self.saml = "MockSAMLAssertion"
-        self.role = ["PrincipalArn", "RoleArn"]
-        self.token = "MockedToken"
-
-        self.client.assume_role_with_saml = MagicMock(return_value=self.token)
-        self.profile.save_credentials = MagicMock()
+class saveStsTokenTests(saveStsToken):
 
     def test_save_sts_token(self):
         """ save_sts_token should save and return a token """
@@ -69,19 +40,7 @@ class saveStsToken(unittest.TestCase):
         self.profile.save_credentials.assert_called_with(self.token, self.role)
 
 
-class Login(unittest.TestCase):
-
-    def setUp(self):
-        self.profile = MockProfile()
-        self.session = MockBotocoreClient()
-        self.client = MockBotocoreClient()
-
-        self.profile.raise_if_logged_in = MagicMock()
-        self.profile.get_username = MagicMock()
-        self.profile.get_credentials = MagicMock()
-
-        self.session.set_credentials = MagicMock()
-        self.session.create_client = MagicMock(return_value=self.client)
+class LoginTests(Login):
 
     @patch("awscli_login.__main__.authenticate",
            return_value=("SAML", ["PrincipalArn", "RoleArn"]))
@@ -109,7 +68,7 @@ class Login(unittest.TestCase):
             self.profile.verify_ssl_certificate,
         )
         get_selection.assert_called_with(["PrincipalArn", "RoleArn"],
-                                         self.profile.role_arn, True)
+                                         self.profile.role_arn, True, {})
         save_sts_token.assert_called_with(
             self.profile,
             self.client,
@@ -140,7 +99,7 @@ class Login(unittest.TestCase):
         self.profile.get_credentials.assert_not_called()
         authenticate.assert_not_called()
         get_selection.assert_called_with(["PrincipalArn", "RoleArn"],
-                                         self.profile.role_arn, True)
+                                         self.profile.role_arn, True, {})
         save_sts_token.assert_called_with(
             self.profile,
             self.client,
@@ -171,7 +130,7 @@ class Login(unittest.TestCase):
         self.profile.get_credentials.assert_not_called()
         authenticate.assert_not_called()
         get_selection.assert_called_with(["PrincipalArn", "RoleArn"],
-                                         self.profile.role_arn, False)
+                                         self.profile.role_arn, False, {})
         save_sts_token.assert_called_with(
             self.profile,
             self.client,

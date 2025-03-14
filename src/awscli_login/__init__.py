@@ -44,6 +44,7 @@ def inject_subcommands(command_table, session: Session, **kwargs):
     """
     Used to inject subcommands into the aws login command list.
     """
+    command_table['alias'] = AccountNames(session)
     command_table['configure'] = Configure(session)
 
 
@@ -210,6 +211,34 @@ stored in ~/.aws-login/credentials.
     ]
 
     UPDATE = False
+
+
+class AccountNames(ExternalCommand):
+    NAME = 'alias'
+    DESCRIPTION = ('''
+Configure account name aliases file ~/.aws-login/alias. If this
+command is run with no arguments, you will be prompted to provide
+an alias for each AWS account you have access to. If your alias
+file does not exist, it will be created for you. To keep an existing
+value, hit enter when prompted for the value. When you are prompted
+for information, the current value will be displayed in [brackets].
+If the config item has no value, it will be displayed as [None] or
+as the account alias as returned by: aws iam list-account-aliases.
+''')
+    SYNOPSIS = ('aws login alias')
+
+    ARG_TABLE = [
+        {
+            'name': 'auto',
+            'action': 'store_true',
+            'default': False,
+            'cli_type_name': 'boolean',
+            'help_text': 'Automatically update the ~/.aws-login/alias file '
+                         'with new account names without prompting the user. '
+                         'Preexisting names found in the alias file are '
+                         'preserved.'
+        }
+    ]
 
 
 class Configure(BasicCommand):

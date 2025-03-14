@@ -54,6 +54,7 @@ CONFIG_DIR = '.aws-login'
 CONFIG_FILE = path.join(CONFIG_DIR, 'config')
 JAR_DIR = path.join(CONFIG_DIR, 'cookies')
 CREDENTIALS_FILE = path.join(CONFIG_DIR, 'credentials')
+ACCT_ALIAS_FILE = path.join(CONFIG_DIR, 'alias')
 
 ERROR_NONE = 0
 ERROR_UNKNOWN = 1
@@ -90,7 +91,9 @@ class Profile:
     # path to profile configuration file
     config_file: str
     credentials_file: str
+    alias_file: str
 
+    account_names: dict[str, str]
     # Private vars
     _credentials_obj: ConfigParser
     _profile_credentials: Optional[SectionProxy]
@@ -136,6 +139,7 @@ class Profile:
         self.home = root if root is not None else expanduser('~')
         self.config_file = path.join(self.home, CONFIG_FILE)
         self.credentials_file = path.join(self.home, CREDENTIALS_FILE)
+        self.alias_file = path.join(self.home, ACCT_ALIAS_FILE)
 
         makedirs(path.join(self.home, CONFIG_DIR), mode=0o700, exist_ok=True)
         makedirs(path.join(self.home, JAR_DIR), mode=0o700, exist_ok=True)
@@ -406,6 +410,7 @@ class Profile:
             self._set_override_attrs()
 
         self._set_attrs_from_credentials_file()
+        self._set_attrs_from_alias_file()
 
     def are_credentials_expired(self) -> bool:
         """ Return True if credentials are expired. """
@@ -501,6 +506,16 @@ class Profile:
             profile = None
 
         self._profile_credentials = profile
+
+    def _set_attrs_from_alias_file(self):
+        """ Set account_names from ~/.aws-login/alias. """
+        config = ConfigParser()
+        config.read(self.alias_file)
+
+        if config.has_section("accounts"):
+            self.account_names = dict(config["accounts"])
+        else:
+            self.account_names = {}
 
 
 def _error_handler(Profile, skip_args=True, validate=False,
