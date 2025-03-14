@@ -44,6 +44,7 @@ def inject_subcommands(command_table, session: Session, **kwargs):
     """
     Used to inject subcommands into the aws login command list.
     """
+    command_table['account_names'] = AccountNames(session)
     command_table['configure'] = Configure(session)
 
 
@@ -210,6 +211,35 @@ stored in ~/.aws-login/credentials.
     ]
 
     UPDATE = False
+
+
+class AccountNames(ExternalCommand):
+    NAME = 'account_names'
+    DESCRIPTION = ('''
+Print account names and account IDs
+=======================
+Configuration Variables
+=======================
+
+''')
+    SYNOPSIS = ('aws login account_names')
+
+    ARG_TABLE = [
+        {
+            'name': 'verbose',
+            'action': 'count',
+            'default': 0,
+            'cli_type_name': 'integer',
+            'help_text': 'Display verbose output'
+        },
+        {
+            'name': 'save',
+            'action': 'store_true',
+            'default': False,
+            'cli_type_name': 'boolean',
+            'help_text': 'Update accounts.ini file with names'
+        },
+    ]
 
 
 class Configure(BasicCommand):
