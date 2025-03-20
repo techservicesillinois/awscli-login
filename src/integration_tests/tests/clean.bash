@@ -9,6 +9,7 @@ setup() {
     export AWS_CONFIG_FILE="$TEST_TEMP_DIR/.aws/config"
     export AWS_SHARED_CREDENTIALS_FILE="$TEST_TEMP_DIR/.aws/credentials"
     export AWSCLI_LOGIN_ROOT="$TEST_TEMP_DIR"
+    unset AWS_PROFILE  # If set can cause tests to fail (See #236)
 }
 
 teardown() {
