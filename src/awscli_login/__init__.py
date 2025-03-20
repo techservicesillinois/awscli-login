@@ -122,12 +122,12 @@ class Login(ExternalCommand):
             'help_text': 'STS credential lifetime in seconds'
         },
         {
-            'name': 'http_header_factor',
+            'name': 'http-header-factor',
             'default': None,
             'help_text': 'HTTP Header to store the user\'s Duo factor'
         },
         {
-            'name': 'http_header_passcode',
+            'name': 'http-header-passcode',
             'default': None,
             'help_text': 'HTTP Header to store the user\'s Duo passcode'
         },
