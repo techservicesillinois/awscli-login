@@ -10,6 +10,8 @@ from awscli_login.__main__ import (
     save_sts_token,
 )
 
+from typing import Dict
+
 
 class MockProfile():
     role_arn = "RoleArn"
@@ -19,6 +21,7 @@ class MockProfile():
     force_refresh = False
     name = 'default'
     verify_ssl_certificate = True
+    account_names: Dict[str, str] = {}
 
     def raise_if_logged_in(self):
         return
@@ -109,7 +112,7 @@ class Login(unittest.TestCase):
             self.profile.verify_ssl_certificate,
         )
         get_selection.assert_called_with(["PrincipalArn", "RoleArn"],
-                                         self.profile.role_arn, True)
+                                         self.profile.role_arn, True, {})
         save_sts_token.assert_called_with(
             self.profile,
             self.client,
@@ -140,7 +143,7 @@ class Login(unittest.TestCase):
         self.profile.get_credentials.assert_not_called()
         authenticate.assert_not_called()
         get_selection.assert_called_with(["PrincipalArn", "RoleArn"],
-                                         self.profile.role_arn, True)
+                                         self.profile.role_arn, True, {})
         save_sts_token.assert_called_with(
             self.profile,
             self.client,
@@ -171,7 +174,7 @@ class Login(unittest.TestCase):
         self.profile.get_credentials.assert_not_called()
         authenticate.assert_not_called()
         get_selection.assert_called_with(["PrincipalArn", "RoleArn"],
-                                         self.profile.role_arn, False)
+                                         self.profile.role_arn, False, {})
         save_sts_token.assert_called_with(
             self.profile,
             self.client,
