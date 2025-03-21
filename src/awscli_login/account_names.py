@@ -18,13 +18,8 @@ ACCT_SECTION = "accounts"
 
 
 @error_handler()
-def print_account_names(profile: Profile, session: Session):
-    print(list_account_names(profile, session))
-
-
-@error_handler()
-def save_account_names(profile: Profile, session: Session):
-    names = list_account_names(profile, session)
+def edit_account_names(profile: Profile, session: Session):
+    names = _edit_account_names(profile, session)
     write_account_names_file(names)
 
 
@@ -36,15 +31,38 @@ def write_account_names_file(account_names):
     if not config.has_section(ACCT_SECTION):
         config.add_section(ACCT_SECTION)
 
-    for account_id in account_names:
-        if not config.has_option(ACCT_SECTION, account_id):
-            config.set(ACCT_SECTION, account_id, account_names[account_id])
+    config[ACCT_SECTION] = account_names
 
     with open(ACCT_FILE, 'w') as f:
         config.write(f)
 
 
-def list_account_names(profile: Profile, session: Session):
+def get_account_name(profile, session, sts, saml, role):
+    save_sts_token(profile, sts, saml, role, profile.duration)
+
+    params = dict(
+        RoleArn=role[1],
+        PrincipalArn=role[0],
+        SAMLAssertion=saml,
+    )
+
+    token = sts.assume_role_with_saml(**params)
+    creds = token['Credentials']
+    iam = session.create_client(
+            'iam',
+            aws_access_key_id=creds['AccessKeyId'],  # type: ignore
+            aws_secret_access_key=creds['SecretAccessKey'],  # type: ignore
+            aws_session_token=creds['SessionToken'],  # type: ignore
+    )
+
+    try:
+        aliases = iam.list_account_aliases()
+        return aliases['AccountAliases'][0]
+    except ClientError:
+        return None
+
+
+def _edit_account_names(profile: Profile, session: Session):
     """ Print account names to STDOUT """
     session.set_credentials(None, None)  # Disable credential lookup
     sts = session.create_client('sts')
@@ -61,33 +79,19 @@ def list_account_names(profile: Profile, session: Session):
                                    profile.cookies, *creds)
 
     account_roles = [account_id for account_id, _ in sort_roles(roles)]
-    discovered = {}
+    accounts = {}
 
     for account_id, role in list(zip(account_roles, roles)):
-        save_sts_token(profile, sts, saml, role, profile.duration)
+        if account_id not in accounts:
+            if account_id in profile.account_names:
+                name = profile.account_names[account_id]
+            else:
+                name = get_account_name(profile, session, sts, saml, role)
 
-        params = dict(
-            RoleArn=role[1],
-            PrincipalArn=role[0],
-            SAMLAssertion=saml,
-        )
-        # duration is optional and can be set by the role;
-        # avoid passing if not set.
+            value = input(f"{account_id} [{name}]: ").strip()
+            if value:
+                accounts[account_id] = value
+            elif name is not None:
+                accounts[account_id] = name
 
-        token = sts.assume_role_with_saml(**params)
-        creds = token['Credentials']
-        iam = session.create_client(
-                'iam',
-                aws_access_key_id=creds['AccessKeyId'],  # type: ignore
-                aws_secret_access_key=creds['SecretAccessKey'],  # type: ignore
-                aws_session_token=creds['SessionToken'],  # type: ignore
-        )
-
-        try:
-            aliases = iam.list_account_aliases()
-            default_alias = aliases['AccountAliases'][0]
-            discovered[account_id] = default_alias
-        except ClientError as e:
-            pass  # TODO: Log something here
-
-    return discovered
+    return accounts
