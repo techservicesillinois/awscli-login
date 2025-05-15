@@ -583,7 +583,7 @@ specific but might look like:
 
 Finally, set the KEYRING_PROPERTY_PYTHON envorinment variableto point
 to the Windows Python executable. If you need to find the full path
-to this executable, run this from the Windows command prompt:
+to this executable, run this from the **Windows command prompt**:
 
     where python.exe
 
