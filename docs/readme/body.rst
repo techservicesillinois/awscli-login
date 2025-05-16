@@ -570,7 +570,7 @@ directly from the Python official site. The Python keyring module
 will need to beinstalled on the Windows Python instance. From a
 Windows command prompt, run:
 
-    pip install keyring
+    C:\> pip install keyring
 
 Next, inside WSL, install the keyring-pybridge module:
 
