@@ -581,7 +581,7 @@ specific but might look like:
 
     export PYTHON_KEYRING_BACKEND=keyring_pybridge.PyBridgeKeyring
 
-Finally, set the KEYRING_PROPERTY_PYTHON envorinment variableto point
+Finally, set the KEYRING_PROPERTY_PYTHON environment variable to point
 to the Windows Python executable. If you need to find the full path
 to this executable, run this from the **Windows command prompt**:
 
