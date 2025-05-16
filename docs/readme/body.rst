@@ -578,7 +578,7 @@ Next, inside WSL, install the keyring-pybridge module::
 
 Still in WSL, Set the PYTHON_KEYRING_BACKEND environment variable to
 tell Python to use the pybridge keyring backend. This is shell
-specific but might look like:
+specific but might look like::
 
     $ export PYTHON_KEYRING_BACKEND=keyring_pybridge.PyBridgeKeyring
 
