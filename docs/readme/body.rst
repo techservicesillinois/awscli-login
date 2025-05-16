@@ -563,7 +563,7 @@ Keyrings with WSL and Windows Credential Store
 If running under WSL, you may wish to store credentials in the Windows
 Credential Store in the Windoes host operating system and access them
 from within WSL. To do this, first install Python on the Windows
-host operating system if not already installeed. You can do this from
+host operating system if not already installed. You can do this from
 the Microsoft Store or using Winget, or you can download the installer
 directly from the Python official site. The Python keyring module
 will need to beinstalled on the Windows Python instance. From a
