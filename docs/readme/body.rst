@@ -580,7 +580,7 @@ Still in WSL, Set the PYTHON_KEYRING_BACKEND environment variable to
 tell Python to use the pybridge keyring backend. This is shell
 specific but might look like:
 
-    export PYTHON_KEYRING_BACKEND=keyring_pybridge.PyBridgeKeyring
+    $ export PYTHON_KEYRING_BACKEND=keyring_pybridge.PyBridgeKeyring
 
 Finally, set the KEYRING_PROPERTY_PYTHON environment variable to point
 to the Windows Python executable. If you need to find the full path
