@@ -568,7 +568,7 @@ host operating system if not already installed. You can do this from
 the Microsoft Store or using Winget, or you can download the installer
 directly from the Python official site. The Python keyring module
 will need to beinstalled on the Windows Python instance. From a
-Windows command prompt, run:
+Windows command prompt, run::
 
     C:\> pip install keyring
 
