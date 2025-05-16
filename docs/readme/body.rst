@@ -586,7 +586,7 @@ Finally, set the KEYRING_PROPERTY_PYTHON environment variable to point
 to the Windows Python executable. If you need to find the full path
 to this executable, run this from the **Windows command prompt**:
 
-    where python.exe
+    C:\> where python.exe
 
 Inside WSL, set this environment variable like this. If Python is at
 c:\path\to\python.exe, translate the path like this:
