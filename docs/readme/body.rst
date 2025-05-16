@@ -444,8 +444,9 @@ enable_keyring
     secure backends such as the macOS Keychain, Windows Credential
     Locker, and Linux keyrings. Additional, system configuration
     may be required to use a keyring on Linux systems (See
-    https://pypi.org/project/keyring for details). For an example ofthis
-    WSL and the Windows Credential Store,see below.
+    https://pypi.org/project/keyring for details). For an example of this
+    on WSL using the Windows Credential Store, see
+    `Keyrings with WSL and Windows Credential Store`_ below.
 
     Set to True to
     enable::
