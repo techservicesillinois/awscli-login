@@ -572,7 +572,7 @@ Windows command prompt, run::
 
     C:\> pip install keyring
 
-Next, inside WSL, install the keyring-pybridge module:
+Next, inside WSL, install the keyring-pybridge module::
 
     $ pip install keyring-pybridge
 
