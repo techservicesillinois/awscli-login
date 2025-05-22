@@ -559,7 +559,7 @@ Environment Variables
     look for configuration files in (``/tmp/.aws-login/``).
 
 Keyrings with WSL and Windows Credential Store
-=====================================
+==============================================
 
 If running under WSL, you may wish to store credentials in the Windows
 Credential Store in the Windoes host operating system and access them
