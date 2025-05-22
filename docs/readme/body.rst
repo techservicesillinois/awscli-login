@@ -589,7 +589,7 @@ to this executable, run this from the **Windows command prompt**::
     C:\> where python.exe
 
 Inside WSL, set this environment variable like this. If Python is at
-c:\path\to\python.exe, translate the path like this::
+``c:\path\to\python.exe``, translate the path like this::
 
     $ export KEYRING_PROPERTY_PYTHON='/mnt/c/path/to/python.exe'
 
