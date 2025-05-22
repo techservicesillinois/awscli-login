@@ -444,7 +444,11 @@ enable_keyring
     secure backends such as the macOS Keychain, Windows Credential
     Locker, and Linux keyrings. Additional, system configuration
     may be required to use a keyring on Linux systems (See
-    https://pypi.org/project/keyring for details). Set to True to
+    https://pypi.org/project/keyring for details). For an example of this
+    on WSL using the Windows Credential Store, see
+    `Keyrings with WSL and Windows Credential Store`_ below.
+
+    Set to True to
     enable::
 
         enable_keyring = True
@@ -553,6 +557,46 @@ Environment Variables
     ``$AWSCLI_LOGIN_ROOT/.aws-login``.  For example, if
     ``AWSCLI_LOGIN_ROOT`` is set to ``/tmp`` then the plugin will
     look for configuration files in (``/tmp/.aws-login/``).
+
+Keyrings with WSL and Windows Credential Store
+==============================================
+
+If running under WSL, you may wish to store credentials in the Windows
+Credential Store in the Windows host operating system and access them
+from within WSL. To do this, first install Python on the Windows
+host operating system if not already installed. You can do this from
+the Microsoft Store or using WinGet, or you can download the installer
+directly from the Python official site. The Python keyring module
+will need to be installed on the Windows Python instance. From a
+Windows command prompt, run::
+
+    C:\> pip install keyring
+
+Next, inside WSL, install the keyring-pybridge module::
+
+    $ pip install keyring-pybridge
+
+Still in WSL, Set the PYTHON_KEYRING_BACKEND environment variable to
+tell Python to use the pybridge keyring backend. This is shell
+specific but might look like::
+
+    $ export PYTHON_KEYRING_BACKEND=keyring_pybridge.PyBridgeKeyring
+
+Finally, set the KEYRING_PROPERTY_PYTHON environment variable to point
+to the Windows Python executable. If you need to find the full path
+to this executable, run this from the **Windows command prompt**::
+
+    C:\> where python.exe
+
+Inside WSL, set this environment variable like this. If Python is at
+``c:\path\to\python.exe``, translate the path like this::
+
+    $ export KEYRING_PROPERTY_PYTHON='/mnt/c/path/to/python.exe'
+
+You'll probably want to set these environment variables in your
+shell start-up script. Once set, Python keyring in WSL will talk to 
+Python keyring in the Windows host OS which, by default, uses the
+Windows Credential Store for keyring storage.
 
 Known Issues
 ============
