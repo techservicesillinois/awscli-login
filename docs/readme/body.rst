@@ -246,6 +246,50 @@ factor until the IdP session expires::
             [ 1 ]: IAMUser
     Selection: 0
 
+After your initial login, you may wish to have account aliases
+listed instead of account IDs. This can be achieved by creating the
+``~/.aws-login/alias`` file. This is an ini file containing a list
+of account IDs and their corresponding aliases. It can be easily
+created and edited with the following command::
+
+    $ aws login alias
+    978517677611 [aws-foobar-prod]:
+    520135271718 [None]: aws-foobar-test
+
+The alias subcommand provides a means to create and edit
+``~/.aws-login/alias`` with an interface similar to ``aws login
+configure``. If you want the default value for an account simply
+press enter. If you want to give a custom value type a value.
+
+The default value is the existing value found in ``~/.aws-login/alias``
+for the account ID if it exists, or the alias as returned by ``aws
+iam list-account-aliases``. The default value is ``None`` if no
+user supplied value exist and an alias can not be retrieved from
+the AWS IAM API.
+
+After creating the alias file as above on the next login you would
+see this::
+
+    $ aws login
+    Username [username]: netid
+    Password: ********
+    Factor:
+    Please choose the role you would like to assume:
+        Account: aws-foobar-prod (978517677611)
+            [ 0 ]: Admin
+        Account: aws-foobar-test (520135271718)
+            [ 1 ]: ReadOnlyUser
+            [ 2 ]: S3Admin
+    Selection: 2
+
+The alias subcommand can also be run without user input using the
+``--auto`` flag. Note that it will not change existing entries, and
+does warn on accounts if the AWS IAM API does not return an alias::
+
+    $ aws login alias --auto
+    Unable to retrieve aliases for:
+    520135271718
+
 Advanced Usage
 ==============
 

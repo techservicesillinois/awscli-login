@@ -164,3 +164,11 @@ class ConfigurationFailed(ConfigError):
         mesg = 'Failed to configure profile. Finish configuration using:' \
                '\n\naws login configure'
         super().__init__(mesg)
+
+
+class PleaseLogin(ConfigError):
+    code = 16
+
+    def __init__(self) -> None:
+        mesg = "Please log in first:\n\naws login"
+        super().__init__(mesg)
