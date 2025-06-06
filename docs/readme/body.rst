@@ -290,6 +290,41 @@ does warn on accounts if the AWS IAM API does not return an alias::
     Unable to retrieve aliases for:
     520135271718
 
+If you want to display the account alias and role on your shell
+prompt they are stored in ``~/.aws-login/identity/PROFILE_NAME/acct``
+and in ``~/.aws-login/identity/PROFILE_NAME/role`` respectively.
+Both are updated as you log in and out. You can use one or both
+of these files with a bash function like this added to your ``~/.bashrc``
+file::
+
+    aws_acct() {
+        local IDENTITY_DIR="$HOME/.aws-login/identity/${AWS_PROFILE:-default}"
+        local ACCT_FILE="$IDENTITY_DIR/acct"
+        local ROLE_FILE="$IDENTITY_DIR/role"
+
+        if [[ -f "$ACCT_FILE" && -f "$ROLE_FILE" ]]; then
+            local ACCT="$(cat $ACCT_FILE 2>/dev/null)"
+            local ROLE="$(cat $ROLE_FILE 2>/dev/null)"
+            [[ -n "$ACCT" && -n "$ROLE" ]] && echo "[$ROLE@$ACCT] "
+        fi
+    }
+
+Append the following line to the end of your ``~/.bash_profile``::
+
+    export PS1="\$(aws_acct)$PS1"
+
+Your prompt should dynamically change on login and logout. For example::
+
+    $ aws login
+        Account: aws-foobar-prod (978517677611)
+            [ 0 ]: Admin
+        Account: aws-foobar-test (520135271718)
+            [ 1 ]: ReadOnlyUser
+            [ 2 ]: S3Admin
+    Selection: 2
+    [S3Admin@aws-foobar-test] $ aws logout
+    $
+
 Advanced Usage
 ==============
 

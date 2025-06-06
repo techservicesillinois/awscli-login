@@ -1,5 +1,6 @@
 """ This module is used to process ~/.aws-login/config """
 import logging
+import os
 import sys
 import traceback
 
@@ -7,7 +8,7 @@ from argparse import Namespace
 from collections import OrderedDict
 from configparser import ConfigParser, SectionProxy
 from datetime import datetime
-from functools import wraps
+from functools import partial, wraps
 from getpass import getuser, getpass
 from os import environ, makedirs, path
 from os.path import expanduser
@@ -55,6 +56,7 @@ CONFIG_FILE = path.join(CONFIG_DIR, 'config')
 JAR_DIR = path.join(CONFIG_DIR, 'cookies')
 CREDENTIALS_FILE = path.join(CONFIG_DIR, 'credentials')
 ACCT_ALIAS_FILE = path.join(CONFIG_DIR, 'alias')
+IDENTITY_DIR = path.join(CONFIG_DIR, 'identity')
 
 ERROR_NONE = 0
 ERROR_UNKNOWN = 1
@@ -140,6 +142,9 @@ class Profile:
         self.config_file = path.join(self.home, CONFIG_FILE)
         self.credentials_file = path.join(self.home, CREDENTIALS_FILE)
         self.alias_file = path.join(self.home, ACCT_ALIAS_FILE)
+        self.identity_dir = path.join(self.home, IDENTITY_DIR, self.name)
+        self.identity_role_file = path.join(self.identity_dir, 'role')
+        self.identity_acct_file = path.join(self.identity_dir, 'acct')
 
         makedirs(path.join(self.home, CONFIG_DIR), mode=0o700, exist_ok=True)
         makedirs(path.join(self.home, JAR_DIR), mode=0o700, exist_ok=True)
@@ -516,6 +521,34 @@ class Profile:
             self.account_names = dict(config["accounts"])
         else:
             self.account_names = {}
+
+    def remove_identity_files(self):
+        def _warn_on_error(func, file):
+            try:
+                func(file)
+            except (OSError, FileNotFoundError) as e:
+                logger.warning(e)
+
+        rm = partial(_warn_on_error, os.remove)
+        rmdir = partial(_warn_on_error, os.rmdir)
+
+        rm(self.identity_acct_file)
+        rm(self.identity_role_file)
+        rmdir(self.identity_dir)
+
+    def write_identity_files(self, role: Role):
+        role_arn = role[1].split(':')
+        account_id = role_arn[4]
+        role_name = role_arn[5].split('/')[1]
+
+        def writef(filename: str, data: str):
+            with open(filename, 'w') as f:
+                print(data, file=f, end='')
+
+        makedirs(self.identity_dir, mode=0o700, exist_ok=True)
+        writef(self.identity_acct_file,
+               self.account_names.get(account_id, account_id))
+        writef(self.identity_role_file, role_name)
 
 
 def _error_handler(Profile, skip_args=True, validate=False,
