@@ -29,7 +29,6 @@ logger = logging.getLogger(__package__)
 def awscli_initialize(cli):
     """ Entry point called by awscli """
     cli.register('building-command-table.main', inject_commands)
-    cli.register('building-command-table.login', inject_subcommands)
 
 
 def inject_commands(command_table, session: Session, **kwargs):
@@ -38,14 +37,6 @@ def inject_commands(command_table, session: Session, **kwargs):
     """
     command_table['login'] = Login(session)
     command_table['logout'] = Logout(session)
-
-
-def inject_subcommands(command_table, session: Session, **kwargs):
-    """
-    Used to inject subcommands into the aws login command list.
-    """
-    command_table['alias'] = AccountNames(session)
-    command_table['configure'] = Configure(session)
 
 
 class ExternalCommand(BasicCommand):
@@ -77,7 +68,17 @@ class Login(ExternalCommand):
     DESCRIPTION = ('is a plugin that manages retrieving and rotating'
                    ' Amazon STS keys using the Shibboleth IdP and Duo'
                    ' for authentication.')
-    SYNOPSIS = ('aws login [<Arg> ...]')
+    SYNOPSIS = ('aws login [options] <subcommand>')
+
+    SUBCOMMANDS = [
+        {'name': 'alias', 'command_class': None},
+        {'name': 'configure', 'command_class': None},
+    ]
+
+    def __init__(self, Session):
+        self.SUBCOMMANDS[0]['command_class'] = AccountNames
+        self.SUBCOMMANDS[1]['command_class'] = Configure
+        return super().__init__(Session)
 
     # tests/util.py:login_cli_args defaults must match this table
     ARG_TABLE = [
@@ -192,7 +193,7 @@ class Logout(ExternalCommand):
 Log out of selected profile by clearing the profile's credentials
 stored in ~/.aws-login/credentials.
 ''')
-    SYNOPSIS = ('aws logout')
+    SYNOPSIS = ('aws logout [options]')
 
     ARG_TABLE = [
         {
@@ -225,7 +226,7 @@ for information, the current value will be displayed in [brackets].
 If the config item has no value, it will be displayed as [None] or
 as the account alias as returned by: aws iam list-account-aliases.
 ''')
-    SYNOPSIS = ('aws login alias')
+    SYNOPSIS = ('aws login alias [options]')
 
     ARG_TABLE = [
         {
@@ -242,11 +243,11 @@ as the account alias as returned by: aws iam list-account-aliases.
 
 
 class Configure(BasicCommand):
-    NAME = 'login'
+    NAME = 'configure'
     DESCRIPTION = ('''
 Configure LOGIN options. If this command is run with no arguments,
 you will be prompted for configuration values such as your IdP's
-entity ID and its ECP endpoint URL. You can configure a named profile
+ECP endpoint URL and username. You can configure a named profile
 using the --profile argument. If your config file does not exist
 (the default location is ~/.aws-login/config), it will be created
 for you. To keep an existing value, hit enter when prompted for the
@@ -273,7 +274,7 @@ file:
 * **http_header_passcode** - HTTP Header to store passcode
 * **verify_ssl_certificate** - Set to False to skip check of IdP SSL cert
 ''')
-    SYNOPSIS = ('aws login configure')
+    SYNOPSIS = ('aws login configure [options]')
 
     ARG_TABLE = [
         {
@@ -291,14 +292,20 @@ file:
 To create a new configuration::\n
 \n
     $ aws login configure
-    Entity ID [None]: urn:mace:incommon:idp.edu
-    ECP Endpoint URL [None]: https://idp.edu/idp/profile/SAML2/SOAP/ECP\n
+    ECP Endpoint URL [None]: https://shib.foo.edu/idp/profile/SAML2/SOAP/ECP
+    Username [None]: myusername
+    Enable Keyring [False]:
+    Duo Factor [None]: push
+    Role ARN [None]:
 \n
-To update just the entity ID::\n
+To update just the Duo factor::\n
 \n
     $ aws login configure
-    Entity ID [urn:mace:incommon:idp.edu]: urn:mace:uncommon:foo.com
-    ECP Endpoint URL [https://idp.edu/idp/profile/SAML2/SOAP/ECP]:
+    ECP Endpoint URL [https://shib.foo.edu/idp/profile/SAML2/SOAP/ECP]:
+    Username [myusername]:
+    Enable Keyring [False]:
+    Duo Factor [push]: sms
+    Role ARN [None]:
 ''')
 
     def _run_main(self, args: Namespace, parsed_globals):

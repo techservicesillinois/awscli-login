@@ -10,7 +10,7 @@ from .util import login_cli_args
 # TODO Not very dry...
 class TestNoProfile(CleanTestEnvironment):
     """ Integration tests for no profile. """
-    profile = None  # default
+    profile = 'default'
 
     @patch('builtins.input', return_value='')
     def test_login_configure_default_profile(self, mock_input):
