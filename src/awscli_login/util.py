@@ -41,9 +41,10 @@ from .exceptions import (
     ConfigError,
     CredentialProcessMisconfigured,
     CredentialProcessNotSet,
-    InvalidSelection,
     SAML,
     TooManyHttpTrafficFlags,
+    TooManyInvalidSelections,
+    UserExit,
 )
 from ._typing import Role
 
@@ -75,9 +76,7 @@ def get_selection(role_arns: List[Role], profile_role: Optional[str] = None,
                   interactive: bool = True, aliases: Dict[str, str] = {}
                   ) -> Role:
     """ Interactively prompts the user for a role selection. """
-    i = 0
     n = len(role_arns)
-    select: Dict[int, int] = {}
 
     # Return profile_role if valid and set
     if profile_role is not None:
@@ -90,9 +89,22 @@ def get_selection(role_arns: List[Role], profile_role: Optional[str] = None,
             logger.error(ERROR_INVALID_PROFILE_ROLE % profile_role)
 
     if n > 1:
-        print("Please choose the role you would like to assume:")
+        return prompt_for_role_arn(role_arns)
+    elif n == 1:
+        return role_arns[0]
+    else:
+        raise SAML("No roles returned!")
 
-        accounts = sort_roles(role_arns)
+
+def prompt_for_role_arn(role_arns: List[Role], aliases: Dict[str, str] = {}):
+    """ Prompts user to select a role from the given list of roles. """
+    accounts = sort_roles(role_arns)
+
+    for _ in range(3):
+        i = 0
+        select: Dict[int, int] = {}
+
+        print("Please choose the role you would like to assume:")
         for acct, roles in accounts:
             name = f"{aliases[acct]} ({acct})" if acct in aliases else acct
             print(' ' * 4, "Account:", name)
@@ -102,15 +114,17 @@ def get_selection(role_arns: List[Role], profile_role: Optional[str] = None,
                 select[i] = index
                 i += 1
 
-        print("Selection:\a ", end='')
+        print("Select a role or enter 'q' to quit:\a ", end='')
         try:
-            return role_arns[select[int(input())]]
+            user_input = input()
+            return role_arns[select[int(user_input)]]
         except (ValueError, KeyError):
-            raise InvalidSelection
-    elif n == 1:
-        return role_arns[0]
-    else:
-        raise SAML("No roles returned!")
+            if user_input == 'q':
+                raise UserExit
+            print("Invalid value. Try again.")
+            continue
+
+    raise TooManyInvalidSelections
 
 
 def file2bytes(filename: str) -> bytes:
