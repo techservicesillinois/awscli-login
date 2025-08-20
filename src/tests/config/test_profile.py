@@ -469,6 +469,31 @@ username = NetID
         self.assertEqual(self.profile.role_arn, "jane")
 
 
+class TestIdentityFiles(ProfileBase):
+
+    def test_write_read_remove_identity_files(self):
+        self.login_config = """
+[default]
+ecp_endpoint_url = url
+"""
+        self.Profile(profile='default', no_args=True)
+
+        self.assertFalse(path.exists(self.profile.identity_dir))
+        self.profile.write_identity_files([
+            "foo",
+            "blah:blah:blah:blah:1234:foo/bar:blah",
+        ])
+
+        self.assertTrue(path.exists(self.profile.identity_dir))
+        with open(self.profile.identity_acct_file, 'r') as f:
+            self.assertEqual('1234', f.read())
+        with open(self.profile.identity_role_file, 'r') as f:
+            self.assertEqual('bar', f.read())
+
+        self.profile.remove_identity_files()
+        self.assertFalse(path.exists(self.profile.identity_dir))
+
+
 # This ensures that shared tests in mixins are not run with empty
 # data sets!
 del CookieMixin

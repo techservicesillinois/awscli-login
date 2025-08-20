@@ -23,6 +23,9 @@ class MockProfile():
     def raise_if_logged_out(self):
         return
 
+    def write_identity_files(self, role):
+        return
+
 
 class MockBotocoreClient():
     pass

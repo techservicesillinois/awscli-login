@@ -82,6 +82,7 @@ def login(profile: Profile, session: Session, interactive: bool = True):
     duration = profile.duration
     role = get_selection(roles, profile.role_arn, interactive,
                          profile.account_names)
+    profile.write_identity_files(role)
     return save_sts_token(profile, client, saml, role, duration)
 
 
@@ -102,6 +103,7 @@ def logout(profile: Profile, session: Session, xargs: Namespace,
     else:
         if not profile.remove_credentials():
             raise AlreadyLoggedOut
+    profile.remove_identity_files()
 
 
 @error_handler(skip_args=False, validate=True)
