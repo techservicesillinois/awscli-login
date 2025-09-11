@@ -328,6 +328,9 @@ Your prompt should dynamically change on login and logout. For example::
 Advanced Usage
 ==============
 
+Multiple SAML Roles
+-------------------
+
 It is possible to be logged in to more than one role at the same
 time using multiple `named profiles
 <https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html>`__.
@@ -375,6 +378,9 @@ prompted for a password because it is stored in the keyring. The
 user will receive either a phone call or a push to the default
 Duo device.
 
+A Shell Function for switching Profiles
+---------------------------------------
+
 For an easier way to switch between multiple profiles, consider adding a
 shell function like this in your shell's start-up script::
 
@@ -397,6 +403,54 @@ the test profile and do an s3 ls in that profile. You're now logged into
 both profiles simultaneously and can switch between them by issuing
 ``awsprofile`` commands. Additionally, you can run ``awsprofile`` without any
 profile name to clear ``$AWS_PROFILE``.
+
+Using a SAML Role as a Source Role
+----------------------------------
+
+If a SAML role has the ``assume_role`` permission you can configure
+a profile to use the SAML role's STS temporary credentials to
+retrieve STS temporary credentials for another role by setting the
+``source_profile`` to the SAML role. This works the same if the
+source profile is an IAM user. This allows the use of multiple roles
+in potentially multiple different accounts without needing to log
+in and out multiple times.
+
+For example, if the SAML role ``Admin`` has ``assume_role`` permission
+for the ``S3ReadOnly`` role then we can configure a profile to allow
+the ``Admin`` role to use the ``S3ReadOnly`` role.  First we need
+to configure a profile that we are going to call ``s3`` for this
+example. The ``s3`` profile needs to be configured in
+``~/.aws/credentials`` as shown below. Note that the ``default``
+profile is configured to work with ``awscli-login``::
+
+    [default]
+    credential_process = aws-login --profile default
+
+    [s3]
+    role_arn = arn:aws:iam::978517677611:role/S3ReadOnly
+    source_profile = default
+
+Now that the ``s3`` profile and the ``default`` profile are configured
+we can use them::
+
+    $ aws login
+        Account: aws-foobar-prod (978517677611)
+            [ 0 ]: Admin
+        Account: aws-foobar-test (520135271718)
+            [ 1 ]: ReadOnlyUser
+            [ 2 ]: S3Admin
+    Selection: 0
+    [Admin@aws-foobar-prod] $ export AWS_PROFILE=s3
+    $ aws sts get-caller-identity
+    {
+        "UserId": "BSOAS4WCOBJYVS33YXQDY:botocore-session-1234567890",
+        "Account": "978517677611"
+        "Arn": "arn:aws:sts::978517677611:assumed-role/S3ReadOnly/botocore-session-1234567890"
+    }
+
+For more information on using IAM Roles from the AWS CLI see the `AWS
+documentation.
+<https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html>`_
 
 Advanced Configuration
 ======================
