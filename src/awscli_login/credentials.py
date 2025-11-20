@@ -11,7 +11,7 @@ from datetime import datetime
 
 from botocore.session import Session
 
-from .__main__ import main as login, logout
+from .__main__ import main as aws_login, login, logout
 from ._version import version
 from .account_names import edit_account_names
 from .config import Profile, error_handler
@@ -121,7 +121,7 @@ def main():
         if ns.debug_info:
             debug_info()
             return
-        return login(ns, session)
+        return aws_login(ns, session)
     elif args.logout:
         return logout(Namespace(**json.load(args.logout)), session)
     elif args.alias:
