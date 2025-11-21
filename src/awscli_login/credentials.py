@@ -63,14 +63,19 @@ def init_parser():
     return parser
 
 
-@error_handler()
-def _main(profile: Profile, session: Session, interactive: bool = True):
+def get_credentials(profile: Profile, session: Session):
+    """Get credentials and print them."""
     profile.raise_if_logged_out()
     if profile.are_credentials_expired():
         token = login(profile, session, interactive=False)
     else:
         token = profile.load_credentials()
     print_credentials(token)
+
+
+@error_handler()
+def _main(profile: Profile, session: Session):
+    get_credentials(profile, session)
 
 
 def debug_info():
