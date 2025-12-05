@@ -1,0 +1,45 @@
+dn: dc=example,dc=org
+objectClass: top
+objectClass: domain
+dc: example
+
+dn: ou=users,dc=example,dc=org
+objectClass: organizationalUnit
+ou: users
+
+dn: cn=user01,ou=users,dc=example,dc=org
+cn: User
+sn: 01
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+userPassword: password
+uid: user01
+uidNumber: 1001
+gidNumber: 1001
+homeDirectory: /home/user01
+
+dn: cn=user02,ou=users,dc=example,dc=org
+cn: User
+sn: 02
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+userPassword: password
+uid: user02
+uidNumber: 1002
+gidNumber: 1002
+homeDirectory: /home/user02
+
+dn: cn=nobody,ou=users,dc=example,dc=org
+cn: Nobody
+sn: Inparticular
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+userPassword: password
+uid: nobody
+uidNumber: 1003
+gidNumber: 1003
+homeDirectory: /home/nobody
+
