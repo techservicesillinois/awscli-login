@@ -10,9 +10,17 @@ load 'clean'
     assert_not_exists "$AWS_SHARED_CREDENTIALS_FILE"
     assert_not_exists "$AWSCLI_LOGIN_ROOT/.awscli-login/config"
 
+    export AWS_REGION=us-east-1
+    export AWS_ENDPOINT_URL="http://127.0.0.1:8888"  # Avoid bothering AWS
+
     run aws login
     assert_failure
-    assert_line --partial "aws: error: argument command: Invalid choice"
+    if [ -v AWSCLI_TEST_V2 ]; then
+        # New behavior: SSO always attempted in V2 with invalid credentials.
+        assert_line --partial "Attempting to open your default browser."
+    else
+        assert_line --partial "aws: error: argument command: Invalid choice"
+    fi
 }
 
 @test "Enable plugin in ~/.aws/config" {
