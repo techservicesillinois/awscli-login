@@ -10,6 +10,13 @@ class ConfigError(AWSCLILogin):
     pass
 
 
+class UserExit(ConfigError):
+    code = 0
+
+    def __init__(self) -> None:
+        super().__init__("No role selected. Good bye!")
+
+
 class AlreadyLoggedIn(ConfigError):
     code = 2
 
@@ -89,12 +96,11 @@ class RoleParseFail(SAML):
         super().__init__(mesg % role)
 
 
-class InvalidSelection(ConfigError):
+class TooManyInvalidSelections(ConfigError):
     code = 11
 
     def __init__(self) -> None:
-        mesg = "Invalid selection!\a"
-        super().__init__(mesg)
+        super().__init__("Too many invalid selections!")
 
 
 class TooManyHttpTrafficFlags(ConfigError):

@@ -14,9 +14,10 @@ from awscli_login.const import ERROR_INVALID_PROFILE_ROLE
 from awscli_login.exceptions import (
     CredentialProcessMisconfigured,
     CredentialProcessNotSet,
-    InvalidSelection,
     SAML,
     TooManyHttpTrafficFlags,
+    TooManyInvalidSelections,
+    UserExit,
 )
 from awscli_login.util import (
     config_vcr,
@@ -128,6 +129,18 @@ class util(unittest.TestCase):
 
         self.assertEqual(get_selection(roles), roles[1])
 
+    @patch('builtins.input', return_value='q')
+    @patch('sys.stdout', new=StringIO())
+    def test_user_exit(self, *args):
+        """ User exits by typing 'q' """
+        roles = [
+            ('idp1', 'arn:aws:iam::123577191723:role/KalturaAdmin'),
+            ('idp2', 'arn:aws:iam::271867855970:role/BoxAdmin'),
+        ]
+
+        with self.assertRaises(UserExit):
+            get_selection(roles)
+
     @patch('builtins.input', return_value=3)
     @patch('sys.stdout', new=StringIO())
     def test_get_bad_numeric_selection(self, *args):
@@ -137,7 +150,7 @@ class util(unittest.TestCase):
             ('idp2', 'arn:aws:iam::271867855970:role/BoxAdmin'),
         ]
 
-        with self.assertRaises(InvalidSelection):
+        with self.assertRaises(TooManyInvalidSelections):
             get_selection(roles)
 
     @patch('builtins.input', return_value="foo")
@@ -149,7 +162,7 @@ class util(unittest.TestCase):
             ('idp2', 'arn:aws:iam::271867855970:role/BoxAdmin'),
         ]
 
-        with self.assertRaises(InvalidSelection):
+        with self.assertRaises(TooManyInvalidSelections):
             get_selection(roles)
 
     @patch('builtins.input', return_value=1)
