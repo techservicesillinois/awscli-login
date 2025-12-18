@@ -11,7 +11,7 @@ from datetime import datetime
 
 from botocore.session import Session
 
-from .__main__ import main as login, logout
+from .__main__ import main as aws_login, login, logout
 from ._version import version
 from .account_names import edit_account_names
 from .config import Profile, error_handler
@@ -63,14 +63,19 @@ def init_parser():
     return parser
 
 
-@error_handler()
-def _main(profile: Profile, session: Session, interactive: bool = True):
+def get_credentials(profile: Profile, session: Session):
+    """Get credentials and print them."""
     profile.raise_if_logged_out()
     if profile.are_credentials_expired():
         token = login(profile, session, interactive=False)
     else:
         token = profile.load_credentials()
     print_credentials(token)
+
+
+@error_handler()
+def _main(profile: Profile, session: Session):
+    get_credentials(profile, session)
 
 
 def debug_info():
@@ -116,7 +121,7 @@ def main():
         if ns.debug_info:
             debug_info()
             return
-        return login(ns, session)
+        return aws_login(ns, session)
     elif args.logout:
         return logout(Namespace(**json.load(args.logout)), session)
     elif args.alias:
