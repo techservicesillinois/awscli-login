@@ -563,10 +563,11 @@ def _error_handler(Profile, skip_args=True, validate=False,
             sig = None
             fargs = (extra_args_handler(args), ) if extra_args_handler else ()
 
+            if hasattr(args, "verbose"):
+                configConsoleLogger(args.verbose)
+
             try:
                 if not skip_args:
-                    # verbosity can only be set at command line
-                    configConsoleLogger(args.verbose)
                     del args.verbose
 
                     filename, load = config_vcr(args)
